@@ -22,18 +22,30 @@ ui <- dashboardPage(
   dashboardHeader(title = "CS 424 | Project 2"),
   dashboardSidebar(
     sidebarMenu(
-      menuItem("Bart", tabName = "outbreaks", icon = icon("ambulance", lib = "font-awesome")),
-      menuItem("Isabel", tabName = "outbreaks", icon = icon("ambulance", lib = "font-awesome")),
-      menuItem("Vijay", tabName = "outbreaks", icon = icon("ambulance", lib = "font-awesome"))
-      
+      menuItem("Dashboard", tabName = "bart", icon = icon("dashboard")),
+      menuItem("Widgets", icon = icon("th"), tabName = "isabel"),
+      menuItem("Dashboard", tabName = "vijay", icon = icon("dashboard"))
     )
   ),
-  
-  #start of the body 
   dashboardBody(
+    
+    tabItems(
+      tabItem(tabName = "bart",
+              h2("Bart tab content")
+      ),
+      
+      tabItem(tabName = "isabel",
+              h2("Isabel tab content")
+      ),
+      
+      tabItem(tabName = "vijay",
+              h2("Vijay tab content")
+      )
+    )
     
   )
 )
+
 
 server <- function(input, output) {
   
