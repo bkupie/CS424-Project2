@@ -1,5 +1,5 @@
 # Project 1 for CS 424 Spring 2018 UIC 
-
+# Authors: Vijayraj Mahida, Bartosz Kupiec, and Isabel Lindmae
 # for now this is just a template we may end up using, but don't have to
 
 #libraries to include
