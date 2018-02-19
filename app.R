@@ -13,7 +13,7 @@ library(grid)
 library(leaflet)
 library(reshape2)
 library(scales)
-require(dplyr)
+library(dplyr)
 
 # start up the gui 
 ui <- dashboardPage(
