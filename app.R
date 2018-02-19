@@ -22,9 +22,9 @@ ui <- dashboardPage(
   dashboardHeader(title = "CS 424 | Project 2"),
   dashboardSidebar(
     sidebarMenu(
-      menuItem("Dashboard", tabName = "bart", icon = icon("dashboard")),
-      menuItem("Widgets", icon = icon("th"), tabName = "isabel"),
-      menuItem("Dashboard", tabName = "vijay", icon = icon("dashboard"))
+      menuItem("Bart", tabName = "bart", icon = icon("dashboard")),
+      menuItem("Isabel", icon = icon("th"), tabName = "isabel"),
+      menuItem("Vijay", tabName = "vijay", icon = icon("dashboard"))
     )
   ),
   dashboardBody(
