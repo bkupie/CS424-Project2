@@ -20,11 +20,18 @@ ui <- dashboardPage(
   
   #set title and disable sidebar
   dashboardHeader(title = "CS 424 | Project 2"),
-  dashboardSidebar(disable = TRUE),
+  dashboardSidebar(
+    sidebarMenu(
+      menuItem("Bart", tabName = "outbreaks", icon = icon("ambulance", lib = "font-awesome")),
+      menuItem("Isabel", tabName = "outbreaks", icon = icon("ambulance", lib = "font-awesome")),
+      menuItem("Vijay", tabName = "outbreaks", icon = icon("ambulance", lib = "font-awesome"))
+      
+    )
+  ),
   
   #start of the body 
   dashboardBody(
-
+    
   )
 )
 
