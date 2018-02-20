@@ -15,6 +15,10 @@ library(reshape2)
 library(scales)
 library(dplyr)
 
+# process dataset here
+flights <- read.table(file = "ontime_flights.cleaned.csv", sep = ",", header = TRUE)
+print(flights)
+
 # start up the gui 
 ui <- dashboardPage(
   
