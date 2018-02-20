@@ -1,8 +1,6 @@
 """
 Quick script to clean the ontime flight data from:
-
 http://www.transtats.bts.gov/DL_SelectFields.asp?Table_ID=236&DB_Short_Name=On-Time
-
 And turn the CSV into a TSV with various lookup codes added.
 """
 
@@ -37,7 +35,7 @@ def main():
     with open(flight_data, 'r') as data:
         reader = csv.DictReader(data)
         with open('ontime_flights.cleaned.csv', 'w') as output:
-            writer = csv.DictWriter(output, delimiter="\t", fieldnames=reader.fieldnames)
+            writer = csv.DictWriter(output, delimiter=",", fieldnames=reader.fieldnames)
             for row in reader:
                 row['AIRLINE_ID'] = airlines[row['AIRLINE_ID']]['code']
                 row['CARRIER'] = carriers[row['CARRIER']]
