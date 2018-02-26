@@ -43,22 +43,24 @@ names(hourlyDepartures) <- c("Departure Hour", "Count")
 names(hourlyArrivals) <- c("Arrival Hour", "Count")
 
 #count locations based on amount of origin
-totalOrigin <- aggregate(cbind(count = ORIGIN_AIRPORT_ID) ~ ORIGIN_AIRPORT_ID, 
+totalOrigin <- aggregate(cbind(count = ORIGIN_CITY_NAME) ~ ORIGIN_CITY_NAME, 
                              data = flights, 
                              FUN = function(x){NROW(x)})
 
 #count locations based on amount of destination
-totalDest <- aggregate(cbind(count = DEST_AIRPORT_ID) ~ DEST_AIRPORT_ID, 
+totalDest <- aggregate(cbind(count = DEST_CITY_NAME) ~ DEST_CITY_NAME, 
                              data = flights, 
                              FUN = function(x){NROW(x)})
 
 #quick rename before we can join them
-names(totalOrigin) <- c("ID", "Count Origin")
-names(totalDest) <- c("ID", "Count Destination")
+names(totalOrigin) <- c("City Name", "Count Origin")
+names(totalDest) <- c("City Name", "Count Destination")
 
 #now we combine the two totals togheter
-totalDepartures <- merge(totalDest,totalOrigin,by="ID")
+totalDepartures <- merge(totalDest,totalOrigin,by="City Name")
 totalDepartures$"Total Count" <- totalDepartures$"Count Origin" +totalDepartures$"Count Destination"
+#last step is to sort by total count 
+totalDepartures <- totalDepartures[order(-totalDepartures$"Total Count"),]
 
 
 
@@ -138,12 +140,13 @@ server <- function(input, output) {
   output$bartTable1 <- DT::renderDataTable(
     DT::datatable({ 
       #show only the top 15 
-      top15 = totalDepartures[sample(nrow(totalDepartures), 15), ]  
+      head(totalDepartures,15)
+      #top15 = totalDepartures[sample(nrow(totalDepartures), 15), ]  
   
   },
   class = 'cell-border stripe',
   rownames = FALSE,
-  options = list(searching = FALSE, pageLength = 5, lengthChange = TRUE, order = list(list(3, 'dec')))
+  options = list(searching = FALSE, pageLength = 5, lengthChange = TRUE)
   )
   )
 }  
