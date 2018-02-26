@@ -31,8 +31,8 @@ flights$ARR_TIMEaggregated <- substr(flights$ARR_TIMEaggregated, 12, 16)
 
 #count based on hour
 hourlyDepartures <- aggregate(cbind(count = CARRIER) ~ DEP_TIMEaggregated, 
-          data = flights, 
-          FUN = function(x){NROW(x)})
+                              data = flights, 
+                              FUN = function(x){NROW(x)})
 
 hourlyArrivals <- aggregate(cbind(count = CARRIER) ~ ARR_TIMEaggregated, 
                             data = flights, 
@@ -55,6 +55,26 @@ hourlyDelayCount$percentage <- (hourlyDelayCount$count / flightssum) * 100
 names(hourlyDepartures) <- c("Departure Hour", "Count")
 names(hourlyArrivals) <- c("Arrival Hour", "Count")
 
+#count locations based on amount of origin
+totalOrigin <- aggregate(cbind(count = ORIGIN_CITY_NAME) ~ ORIGIN_CITY_NAME, 
+                             data = flights, 
+                             FUN = function(x){NROW(x)})
+
+#count locations based on amount of destination
+totalDest <- aggregate(cbind(count = DEST_CITY_NAME) ~ DEST_CITY_NAME, 
+                             data = flights, 
+                             FUN = function(x){NROW(x)})
+
+#quick rename before we can join them
+names(totalOrigin) <- c("City Name", "Count Origin")
+names(totalDest) <- c("City Name", "Count Destination")
+
+#now we combine the two totals togheter
+totalDepartures <- merge(totalDest,totalOrigin,by="City Name")
+totalDepartures$"Total Count" <- totalDepartures$"Count Origin" +totalDepartures$"Count Destination"
+#last step is to sort by total count 
+totalDepartures <- totalDepartures[order(-totalDepartures$"Total Count"),]
+
 
 
 # start up the gui 
@@ -73,8 +93,12 @@ ui <- dashboardPage(
     
     tabItems(
       tabItem(tabName = "bart",
-              h2("Bart tab content")
+              h2("Bart tab content"),
+              box(title = ":-)", solidHeader = TRUE, status = "primary", width = 10,
+                  dataTableOutput("bartTable1")
+              )
       ),
+      
       
       tabItem(tabName = "isabel",
               fluidRow(
@@ -114,7 +138,7 @@ server <- function(input, output) {
     hourlyArrivals
   }, rownames= FALSE, options=list(paging = FALSE, bFilter=0, bInfo=0, bLengthChange = FALSE)
   )
- 
+  
   output$hourlyGraph <- renderPlotly({
     plot_ly(hourlyDepartures, x = ~hourlyDepartures$`Departure Hour`, y = ~hourlyDepartures$Count, type = 'bar', name = 'Departures', marker = list(color = 'rgb(49,130,189)')) %>%
       add_trace(x = ~hourlyArrivals$`Arrival Hour`, y = ~hourlyArrivals$Count, name = 'Arrivals', marker = list(color = 'rgb(204,204,204)')) %>%
@@ -124,6 +148,20 @@ server <- function(input, output) {
              barmode = 'group')
   })
   
+  #bart outputs 
+  #render the table for 
+  output$bartTable1 <- DT::renderDataTable(
+    DT::datatable({ 
+      #show only the top 15 
+      head(totalDepartures,15)
+      #top15 = totalDepartures[sample(nrow(totalDepartures), 15), ]  
+  
+  },
+  class = 'cell-border stripe',
+  rownames = FALSE,
+  options = list(searching = FALSE, pageLength = 5, lengthChange = TRUE)
+  )
+  )
 }  
   
 #start the actual application 
