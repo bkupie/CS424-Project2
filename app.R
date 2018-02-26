@@ -34,7 +34,10 @@ ui <- dashboardPage(
     
     tabItems(
       tabItem(tabName = "bart",
-              h2("Bart tab content")
+              h2("Bart tab content"),
+              box(title = ":-)", solidHeader = TRUE, status = "primary", width = 10,
+                  dataTableOutput("bartTable1")
+              )
       ),
       
       tabItem(tabName = "isabel",
@@ -54,6 +57,22 @@ server <- function(input, output) {
   
   # increase the default font size
   theme_set(theme_dark(base_size = 18))
+  
+  #bart outputs 
+  #render the table for 
+  output$bartTable1 <- DT::renderDataTable(
+    DT::datatable({ 
+      #only secelect origin and destination IDs 
+      df <- subset( flights, select = c(ORIGIN_AIRPORT_ID,DEST_AIRPORT_ID) )
+      #counted = count(df, c('ORIGIN_AIRPORT_ID'))
+      #show only the top 15 
+      top15 = df[sample(nrow(df), 15), ]  
+  },
+  class = 'cell-border stripe',
+  rownames = FALSE,
+  options = list(searching = FALSE, pageLength = 5, lengthChange = TRUE, order = list(list(0, 'asc')))
+  )
+  )
 }  
   
 #start the actual application 
