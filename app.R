@@ -39,22 +39,28 @@ hourlyArrivals <- aggregate(cbind(count = CARRIER) ~ ARR_TIMEaggregated,
                             data = flights, 
                             FUN = function(x){NROW(x)})
 
+#add nicer names to columns
+names(hourlyDepartures) <- c("Hour", "Count")
+names(hourlyArrivals) <- c("Hour", "Count")
+
+totalFlights <- merge(hourlyDepartures,hourlyArrivals,by="Hour")
+names(totalFlights) <- c("Hour", "Departures", "Arrivals")
+
 # #add int boolean for if delay exists or not
 # flights$delayTrue<-ifelse(flights$ARR_DELAY_NEW>0 | flights$DEP_DELAY_NEW > 0,1,0)
 # 
 # #count arrival delays per hour
-# hourlyDelayCount <- aggregate(cbind(count = delayTrue) ~ ARR_TIMEaggregated, 
-#                                  data = flights, 
+# hourlyDelayCount <- aggregate(cbind(count = delayTrue) ~ ARR_TIMEaggregated,
+#                                  data = flights,
 #                                  FUN = sum)
-# 
+# names(hourlyDelayCount) <- c("Hour", "Count")
+# totalFlights2 <- merge(totalFlights,hourlyDelayCount,by="Hour")
+#
 # #!!!!sum is not correct, should be sum for hour not overall sum!!!
-# flightssum <- sum(hourlyDepartures$count) + sum(hourlyArrivals$count)
-# 
-# hourlyDelayCount$percentage <- (hourlyDelayCount$count / flightssum) * 100
+#totalFlights2$Percentage <- (totalFlights2$Count / (totalFlights2$Departures + totalFlights2$Arrivals)) * 100
+##drop arrivals and departures from table
+#totalFlights2 <- subset(totalFlights2, select = -c(2,3) )
 
-#add nicer names to columns
-names(hourlyDepartures) <- c("Departure Hour", "Count")
-names(hourlyArrivals) <- c("Arrival Hour", "Count")
 
 #count locations based on amount of origin
 totalOrigin <- aggregate(cbind(count = ORIGIN_CITY_NAME) ~ ORIGIN_CITY_NAME, 
