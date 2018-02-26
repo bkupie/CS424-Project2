@@ -1,4 +1,4 @@
-# Project 1 for CS 424 Spring 2018 UIC 
+# Project 2 for CS 424 Spring 2018 UIC 
 # Authors: Vijayraj Mahida, Bartosz Kupiec, and Isabel Lindmae
 # for now this is just a template we may end up using, but don't have to
 
@@ -13,7 +13,7 @@ library(grid)
 library(leaflet)
 library(reshape2)
 library(scales)
-library(plyr)
+library(dplyr)
 library(plotly)
 
 
@@ -106,7 +106,8 @@ ui <- dashboardPage(
     sidebarMenu(
       menuItem("Bart", tabName = "bart", icon = icon("dashboard")),
       menuItem("Isabel", icon = icon("th"), tabName = "isabel"),
-      menuItem("Vijay", tabName = "vijay", icon = icon("dashboard"))
+      menuItem("Vijay", tabName = "vijay", icon = icon("dashboard")),
+      menuItem("Info", tabName = "info", icon = icon("th"))
     )
   ),
   dashboardBody(
@@ -141,6 +142,11 @@ ui <- dashboardPage(
       
       tabItem(tabName = "vijay",
               h2("Vijay tab content")
+      ),
+      tabItem(tabName = "info",
+              h1("Project 2 for CS 424 Spring 2018 UIC"),
+              h2("Authors: Vijayraj Mahida, Bartosz Kupiec, and Isabel Lindmae"),
+              h2("Libraries used:")
       )
     )
     
