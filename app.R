@@ -184,10 +184,10 @@ server <- function(input, output) {
   })
   
   output$delayGraph <- renderPlotly({
-    plot_ly(data = totalFlightsPercentage, x = ~totalFlightsPercentage$Hour, y = ~totalFlightsPercentage$Count, type = "bar", showlegend=FALSE, hoverinfo = 'text',
+    plot_ly(data = totalFlightsPercentage, x = ~totalFlightsPercentage$Hour, y = ~totalFlightsPercentage$Count, type = "bar", showlegend=TRUE, hoverinfo = 'text',
             text = ~paste('</br>', Count, ' Delays </br>',
                           Percentage, '% of Flights</br>'),
-            marker=list(color=~totalFlightsPercentage$Percentage, showscale=FALSE)) %>% layout(xaxis = list(title = "Time Period", tickangle = -45),yaxis = list(title = "# of Flights"),
+            marker=list(color=~totalFlightsPercentage$Percentage, showscale=TRUE)) %>% layout(xaxis = list(title = "Time Period", tickangle = -45),yaxis = list(title = "# of Flights"),
                                                                                       margin = list(b = 100),
                                                                                       barmode = 'group')
                                                                                       
