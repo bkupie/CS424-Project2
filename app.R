@@ -18,7 +18,8 @@ library(plotly)
 
 
 # process dataset here
-flights <- read.table(file = "test.csv", sep = ",", header = TRUE)
+#test.csv is for isabel atm
+flights <- read.table(file = "ontime_flights.cleaned.csv", sep = ",", header = TRUE)
 
 #create new column that converts minutes to hour:minute
 flights$DEP_TIMEaggregated <- as.POSIXct(sprintf("%04.0f", flights$DEP_TIME), format='%H%M')
@@ -38,18 +39,18 @@ hourlyArrivals <- aggregate(cbind(count = CARRIER) ~ ARR_TIMEaggregated,
                             data = flights, 
                             FUN = function(x){NROW(x)})
 
-#add int boolean for if delay exists or not
-flights$delayTrue<-ifelse(flights$ARR_DELAY_NEW>0 | flights$DEP_DELAY_NEW > 0,1,0)
-
-#count arrival delays per hour
-hourlyDelayCount <- aggregate(cbind(count = delayTrue) ~ ARR_TIMEaggregated, 
-                                 data = flights, 
-                                 FUN = sum)
-
-#!!!!sum is not correct, should be sum for hour not overall sum!!!
-flightssum <- sum(hourlyDepartures$count) + sum(hourlyArrivals$count)
-
-hourlyDelayCount$percentage <- (hourlyDelayCount$count / flightssum) * 100
+# #add int boolean for if delay exists or not
+# flights$delayTrue<-ifelse(flights$ARR_DELAY_NEW>0 | flights$DEP_DELAY_NEW > 0,1,0)
+# 
+# #count arrival delays per hour
+# hourlyDelayCount <- aggregate(cbind(count = delayTrue) ~ ARR_TIMEaggregated, 
+#                                  data = flights, 
+#                                  FUN = sum)
+# 
+# #!!!!sum is not correct, should be sum for hour not overall sum!!!
+# flightssum <- sum(hourlyDepartures$count) + sum(hourlyArrivals$count)
+# 
+# hourlyDelayCount$percentage <- (hourlyDelayCount$count / flightssum) * 100
 
 #add nicer names to columns
 names(hourlyDepartures) <- c("Departure Hour", "Count")
