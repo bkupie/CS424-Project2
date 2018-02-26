@@ -15,6 +15,7 @@ library(reshape2)
 library(scales)
 library(dplyr)
 library(plotly)
+library(shinyWidgets)
 
 
 # process dataset here
@@ -107,7 +108,20 @@ ui <- dashboardPage(
       menuItem("Bart", tabName = "bart", icon = icon("dashboard")),
       menuItem("Isabel", icon = icon("th"), tabName = "isabel"),
       menuItem("Vijay", tabName = "vijay", icon = icon("dashboard")),
-      menuItem("Info", tabName = "info", icon = icon("th"))
+      menuItem("Info", tabName = "info", icon = icon("th")),
+      #get month
+      selectInput("select", label = h5("Month"), 
+                  choices = list("January" = 1, "February" = 2, "March" = 3,
+                                 "April" = 4, "May" = 5, "June" = 6,
+                                 "July" = 7, "August" = 8, "September" = 9,
+                                 "October" = 10, "November" = 11, "December" = 12), selected = 1),
+      #get day of week
+      selectInput("select", label = h5("Day of Week"), 
+                  choices = list("Monday" = 1, "Tuesday" = 2, "Wednesday" = 3,
+                                 "Thursday" = 4, "Friday" = 5, "Saturday" = 6,
+                                 "Sunday" = 7, "All" = 8), selected = 8),
+      #get specific date !!! needs to be worked on
+      dateInput("date", label = h5("Specific Date"))
     )
   ),
   dashboardBody(
@@ -128,6 +142,16 @@ ui <- dashboardPage(
       
       tabItem(tabName = "isabel",
               fluidRow(
+                radioButtons(inputId = "up", label = "Update button :", choices = c("All", "None")),
+                
+                checkboxGroupButtons(
+                  inputId = "btn", label = "Power :",
+                  choices = c("Nuclear", "Hydro", "Solar", "Wind"),
+                  selected = "Hydro"
+                ),
+                
+                
+                
                 radioButtons("rd", label = h3("Airport"),
                              choices = list("O'Hare" = 1, "Midway" = 2, "All" = 3), 
                              selected = 1),
