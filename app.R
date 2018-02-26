@@ -18,8 +18,9 @@ library(plotly)
 
 
 # process dataset here
-#test.csv is for isabel atm
-flights <- read.table(file = "ontime_flights.cleaned.csv", sep = ",", header = TRUE)
+#test.csv is for isabel atm SWTICH TO CORRECT FILE IF YOU NEED IT
+#correct file = "ontime_flights.cleaned.csv"
+flights <- read.table(file = "test.csv", sep = ",", header = TRUE)
 
 #create new column that converts minutes to hour:minute
 flights$DEP_TIMEaggregated <- as.POSIXct(sprintf("%04.0f", flights$DEP_TIME), format='%H%M')
@@ -43,25 +44,37 @@ hourlyArrivals <- aggregate(cbind(count = CARRIER) ~ ARR_TIMEaggregated,
 names(hourlyDepartures) <- c("Hour", "Count")
 names(hourlyArrivals) <- c("Hour", "Count")
 
+#merge into total flights for both departure and arrival
 totalFlights <- merge(hourlyDepartures,hourlyArrivals,by="Hour")
+
+#give nicer column names
 names(totalFlights) <- c("Hour", "Departures", "Arrivals")
 
-# #add int boolean for if delay exists or not
-# flights$delayTrue<-ifelse(flights$ARR_DELAY_NEW>0 | flights$DEP_DELAY_NEW > 0,1,0)
-# 
-# #count arrival delays per hour
-# hourlyDelayCount <- aggregate(cbind(count = delayTrue) ~ ARR_TIMEaggregated,
-#                                  data = flights,
-#                                  FUN = sum)
-# names(hourlyDelayCount) <- c("Hour", "Count")
-# totalFlights2 <- merge(totalFlights,hourlyDelayCount,by="Hour")
-#
-# #!!!!sum is not correct, should be sum for hour not overall sum!!!
-#totalFlights2$Percentage <- (totalFlights2$Count / (totalFlights2$Departures + totalFlights2$Arrivals)) * 100
-##drop arrivals and departures from table
-#totalFlights2 <- subset(totalFlights2, select = -c(2,3) )
+#add int boolean for if delay exists or not
+flights$delayTrue<-ifelse(flights$ARR_DELAY_NEW>0 | flights$DEP_DELAY_NEW > 0,1,0)
 
+#count arrival delays per hour
+hourlyDelayCount <- aggregate(cbind(count = delayTrue) ~ ARR_TIMEaggregated,
+                                 data = flights,
+                                 FUN = sum)
 
+#give niver column names
+names(hourlyDelayCount) <- c("Hour", "Count")
+
+#create new table that will also hold percentage
+totalFlightsPercentage <- merge(totalFlights,hourlyDelayCount,by="Hour")
+totalFlightsPercentage$Percentage <- (totalFlightsPercentage$Count / (totalFlightsPercentage$Departures + totalFlightsPercentage$Arrivals)) * 100
+
+#drop arrivals and departures from table
+totalFlightsPercentage <- subset(totalFlightsPercentage, select = -c(2,3) )
+
+#round percentage
+totalFlightsPercentage$Percentage <-round(totalFlightsPercentage$Percentage, 0)
+
+#give niver column names
+#names(totalFlightsPercentage) <- c("Hour", "Total Delays", "% of Flights")
+
+#bart starts here
 #count locations based on amount of origin
 totalOrigin <- aggregate(cbind(count = ORIGIN_CITY_NAME) ~ ORIGIN_CITY_NAME, 
                              data = flights, 
@@ -109,14 +122,13 @@ ui <- dashboardPage(
       
       tabItem(tabName = "isabel",
               fluidRow(
-                tabBox(width = 4,
-                       title = "Flights by Hour",
-                       id = "tabset1",
-                       tabPanel("Arrivals", DT::dataTableOutput("hourlyArrivalTable", height = "100%")),
-                       tabPanel("Departures", DT::dataTableOutput("hourlyDepartureTable", height = "100%"))
+                box(status = "warning", solidHeader = TRUE, width = 4, height = NULL,
+                    #DT::dataTableOutput("totalFlightsTable")
+                    DT::dataTableOutput("totalFlightsPercentageTable")
                 ),
                 box(status = "primary", solidHeader = TRUE, width = 8, height = NULL,
-                    div(plotlyOutput("hourlyGraph"))
+                    #div(plotlyOutput("hourlyGraph"))
+                    div(plotlyOutput("delayGraph"))
                 )
                 
               )
@@ -136,24 +148,38 @@ server <- function(input, output) {
   # increase the default font size
   theme_set(theme_dark(base_size = 18))
   
-  output$hourlyDepartureTable = DT::renderDataTable({
-    hourlyDepartures
+  #isabel outputs
+  output$totalFlightsTable = DT::renderDataTable({
+    totalFlights
   }, rownames= FALSE, options=list(paging = FALSE, bFilter=0, bInfo=0, bLengthChange = FALSE)
   )
   
-  output$hourlyArrivalTable = DT::renderDataTable({
-    hourlyArrivals
+  output$totalFlightsPercentageTable = DT::renderDataTable({
+    totalFlightsPercentage
   }, rownames= FALSE, options=list(paging = FALSE, bFilter=0, bInfo=0, bLengthChange = FALSE)
   )
   
   output$hourlyGraph <- renderPlotly({
-    plot_ly(hourlyDepartures, x = ~hourlyDepartures$`Departure Hour`, y = ~hourlyDepartures$Count, type = 'bar', name = 'Departures', marker = list(color = 'rgb(49,130,189)')) %>%
-      add_trace(x = ~hourlyArrivals$`Arrival Hour`, y = ~hourlyArrivals$Count, name = 'Arrivals', marker = list(color = 'rgb(204,204,204)')) %>%
+    plot_ly(hourlyDepartures, x = ~hourlyDepartures$Hour, y = ~hourlyDepartures$Count, type = 'bar', name = 'Departures', marker = list(color = 'rgb(49,130,189)')) %>%
+      add_trace(x = ~hourlyArrivals$Hour, y = ~hourlyArrivals$Count, name = 'Arrivals', marker = list(color = 'rgb(204,204,204)')) %>%
       layout(xaxis = list(title = "Time Period", tickangle = -45),
              yaxis = list(title = "# of Flights"),
              margin = list(b = 100),
              barmode = 'group')
   })
+  
+  output$delayGraph <- renderPlotly({
+    plot_ly(data = totalFlightsPercentage, x = ~totalFlightsPercentage$Hour, y = ~totalFlightsPercentage$Count, type = "bar", showlegend=FALSE, hoverinfo = 'text',
+            text = ~paste('</br>', Count, ' Delays </br>',
+                          Percentage, '% of Flights</br>'),
+            marker=list(color=~totalFlightsPercentage$Percentage, showscale=FALSE)) %>% layout(xaxis = list(title = "Time Period", tickangle = -45),yaxis = list(title = "# of Flights"),
+                                                                                      margin = list(b = 100),
+                                                                                      barmode = 'group')
+                                                                                      
+  })
+  
+  
+                                                                          
   
   #bart outputs 
   #render the table for 
