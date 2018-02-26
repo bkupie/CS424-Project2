@@ -116,6 +116,11 @@ ui <- dashboardPage(
               h2("Bart tab content"),
               box(title = ":-)", solidHeader = TRUE, status = "primary", width = 10,
                   dataTableOutput("bartTable1")
+              ),
+              box(title = "Bart chart!!!", solidHeader = TRUE, width = 10,
+                  div(sliderInput("topChoices", "Top flights number", 
+                                  min = 1, max = 50, value = 15, width = 250)),
+                  div(plotlyOutput("bartChart1"))
               )
       ),
       
@@ -182,7 +187,7 @@ server <- function(input, output) {
                                                                           
   
   #bart outputs 
-  #render the table for 
+  #render the table for departure/arrival counters
   output$bartTable1 <- DT::renderDataTable(
     DT::datatable({ 
       #show only the top 15 
@@ -195,6 +200,17 @@ server <- function(input, output) {
   options = list(searching = FALSE, pageLength = 5, lengthChange = TRUE)
   )
   )
+  
+  output$bartChart1 <- renderPlotly({
+    head(totalDepartures,15)
+    plot_ly(totalDepartures, x = ~totalDepartures$"City Name", y = ~totalDepartures$"Total Count", type = 'bar', xbins = "topChoices",name = 'TotalCount', marker = list(color = 'rgb(49,130,189)')) %>%
+      layout(xaxis = list(title = "City Name", tickangle = -45),
+             yaxis = list(title = "# of Flights"),
+             margin = list(b = 100),
+             barmode = 'group')
+  })
+  
+
 }  
   
 #start the actual application 
