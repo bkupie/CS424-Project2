@@ -18,6 +18,32 @@ library(plotly)
 
 
 # process dataset here
+# flights dataset with carrier names in it (i.e. Spirit Airlines, etc.)
+cleanedFlights <- read.table(file = "flights-cleaned.csv", sep = ",", header = TRUE)
+
+# ordering flights by most common airlines
+# this takes top 20 of dataframe # top20airlines <- cleanedFlights %>% top_n(20)
+# based closely on following tutorial: https://rstudio-pubs-static.s3.amazonaws.com/52879_eaa8e7a9919b4bb6a2cf6e2bda587cb1.html
+cleanedFlights$CARRIER <- as.character(cleanedFlights$CARRIER)
+popularCarriers <- data.frame(summarize(group_by(cleanedFlights, CARRIER), sum(FR)))
+popularCarriers <- arrange(popularCarriers, -popularCarriers$sum.FR)
+popularCarriers$MIDWAY_DEPARTURES <- NA
+popularCarriers$OHARE_DEPARTURES <- NA
+
+# Midway airport ID = 13232; O'Hare airport ID = 13930
+for(i in 1:length(popularCarriers$CARRIER)) {
+  print(paste("i = ", i ))
+  #top1_MID <- cleanedFlights %>% filter(CARRIER == popularCarriers$CARRIER[i])
+  #top1_MID = top1_MID %>% filter(ORIGIN_AIRPORT_ID == 13232)
+  #top1_MID = data.frame(summarize(group_by(top1_MID, CARRIER), sum(FR)))
+  #popularCarriers$MIDWAY_DEPARTURES[i] <- top1_MID$sum.FR.
+
+  #top1_OHARE <- cleanedFlights %>% filter(CARRIER == popularCarriers$CARRIER[i])
+  #top1_OHARE = top1_OHARE %>% filter(ORIGIN_AIRPORT_ID == 13930)
+  #top1_OHARE = data.frame(summarize(group_by(top1_OHARE, CARRIER), sum(FR)))
+  #popularCarriers$OHARE_DEPARTURES[i] <- top1_OHARE$sum.FR.
+}
+
 #test.csv is for isabel atm SWTICH TO CORRECT FILE IF YOU NEED IT
 #correct file = "ontime_flights.cleaned.csv"
 flights <- read.table(file = "test.csv", sep = ",", header = TRUE)
@@ -141,7 +167,12 @@ ui <- dashboardPage(
       ),
       
       tabItem(tabName = "vijay",
-              h2("Vijay tab content")
+              h4("Popular Carriers Info-Vis"),
+              fluidRow(
+                box(title = "Popular Carriers Arr-Dep Table", solidHeader = TRUE, status = "primary", width = 12,
+                    DTOutput("topCarriers", width = "100%")
+                )
+              )
       ),
       tabItem(tabName = "info",
               h1("Project 2 for CS 424 Spring 2018 UIC"),
@@ -215,6 +246,16 @@ server <- function(input, output) {
              margin = list(b = 100),
              barmode = 'group')
   })
+  
+  # table for top carriers
+  output$topCarriers <- DT::renderDataTable(
+    DT::datatable({ 
+      popularCarriers
+    }, 
+    options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE
+    ) 
+    )
+  )
   
 
 }  
