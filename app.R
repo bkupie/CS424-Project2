@@ -127,6 +127,10 @@ ui <- dashboardPage(
       
       tabItem(tabName = "isabel",
               fluidRow(
+                radioButtons("rd", label = h3("Airport"),
+                             choices = list("O'Hare" = 1, "Midway" = 2, "All" = 3), 
+                             selected = 1),
+                
                 box(status = "warning", solidHeader = TRUE, width = 4, height = NULL,
                     #DT::dataTableOutput("totalFlightsTable")
                     DT::dataTableOutput("totalFlightsPercentageTable")
