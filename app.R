@@ -198,7 +198,7 @@ server <- function(input, output) {
     DT::datatable({ 
       #show only the top 15 
       head(totalDepartures,15)
-      #top15 = totalDepartures[sample(nrow(totalDepartures), 15), ]  
+
   
   },
   class = 'cell-border stripe',
@@ -208,12 +208,16 @@ server <- function(input, output) {
   )
   
   output$bartChart1 <- renderPlotly({
-    head(totalDepartures,15)
-    plot_ly(totalDepartures, x = ~totalDepartures$"City Name", y = ~totalDepartures$"Total Count", type = 'bar', xbins = "topChoices",name = 'TotalCount', marker = list(color = 'rgb(49,130,189)')) %>%
+    df <- totalDepartures
+    # get only the top 15 locations
+    df <- df  %>% top_n(15)
+    plot_ly(df, x = ~df$"City Name", y = ~df$"Count Destination", type = 'bar',name = 'Count Destination', text = paste("Total for city:" ,  (df$"Total Count"))) %>%
+      add_trace(y =  ~df$"Count Origin", name = 'Count Origin') %>%
       layout(xaxis = list(title = "City Name", tickangle = -45),
              yaxis = list(title = "# of Flights"),
-             margin = list(b = 100),
-             barmode = 'group')
+             barmode = 'stack',
+             margin = list(b = 100)
+             )
   })
   
 
