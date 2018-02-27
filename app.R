@@ -33,15 +33,25 @@ popularCarriers$OHARE_DEPARTURES <- NA
 # Midway airport ID = 13232; O'Hare airport ID = 13930
 for(i in 1:length(popularCarriers$CARRIER)) {
   print(paste("i = ", i ))
-  #top1_MID <- cleanedFlights %>% filter(CARRIER == popularCarriers$CARRIER[i])
-  #top1_MID = top1_MID %>% filter(ORIGIN_AIRPORT_ID == 13232)
-  #top1_MID = data.frame(summarize(group_by(top1_MID, CARRIER), sum(FR)))
-  #popularCarriers$MIDWAY_DEPARTURES[i] <- top1_MID$sum.FR.
-
-  #top1_OHARE <- cleanedFlights %>% filter(CARRIER == popularCarriers$CARRIER[i])
-  #top1_OHARE = top1_OHARE %>% filter(ORIGIN_AIRPORT_ID == 13930)
-  #top1_OHARE = data.frame(summarize(group_by(top1_OHARE, CARRIER), sum(FR)))
-  #popularCarriers$OHARE_DEPARTURES[i] <- top1_OHARE$sum.FR.
+  top1_MID <- cleanedFlights %>% filter(CARRIER == popularCarriers$CARRIER[i])
+  top1_MID = top1_MID %>% filter(ORIGIN_AIRPORT_ID == 13232)
+  top1_MID = data.frame(summarize(group_by(top1_MID, CARRIER), sum(FR)))
+  if (is.na(top1_MID$sum.FR.) || length(top1_MID$sum.FR.) == 0)
+  {
+    popularCarriers$MIDWAY_DEPARTURES[i] <- 0
+  } else {
+    popularCarriers$MIDWAY_DEPARTURES[i] <- top1_MID$sum.FR.
+  }
+  
+  top1_OHARE <- cleanedFlights %>% filter(CARRIER == popularCarriers$CARRIER[i])
+  top1_OHARE = top1_OHARE %>% filter(ORIGIN_AIRPORT_ID == 13930)
+  top1_OHARE = data.frame(summarize(group_by(top1_OHARE, CARRIER), sum(FR)))
+  if (is.na(top1_OHARE$sum.FR.) || length(top1_OHARE$sum.FR.) == 0)
+  {
+    popularCarriers$OHARE_DEPARTURES[i] <- 0
+  } else {
+    popularCarriers$OHARE_DEPARTURES[i] <- top1_OHARE$sum.FR.
+  }
 }
 
 #test.csv is for isabel atm SWTICH TO CORRECT FILE IF YOU NEED IT

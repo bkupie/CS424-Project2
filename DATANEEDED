@@ -1,0 +1,30 @@
+FlightDate
+
+Carrier
+FlightNum
+
+OriginAirportID
+OriginCityName
+
+DestAirportID
+DestCityName
+
+DepTime (local time)
+
+ArrTime (local time)
+
+Cancelled
+Cancellation Code
+
+AirTime
+Distance
+
+DepDelayMinutes
+ArrDelayMinutes
+
+CarrierDelay
+WeatherDelay
+NASDelay
+SecurityDelay
+LateAircraftDelay
+	
