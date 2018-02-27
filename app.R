@@ -19,73 +19,71 @@ library(shinyWidgets)
 
 
 # process dataset here
-#test.csv is for isabel atm SWTICH TO CORRECT FILE IF YOU NEED IT
-#correct file = "ontime_flights.cleaned.csv"
-flights <- read.table(file = "test.csv", sep = ",", header = TRUE)
+decFlights <- read.table(file = "decData.csv", sep = ",", header = TRUE)
 
 #create new column that converts minutes to hour:minute
-flights$DEP_TIMEaggregated <- as.POSIXct(sprintf("%04.0f", flights$DEP_TIME), format='%H%M')
-flights$DEP_TIMEaggregated <- cut(flights$DEP_TIMEaggregated, breaks = "hour")
-flights$DEP_TIMEaggregated <- substr(flights$DEP_TIMEaggregated, 12, 16)
+decFlights$DEP_TIMEaggregated <- as.POSIXct(sprintf("%04.0f", decFlights$DEP_TIME), format='%H%M')
+decFlights$DEP_TIMEaggregated <- cut(decFlights$DEP_TIMEaggregated, breaks = "hour")
+decFlights$DEP_TIMEaggregated <- substr(decFlights$DEP_TIMEaggregated, 12, 16)
 
-flights$ARR_TIMEaggregated <- as.POSIXct(sprintf("%04.0f", flights$ARR_TIME), format='%H%M')
-flights$ARR_TIMEaggregated <- cut(flights$ARR_TIMEaggregated, breaks = "hour")
-flights$ARR_TIMEaggregated <- substr(flights$ARR_TIMEaggregated, 12, 16)
+decFlights$ARR_TIMEaggregated <- as.POSIXct(sprintf("%04.0f", decFlights$ARR_TIME), format='%H%M')
+decFlights$ARR_TIMEaggregated <- cut(decFlights$ARR_TIMEaggregated, breaks = "hour")
+decFlights$ARR_TIMEaggregated <- substr(decFlights$ARR_TIMEaggregated, 12, 16)
 
 #count based on hour
 hourlyDepartures <- aggregate(cbind(count = CARRIER) ~ DEP_TIMEaggregated, 
-                              data = flights, 
+                              data = decFlights, 
                               FUN = function(x){NROW(x)})
 
 hourlyArrivals <- aggregate(cbind(count = CARRIER) ~ ARR_TIMEaggregated, 
-                            data = flights, 
+                            data = decFlights, 
                             FUN = function(x){NROW(x)})
 
 #add nicer names to columns
 names(hourlyDepartures) <- c("Hour", "Count")
 names(hourlyArrivals) <- c("Hour", "Count")
 
-#merge into total flights for both departure and arrival
-totalFlights <- merge(hourlyDepartures,hourlyArrivals,by="Hour")
+#merge into total decFlights for both departure and arrival
+totaldecFlights <- merge(hourlyDepartures,hourlyArrivals,by="Hour")
 
 #give nicer column names
-names(totalFlights) <- c("Hour", "Departures", "Arrivals")
+names(totaldecFlights) <- c("Hour", "Departures", "Arrivals")
 
 #add int boolean for if delay exists or not
-flights$delayTrue<-ifelse(flights$ARR_DELAY_NEW>0 | flights$DEP_DELAY_NEW > 0,1,0)
+decFlights$delayTrue<-ifelse(decFlights$ARR_DELAY_NEW>0 | decFlights$DEP_DELAY_NEW > 0,1,0)
 
 #count arrival delays per hour
 hourlyDelayCount <- aggregate(cbind(count = delayTrue) ~ ARR_TIMEaggregated,
-                                 data = flights,
+                                 data = decFlights,
                                  FUN = sum)
 
 #give niver column names
 names(hourlyDelayCount) <- c("Hour", "Count")
 
 #create new table that will also hold percentage
-totalFlightsPercentage <- merge(totalFlights,hourlyDelayCount,by="Hour")
-totalFlightsPercentage$Percentage <- (totalFlightsPercentage$Count / (totalFlightsPercentage$Departures + totalFlightsPercentage$Arrivals)) * 100
+totaldecFlightsPercentage <- merge(totaldecFlights,hourlyDelayCount,by="Hour")
+totaldecFlightsPercentage$Percentage <- (totaldecFlightsPercentage$Count / (totaldecFlightsPercentage$Departures + totaldecFlightsPercentage$Arrivals)) * 100
 
 #drop arrivals and departures from table
-totalFlightsPercentage <- subset(totalFlightsPercentage, select = -c(2,3) )
+totaldecFlightsPercentage <- subset(totaldecFlightsPercentage, select = -c(2,3) )
 
 #round percentage
-totalFlightsPercentage$Percentage <-round(totalFlightsPercentage$Percentage, 0)
+totaldecFlightsPercentage$Percentage <-round(totaldecFlightsPercentage$Percentage, 0)
 
 #give nicer column names
-#names(totalFlightsPercentage) <- c("Hour", "Total Delays", "% of Flights")
+#names(totaldecFlightsPercentage) <- c("Hour", "Total Delays", "% of decFlights")
 
 
 #-----------------------------------------------------------
 #bart starts here
 #count locations based on amount of origin
 totalOrigin <- aggregate(cbind(count = ORIGIN_CITY_NAME) ~ ORIGIN_CITY_NAME, 
-                             data = flights, 
+                             data = decFlights, 
                              FUN = function(x){NROW(x)})
 
 #count locations based on amount of destination
 totalDest <- aggregate(cbind(count = DEST_CITY_NAME) ~ DEST_CITY_NAME, 
-                             data = flights, 
+                             data = decFlights, 
                              FUN = function(x){NROW(x)})
 
 #quick rename before we can join them
@@ -140,7 +138,7 @@ ui <- dashboardPage(
                   dataTableOutput("bartTable1")
               ),
               box(title = "Bart chart!!!", solidHeader = TRUE, width = 10,
-                  div(sliderInput("topChoices", "Top flights number", 
+                  div(sliderInput("topChoices", "Top decFlights number", 
                                   min = 1, max = 50, value = 15, width = 250)),
                   div(plotlyOutput("bartChart1"))
               )
@@ -153,7 +151,7 @@ ui <- dashboardPage(
                     div(plotlyOutput("delayGraph"))
                 ),
                 box(status = "primary", solidHeader = TRUE, width = 12, height = NULL,
-                    DT::dataTableOutput("totalFlightsPercentageTable")
+                    DT::dataTableOutput("totaldecFlightsPercentageTable")
                 )
                 
               )
@@ -165,7 +163,7 @@ ui <- dashboardPage(
                     div(plotlyOutput("hourlyGraph"))
                 ),
                 box(status = "primary", solidHeader = TRUE, width = 12, height = NULL,
-                    DT::dataTableOutput("totalFlightsTable")
+                    DT::dataTableOutput("totaldecFlightsTable")
                 )
                 
               )
@@ -191,14 +189,14 @@ server <- function(input, output) {
   theme_set(theme_dark(base_size = 18))
   
   #isabel outputs
-  output$totalFlightsTable <- renderDataTable(totalFlights, extensions = 'Scroller', rownames = FALSE, options = list(
+  output$totaldecFlightsTable <- renderDataTable(totaldecFlights, extensions = 'Scroller', rownames = FALSE, options = list(
     deferRender = TRUE,
     scrollY = 200,
     scroller = TRUE,
     bFilter=0
   ))
   
-  output$totalFlightsPercentageTable <- renderDataTable(totalFlightsPercentage, extensions = 'Scroller', rownames = FALSE, options = list(
+  output$totaldecFlightsPercentageTable <- renderDataTable(totaldecFlightsPercentage, extensions = 'Scroller', rownames = FALSE, options = list(
     deferRender = TRUE,
     scrollY = 200,
     scroller = TRUE,
@@ -213,16 +211,16 @@ server <- function(input, output) {
                 
                 marker = list(color = 'rgb(204,204,204)')) %>%
       layout(xaxis = list(title = "Time Period", tickangle = -45),
-             yaxis = list(title = "# of Flights"),
+             yaxis = list(title = "# of decFlights"),
              margin = list(b = 100),
              barmode = 'group')
   })
   
   output$delayGraph <- renderPlotly({
-    plot_ly(data = totalFlightsPercentage, x = ~totalFlightsPercentage$Hour, y = ~totalFlightsPercentage$Count, type = "bar", showlegend=TRUE, hoverinfo = 'text',
+    plot_ly(data = totaldecFlightsPercentage, x = ~totaldecFlightsPercentage$Hour, y = ~totaldecFlightsPercentage$Count, type = "bar", showlegend=TRUE, hoverinfo = 'text',
             text = ~paste('</br>', Count, ' Delays </br>',
-                          Percentage, '% of Flights</br>'),
-            marker=list(color=~totalFlightsPercentage$Percentage, showscale=TRUE)) %>% layout(xaxis = list(title = "Time Period", tickangle = -45),yaxis = list(title = "# of Flights"),
+                          Percentage, '% of decFlights</br>'),
+            marker=list(color=~totaldecFlightsPercentage$Percentage, showscale=TRUE)) %>% layout(xaxis = list(title = "Time Period", tickangle = -45),yaxis = list(title = "# of decFlights"),
                                                                                       margin = list(b = 100),
                                                                                       barmode = 'group')
                                                                                       
@@ -253,7 +251,7 @@ server <- function(input, output) {
     plot_ly(df, x = ~df$"City Name", y = ~df$"Count Destination", type = 'bar',name = 'Count Destination', text = paste("Total for city:" ,  (df$"Total Count"))) %>%
       add_trace(y =  ~df$"Count Origin", name = 'Count Origin') %>%
       layout(xaxis = list(title = "City Name", tickangle = -45),
-             yaxis = list(title = "# of Flights"),
+             yaxis = list(title = "# of decFlights"),
              barmode = 'stack',
              margin = list(b = 100)
              )
