@@ -75,6 +75,8 @@ totalFlightsPercentage$Percentage <-round(totalFlightsPercentage$Percentage, 0)
 #give niver column names
 #names(totalFlightsPercentage) <- c("Hour", "Total Delays", "% of Flights")
 
+
+
 #bart starts here
 #count locations based on amount of origin
 totalOrigin <- aggregate(cbind(count = ORIGIN_CITY_NAME) ~ ORIGIN_CITY_NAME, 
@@ -106,9 +108,9 @@ ui <- dashboardPage(
   dashboardSidebar(
     sidebarMenu(
       menuItem("Bart", tabName = "bart", icon = icon("dashboard")),
-      menuItem("Isabel", icon = icon("th"), tabName = "isabel"),
+      menuItem("Delays", icon = icon("hourglass", lib = "font-awesome"), tabName = "delays"),
       menuItem("Vijay", tabName = "vijay", icon = icon("dashboard")),
-      menuItem("Info", tabName = "info", icon = icon("th")),
+      
       #get month
       selectInput("select", label = h5("Month"), 
                   choices = list("January" = 1, "February" = 2, "March" = 3,
@@ -120,8 +122,12 @@ ui <- dashboardPage(
                   choices = list("Monday" = 1, "Tuesday" = 2, "Wednesday" = 3,
                                  "Thursday" = 4, "Friday" = 5, "Saturday" = 6,
                                  "Sunday" = 7, "All" = 8), selected = 8),
+      
       #get specific date !!! needs to be worked on
-      dateInput("date", label = h5("Specific Date"))
+      dateInput("date", label = h5("Specific Date")),
+      
+      #info
+      menuItem("Info", tabName = "info", icon = icon("th"))
     )
   ),
   dashboardBody(
@@ -140,29 +146,15 @@ ui <- dashboardPage(
       ),
       
       
-      tabItem(tabName = "isabel",
+      tabItem(tabName = "delays",
               fluidRow(
-                radioButtons(inputId = "up", label = "Update button :", choices = c("All", "None")),
-                
-                checkboxGroupButtons(
-                  inputId = "btn", label = "Power :",
-                  choices = c("Nuclear", "Hydro", "Solar", "Wind"),
-                  selected = "Hydro"
-                ),
-                
-                
-                
-                radioButtons("rd", label = h3("Airport"),
-                             choices = list("O'Hare" = 1, "Midway" = 2, "All" = 3), 
-                             selected = 1),
-                
-                box(status = "warning", solidHeader = TRUE, width = 4, height = NULL,
-                    #DT::dataTableOutput("totalFlightsTable")
-                    DT::dataTableOutput("totalFlightsPercentageTable")
-                ),
-                box(status = "primary", solidHeader = TRUE, width = 8, height = NULL,
+                box(status = "warning", solidHeader = TRUE, width = 12, height = NULL,
                     #div(plotlyOutput("hourlyGraph"))
                     div(plotlyOutput("delayGraph"))
+                ),
+                box(status = "primary", solidHeader = TRUE, width = 12, height = NULL,
+                    #DT::dataTableOutput("totalFlightsTable")
+                    DT::dataTableOutput("totalFlightsPercentageTable")
                 )
                 
               )
@@ -193,10 +185,12 @@ server <- function(input, output) {
   }, rownames= FALSE, options=list(paging = FALSE, bFilter=0, bInfo=0, bLengthChange = FALSE)
   )
   
-  output$totalFlightsPercentageTable = DT::renderDataTable({
-    totalFlightsPercentage
-  }, rownames= FALSE, options=list(paging = FALSE, bFilter=0, bInfo=0, bLengthChange = FALSE)
-  )
+  output$totalFlightsPercentageTable <- renderDataTable(totalFlightsPercentage, extensions = 'Scroller', rownames = FALSE, options = list(
+    deferRender = TRUE,
+    scrollY = 200,
+    scroller = TRUE,
+    bFilter=0
+  ))
   
   output$hourlyGraph <- renderPlotly({
     plot_ly(hourlyDepartures, x = ~hourlyDepartures$Hour, y = ~hourlyDepartures$Count, type = 'bar', name = 'Departures', marker = list(color = 'rgb(49,130,189)')) %>%
