@@ -72,11 +72,11 @@ totalFlightsPercentage <- subset(totalFlightsPercentage, select = -c(2,3) )
 #round percentage
 totalFlightsPercentage$Percentage <-round(totalFlightsPercentage$Percentage, 0)
 
-#give niver column names
+#give nicer column names
 #names(totalFlightsPercentage) <- c("Hour", "Total Delays", "% of Flights")
 
 
-
+#-----------------------------------------------------------
 #bart starts here
 #count locations based on amount of origin
 totalOrigin <- aggregate(cbind(count = ORIGIN_CITY_NAME) ~ ORIGIN_CITY_NAME, 
@@ -98,7 +98,7 @@ totalDepartures$"Total Count" <- totalDepartures$"Count Origin" +totalDepartures
 #last step is to sort by total count 
 totalDepartures <- totalDepartures[order(-totalDepartures$"Total Count"),]
 
-
+#-----------------------------------------------------------
 
 # start up the gui 
 ui <- dashboardPage(
@@ -206,8 +206,12 @@ server <- function(input, output) {
   ))
   
   output$hourlyGraph <- renderPlotly({
-    plot_ly(hourlyDepartures, x = ~hourlyDepartures$Hour, y = ~hourlyDepartures$Count, type = 'bar', name = 'Departures', marker = list(color = 'rgb(49,130,189)')) %>%
-      add_trace(x = ~hourlyArrivals$Hour, y = ~hourlyArrivals$Count, name = 'Arrivals', marker = list(color = 'rgb(204,204,204)')) %>%
+    plot_ly(hourlyDepartures, x = ~hourlyDepartures$Hour, y = ~hourlyDepartures$Count, type = 'bar', name = 'Departures', hoverinfo = 'text',
+            text = ~paste('</br>', hourlyDepartures$Count, ' Departures </br>'), marker = list(color = 'rgb(49,130,189)')) %>%
+      add_trace(x = ~hourlyArrivals$Hour, y = ~hourlyArrivals$Count, name = 'Arrivals', hoverinfo = 'text',
+                text = ~paste('</br>', hourlyArrivals$Count, ' Arrivals </br>'),
+                
+                marker = list(color = 'rgb(204,204,204)')) %>%
       layout(xaxis = list(title = "Time Period", tickangle = -45),
              yaxis = list(title = "# of Flights"),
              margin = list(b = 100),
