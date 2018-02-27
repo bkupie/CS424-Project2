@@ -109,6 +109,7 @@ ui <- dashboardPage(
     sidebarMenu(
       menuItem("Bart", tabName = "bart", icon = icon("dashboard")),
       menuItem("Delays", icon = icon("hourglass", lib = "font-awesome"), tabName = "delays"),
+      menuItem("Hourly Total", icon = icon("hourglass", lib = "font-awesome"), tabName = "hourlytotal"),
       menuItem("Vijay", tabName = "vijay", icon = icon("dashboard")),
       
       #get month
@@ -149,12 +150,22 @@ ui <- dashboardPage(
       tabItem(tabName = "delays",
               fluidRow(
                 box(status = "warning", solidHeader = TRUE, width = 12, height = NULL,
-                    #div(plotlyOutput("hourlyGraph"))
                     div(plotlyOutput("delayGraph"))
                 ),
                 box(status = "primary", solidHeader = TRUE, width = 12, height = NULL,
-                    #DT::dataTableOutput("totalFlightsTable")
                     DT::dataTableOutput("totalFlightsPercentageTable")
+                )
+                
+              )
+      ),
+      
+      tabItem(tabName = "hourlytotal",
+              fluidRow(
+                box(status = "warning", solidHeader = TRUE, width = 12, height = NULL,
+                    div(plotlyOutput("hourlyGraph"))
+                ),
+                box(status = "primary", solidHeader = TRUE, width = 12, height = NULL,
+                    DT::dataTableOutput("totalFlightsTable")
                 )
                 
               )
@@ -180,10 +191,12 @@ server <- function(input, output) {
   theme_set(theme_dark(base_size = 18))
   
   #isabel outputs
-  output$totalFlightsTable = DT::renderDataTable({
-    totalFlights
-  }, rownames= FALSE, options=list(paging = FALSE, bFilter=0, bInfo=0, bLengthChange = FALSE)
-  )
+  output$totalFlightsTable <- renderDataTable(totalFlights, extensions = 'Scroller', rownames = FALSE, options = list(
+    deferRender = TRUE,
+    scrollY = 200,
+    scroller = TRUE,
+    bFilter=0
+  ))
   
   output$totalFlightsPercentageTable <- renderDataTable(totalFlightsPercentage, extensions = 'Scroller', rownames = FALSE, options = list(
     deferRender = TRUE,
