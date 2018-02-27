@@ -19,17 +19,17 @@ library(shinyWidgets)
 
 
 # process datasets here
-janFlights <- read.table(file = "janData.csv", sep = ",", header = TRUE)
-febFlights <- read.table(file = "febData.csv", sep = ",", header = TRUE)
-marFlights <- read.table(file = "marData.csv", sep = ",", header = TRUE)
-aprFlights <- read.table(file = "aprData.csv", sep = ",", header = TRUE)
-mayFlights <- read.table(file = "mayData.csv", sep = ",", header = TRUE)
-junFlights <- read.table(file = "junData.csv", sep = ",", header = TRUE)
-julFlights <- read.table(file = "julData.csv", sep = ",", header = TRUE)
-augFlights <- read.table(file = "augData.csv", sep = ",", header = TRUE)
-sepFlights <- read.table(file = "sepData.csv", sep = ",", header = TRUE)
-octFlights <- read.table(file = "octData.csv", sep = ",", header = TRUE)
-novFlights <- read.table(file = "novData.csv", sep = ",", header = TRUE)
+# janFlights <- read.table(file = "janData.csv", sep = ",", header = TRUE)
+# febFlights <- read.table(file = "febData.csv", sep = ",", header = TRUE)
+# marFlights <- read.table(file = "marData.csv", sep = ",", header = TRUE)
+# aprFlights <- read.table(file = "aprData.csv", sep = ",", header = TRUE)
+# mayFlights <- read.table(file = "mayData.csv", sep = ",", header = TRUE)
+# junFlights <- read.table(file = "junData.csv", sep = ",", header = TRUE)
+# julFlights <- read.table(file = "julData.csv", sep = ",", header = TRUE)
+# augFlights <- read.table(file = "augData.csv", sep = ",", header = TRUE)
+# sepFlights <- read.table(file = "sepData.csv", sep = ",", header = TRUE)
+# octFlights <- read.table(file = "octData.csv", sep = ",", header = TRUE)
+# novFlights <- read.table(file = "novData.csv", sep = ",", header = TRUE)
 decFlights <- read.table(file = "decData.csv", sep = ",", header = TRUE)
 
 #set one as current
@@ -65,6 +65,10 @@ names(totalselectedData) <- c("Hour", "Departures", "Arrivals")
 
 #add int boolean for if delay exists or not
 selectedData$delayTrue<-ifelse(selectedData$ARR_DELAY_NEW>0 | selectedData$DEP_DELAY_NEW > 0,1,0)
+
+carrierDelay <- subset(selectedData, CARRIER_DELAY > 0)
+securityDelay <- subset(selectedData, SECURITY_DELAY > 0)
+
 
 #count arrival delays per hour
 hourlyDelayCount <- aggregate(cbind(count = delayTrue) ~ ARR_TIMEaggregated,
@@ -161,6 +165,12 @@ ui <- dashboardPage(
       
       tabItem(tabName = "delays",
               fluidRow(
+                radioGroupButtons(
+                  inputId = "delayButtons", label = "Types of Delay :", 
+                  choices = c("Carrier", "Weather", " National Air System", "Security", "Late Aircraft"), 
+                  justified = TRUE, status = "primary",
+                  checkIcon = list(yes = icon("ok", lib = "glyphicon"), no = icon("remove", lib = "glyphicon"))
+                ),
                 box(status = "warning", solidHeader = TRUE, width = 12, height = NULL,
                     div(plotlyOutput("delayGraph"))
                 ),
@@ -199,6 +209,42 @@ ui <- dashboardPage(
 
 server <- function(input, output) {
   
+  v <- reactiveValues(data = NULL)
+  cleanedData <- data.table(NULL)
+  
+  observeEvent(input$delayButtons, {
+    if(input$delayButtons == 'Carrier'){
+      v$data <- carrierDelay
+    }
+    else{
+      v$data <- securityDelay
+    }
+    
+    #count arrival delays per hour
+    hourlyDelayCount <- aggregate(cbind(count = delayTrue) ~ ARR_TIMEaggregated,
+                                  data = v$data,
+                                  FUN = sum)
+    
+    #give niver column names
+    names(hourlyDelayCount) <- c("Hour", "Count")
+    
+    # #create new table that will also hold percentage
+    # cleanedData <- merge(totalselectedData,hourlyDelayCount,by="Hour")
+    # cleanedData$Percentage <- (cleanedData$Count / (cleanedData$Departures + cleanedData$Arrivals)) * 100
+    # 
+    # #drop arrivals and departures from table
+    # cleanedData <- subset(cleanedData, select = -c(2,3) )
+    # 
+    # #round percentage
+    # cleanedData$Percentage <-round(cleanedData$Percentage, 0)
+    
+  })
+  
+  output$plot <- renderPlot({
+    if (is.null(v$data)) return()
+    hist(v$data)
+  })
+  
   # increase the default font size
   theme_set(theme_dark(base_size = 18))
   
@@ -231,7 +277,9 @@ server <- function(input, output) {
   })
   
   output$delayGraph <- renderPlotly({
-    plot_ly(data = totalselectedDataPercentage, x = ~totalselectedDataPercentage$Hour, y = ~totalselectedDataPercentage$Count, type = "bar", showlegend=TRUE, hoverinfo = 'text',
+    #if (v$data == 'Carrier') return()
+    #cleanedData
+    plot_ly(data =  totalselectedDataPercentage, x = ~totalselectedDataPercentage$Hour, y = ~totalselectedDataPercentage$Count, type = "bar", showlegend=TRUE, hoverinfo = 'text',
             text = ~paste('</br>', Count, ' Delays </br>',
                           Percentage, '% of selectedData</br>'),
             marker=list(color=~totalselectedDataPercentage$Percentage, showscale=TRUE)) %>% layout(xaxis = list(title = "Time Period", tickangle = -45),yaxis = list(title = "# of selectedData"),
