@@ -60,7 +60,6 @@ for(i in 1:length(popularCarriers$CARRIER)) {
 #correct file = "ontime_flights.cleaned.csv"
 flights <- read.table(file = "test.csv", sep = ",", header = TRUE)
 
-
 #create new column that converts minutes to hour:minute
 selectedData$DEP_TIMEaggregated <- as.POSIXct(sprintf("%04.0f", selectedData$DEP_TIME), format='%H%M')
 selectedData$DEP_TIMEaggregated <- cut(selectedData$DEP_TIMEaggregated, breaks = "hour")
