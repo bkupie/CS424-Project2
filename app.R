@@ -18,7 +18,9 @@ library(plotly)
 library(shinyWidgets)
 
 #put the server/ui into a seperate file 
-source('server.R', local = TRUE)
 source('ui.R', local = TRUE)
+source('server.R', local = TRUE)
+
+
 #start the actual application
 shinyApp(ui = ui, server = server)

@@ -154,22 +154,25 @@ totalselectedDataPercentage$Percentage <-round(totalselectedDataPercentage$Perce
 
 #-----------------------------------------------------------
 #bart starts here
+
 #count locations based on amount of origin
+totalOrigin <- selectedData %>% filter(DEST_AIRPORT == "Chicago O'Hare International")
 totalOrigin <- aggregate(cbind(count = ORIGIN_AIRPORT) ~ ORIGIN_AIRPORT,
-                         data = selectedData,
+                         data = totalOrigin,
                          FUN = function(x){NROW(x)})
 
 #count locations based on amount of destination
+totalDest <- selectedData %>% filter(ORIGIN_AIRPORT == "Chicago O'Hare International")
 totalDest <- aggregate(cbind(count = DEST_AIRPORT) ~ DEST_AIRPORT,
-                       data = selectedData,
+                       data = totalDest,
                        FUN = function(x){NROW(x)})
 
 #quick rename before we can join them
-names(totalOrigin) <- c("City Name", "Count Origin")
-names(totalDest) <- c("City Name", "Count Destination")
+names(totalOrigin) <- c("Airport Name", "Count Origin")
+names(totalDest) <- c("Airport Name", "Count Destination")
 
 #now we combine the two totals togheter
-totalDepartures <- merge(totalDest,totalOrigin,by="City Name")
+totalDepartures <- merge(totalDest,totalOrigin,by="Airport Name")
 totalDepartures$"Total Count" <- totalDepartures$"Count Origin" +totalDepartures$"Count Destination"
 #last step is to sort by total count
 totalDepartures <- totalDepartures[order(-totalDepartures$"Total Count"),]
@@ -259,13 +262,21 @@ totalDepartures <- totalDepartures[order(-totalDepartures$"Total Count"),]
   
   
   #bart outputs
+  
+  # set up the margins for graphs
+  graphMargins <- list(
+    l = 50,
+    r = 150,
+    b = 200,
+    t = 100,
+    pad = 4
+  )
+  
   #render the table for departure/arrival counters
   output$bartTable1 <- DT::renderDataTable(
     DT::datatable({
       #show only the top 15
       head(totalDepartures,15)
-      
-      
     },
     class = 'cell-border stripe',
     rownames = FALSE,
@@ -277,12 +288,13 @@ totalDepartures <- totalDepartures[order(-totalDepartures$"Total Count"),]
     df <- totalDepartures
     # get only the top 15 locations
     df <- df  %>% top_n(15)
-    plot_ly(df, x = ~df$"City Name", y = ~df$"Count Destination", type = 'bar',name = 'Count Destination', text = paste("Total for city:" ,  (df$"Total Count"))) %>%
+    
+    plot_ly(df, x = ~df$"Airport Name", y = ~df$"Count Destination", type = 'bar',name = 'Count Destination', text = paste("Total for airport:" ,  (df$"Total Count"))) %>%
       add_trace(y =  ~df$"Count Origin", name = 'Count Origin') %>%
-      layout(xaxis = list(title = "City Name", tickangle = -45),
-             yaxis = list(title = "# of selectedData"),
+      layout(xaxis = list(categoryorder = "array",categoryarray = df$"Airport Name", title = "Airport Name", tickangle = -45),
+             yaxis = list(title = "Airport Connections"),
              barmode = 'stack',
-             margin = list(b = 100)
+             margin = graphMargins
       )
   })
   

@@ -1,3 +1,17 @@
+#libraries to include
+library(shiny)
+library(shinydashboard)
+library(ggplot2)
+library(lubridate)
+library(DT)
+library(jpeg)
+library(grid)
+library(leaflet)
+library(reshape2)
+library(scales)
+library(dplyr)
+library(plotly)
+library(shinyWidgets)
 
 # start up the gui
 ui <- dashboardPage(
