@@ -28,7 +28,7 @@ cleanedFlights <- read.csv(file = "cleaned-flights.csv")
 # based closely on following tutorial: https://rstudio-pubs-static.s3.amazonaws.com/52879_eaa8e7a9919b4bb6a2cf6e2bda587cb1.html
 cleanedFlights$CARRIER <- as.character(cleanedFlights$CARRIER)
 popularCarriers <- data.frame(summarize(group_by(cleanedFlights, CARRIER), sum(FR)))
-popularCarriers <- arrange(popularCarriers, -popularCarriers$sum.FR)
+popularCarriers <- arrange(popularCarriers, -popularCarriers$sum.FR.)
 popularCarriers$MIDWAY_DEPARTURES <- NA
 popularCarriers$OHARE_DEPARTURES <- NA
 popularCarriers$MIDWAY_ARRIVALS <- NA
@@ -177,7 +177,8 @@ ui <- dashboardPage(
       menuItem("Bart", tabName = "bart", icon = icon("dashboard")),
       menuItem("Delays", icon = icon("hourglass", lib = "font-awesome"), tabName = "delays"),
       menuItem("Hourly Total", icon = icon("hourglass", lib = "font-awesome"), tabName = "hourlytotal"),
-      menuItem("Vijay", tabName = "vijay", icon = icon("dashboard")),
+      menuItem("Total Arrivals-Departures", icon = icon("plane", lib = "font-awesome"), tabName = "arrivalDepartureTotal"),
+      menuItem("Daily Arrivals-Departures", icon = icon("calendar", lib = "font-awesome"), tabName = "arrivalDepartureDaily"),
 
       #get month
       selectInput("select", label = h5("Month"),
@@ -244,13 +245,26 @@ ui <- dashboardPage(
               )
       ),
 
-      tabItem(tabName = "vijay",
-              h4("Popular Carriers Info-Vis"),
+      tabItem(tabName = "arrivalDepartureTotal",
               fluidRow(
-                box(title = "Popular Carriers Arr-Dep Table", solidHeader = TRUE, status = "primary", width = 12,
+                box(title = "Total Departures and Arrivals of Top Carriers Graph", solidHeader = TRUE, status = "primary", width = 12,
+                  div(plotlyOutput("popularGraph"))
+                )
+              ),
+              fluidRow(
+                box(title = "Total Departures and Arrivals of Top Carriers Table", solidHeader = TRUE, status = "primary", width = 12,
                     DTOutput("topCarriers", width = "100%")
                 )
               )
+      ),
+      tabItem(tabName = "arrivalDepartureDaily",
+              #TODO
+              h4("hello world")
+              
+              
+              
+              
+              
       ),
       tabItem(tabName = "info",
               h1("Project 2 for CS 424 Spring 2018 UIC"),
@@ -388,15 +402,37 @@ server <- function(input, output) {
   })
   
   # bar chart of top carriers Departure and Arrival times
-  
+  # TODO: make it clean and look good -Vijay
+  output$popularGraph <- renderPlotly({
+    plot_ly(popularCarriers, x = ~popularCarriers$CARRIER, y = ~popularCarriers$MIDWAY_DEPARTURES, type = 'bar', name = 'Departures Midway',
+            hoverinfo = 'text', text = ~paste('</br>', popularCarriers$MIDWAY_DEPARTURES, 'Departures Midway</br>'),
+            marker = list(color = 'rgb(51,160,44)')) %>%
+      
+      add_trace(x = ~popularCarriers$CARRIER, y = ~popularCarriers$OHARE_DEPARTURES, name = 'Departures Ohare', hoverinfo = 'text',
+                text = ~paste('</br>', popularCarriers$OHARE_DEPARTURES, ' Departures Ohare </br>'),
+                marker = list(color = 'rgb(31,120,180)')) %>%
+      
+      add_trace(x = ~popularCarriers$CARRIER, y = ~popularCarriers$MIDWAY_ARRIVALS, name = 'Arrivals Midway', hoverinfo = 'text',
+                text = ~paste('</br>', popularCarriers$MIDWAY_ARRIVALS, 'Arrivals Midway </br>'),
+                marker = list(color = 'rgb(178,223,138)')) %>%
+      
+      add_trace(x = ~popularCarriers$CARRIER, y = ~popularCarriers$OHARE_ARRIVALS, name = 'Arrivals Ohare', hoverinfo = 'text',
+                text = ~paste('</br>', popularCarriers$OHARE_ARRIVALS, 'Arrivals Ohare </br>'),
+                marker = list(color = 'rgb(166,206,227)')) %>%
+      
+      layout(xaxis = list(title = "Carriers", tickangle = -45, categoryorder = "array", categoryarray = popularCarriers$CARRIER),
+      yaxis = list(title = "# of Flights"),
+      margin = list(b = 130),
+      barmode = 'group')
+  })
   
   # table for top carriers Departure and Arrival times
   output$topCarriers <- DT::renderDataTable(
     DT::datatable({
       popularCarriers
     },
-    options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE
-    )
+    options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE),
+    colnames = c('TOTAL_FLIGHTS' = 3)
     )
   )
 
