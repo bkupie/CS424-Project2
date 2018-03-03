@@ -155,30 +155,37 @@ totalselectedDataPercentage$Percentage <-round(totalselectedDataPercentage$Perce
 #-----------------------------------------------------------
 #bart starts here
 
-#count locations based on amount of origin
-totalOrigin <- selectedData %>% filter(DEST_AIRPORT == "Chicago O'Hare International")
-totalOrigin <- aggregate(cbind(count = ORIGIN_AIRPORT) ~ ORIGIN_AIRPORT,
-                         data = totalOrigin,
-                         FUN = function(x){NROW(x)})
+airportTotals <- function(airport_name)
+{
 
-#count locations based on amount of destination
-totalDest <- selectedData %>% filter(ORIGIN_AIRPORT == "Chicago O'Hare International")
-totalDest <- aggregate(cbind(count = DEST_AIRPORT) ~ DEST_AIRPORT,
-                       data = totalDest,
-                       FUN = function(x){NROW(x)})
-
-#quick rename before we can join them
-names(totalOrigin) <- c("Airport Name", "Count Origin")
-names(totalDest) <- c("Airport Name", "Count Destination")
-
-#now we combine the two totals togheter
-totalDepartures <- merge(totalDest,totalOrigin,by="Airport Name")
-totalDepartures$"Total Count" <- totalDepartures$"Count Origin" +totalDepartures$"Count Destination"
-#last step is to sort by total count
-totalDepartures <- totalDepartures[order(-totalDepartures$"Total Count"),]
   
-
-
+  #count locations based on amount of origin
+  totalOrigin <- selectedData %>% filter(DEST_AIRPORT == airport_name)
+  totalOrigin <- aggregate(cbind(count = ORIGIN_AIRPORT) ~ ORIGIN_AIRPORT,
+                           data = totalOrigin,
+                           FUN = function(x){NROW(x)})
+  
+  #count locations based on amount of destination
+  totalDest <- selectedData %>% filter(ORIGIN_AIRPORT == airport_name)
+  totalDest <- aggregate(cbind(count = DEST_AIRPORT) ~ DEST_AIRPORT,
+                         data = totalDest,
+                         FUN = function(x){NROW(x)})
+  
+  #quick rename before we can join them
+  names(totalOrigin) <- c("Airport Name", "Count Origin")
+  names(totalDest) <- c("Airport Name", "Count Destination")
+  
+  #now we combine the two totals togheter
+  totalDepartures <- merge(totalDest,totalOrigin,by="Airport Name")
+  totalDepartures$"Total Count" <- totalDepartures$"Count Origin" +totalDepartures$"Count Destination"
+  #last step is to sort by total count
+  totalDepartures <- totalDepartures[order(-totalDepartures$"Total Count"),]
+  
+  
+  return(totalDepartures)
+  
+    
+}
   v <- reactiveValues(data = NULL)
   #cleanedData <- data.table(NULL)
   
@@ -276,7 +283,20 @@ totalDepartures <- totalDepartures[order(-totalDepartures$"Total Count"),]
   output$bartTable1 <- DT::renderDataTable(
     DT::datatable({
       #show only the top 15
-      head(totalDepartures,15)
+      df <- airportTotals("Chicago O'Hare International")
+      head(df,15)
+    },
+    class = 'cell-border stripe',
+    rownames = FALSE,
+    options = list(searching = FALSE, pageLength = 5, lengthChange = TRUE)
+    )
+  )
+  
+  output$bartTable2 <- DT::renderDataTable(
+    DT::datatable({
+      #show only the top 15
+      df <- airportTotals("Chicago Midway International")
+      head(df,15)
     },
     class = 'cell-border stripe',
     rownames = FALSE,
@@ -285,7 +305,7 @@ totalDepartures <- totalDepartures[order(-totalDepartures$"Total Count"),]
   )
   
   output$bartChart1 <- renderPlotly({
-    df <- totalDepartures
+    df <- airportTotals("Chicago O'Hare International")
     # get only the top 15 locations
     df <- df  %>% top_n(15)
     
@@ -297,6 +317,22 @@ totalDepartures <- totalDepartures[order(-totalDepartures$"Total Count"),]
              margin = graphMargins
       )
   })
+  
+  output$bartChart2 <- renderPlotly({
+    df <- airportTotals("Chicago Midway International")
+    # get only the top 15 locations
+    df <- df  %>% top_n(15)
+    
+    plot_ly(df, x = ~df$"Airport Name", y = ~df$"Count Destination", type = 'bar',name = 'Count Destination', text = paste("Total for airport:" ,  (df$"Total Count"))) %>%
+      add_trace(y =  ~df$"Count Origin", name = 'Count Origin') %>%
+      layout(xaxis = list(categoryorder = "array",categoryarray = df$"Airport Name", title = "Airport Name", tickangle = -45),
+             yaxis = list(title = "Airport Connections"),
+             barmode = 'stack',
+             margin = graphMargins
+      )
+  })
+  
+  
   
   # bar chart of top carriers Departure and Arrival times
   

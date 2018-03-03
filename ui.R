@@ -49,14 +49,19 @@ ui <- dashboardPage(
     tabItems(
       tabItem(tabName = "bart",
               h2("Bart tab content"),
-              box(title = ":-)", solidHeader = TRUE, status = "primary", width = 10,
+              box(title = "Flights in/from Chicago O'Hare International", solidHeader = TRUE, status = "primary", width = 10,
                   dataTableOutput("bartTable1")
               ),
-              box(title = "Bart chart!!!", solidHeader = TRUE, width = 10,
-                  div(sliderInput("topChoices", "Top selectedData number",
-                                  min = 1, max = 50, value = 15, width = 250)),
+              box(title = "Flights in/from Chicago O'Hare International", solidHeader = TRUE, width = 10,
                   div(plotlyOutput("bartChart1"))
+              ),
+              box(title = "Flights in/from Chicago Midway International", solidHeader = TRUE, status = "primary", width = 10,
+                  dataTableOutput("bartTable2")
+              ),
+              box(title = "Flights in/from Chicago Midway International", solidHeader = TRUE, width = 10,
+                  div(plotlyOutput("bartChart2"))
               )
+              
       ),
       
       
