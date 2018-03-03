@@ -20,7 +20,7 @@ ui <- dashboardPage(
   dashboardHeader(title = "CS 424 | Project 2"),
   dashboardSidebar(
     sidebarMenu(
-      menuItem("Bart", tabName = "bart", icon = icon("dashboard")),
+      menuItem("Top 15 Airports", tabName = "bart", icon = icon("dashboard")),
       menuItem("Delays", icon = icon("hourglass", lib = "font-awesome"), tabName = "delays"),
       menuItem("Hourly Total", icon = icon("hourglass", lib = "font-awesome"), tabName = "hourlytotal"),
       menuItem("Vijay", tabName = "vijay", icon = icon("dashboard")),
@@ -48,13 +48,13 @@ ui <- dashboardPage(
     
     tabItems(
       tabItem(tabName = "bart",
-              h2("Bart tab content"),
-              box(title = "Flights in/from Chicago O'Hare International", solidHeader = TRUE, status = "primary", width = 10,
+              h2("Flights in/from Chicago O'Hare International/Midway"),
+              fluidRow( box(title = "Flights in/from Chicago O'Hare International", solidHeader = TRUE, status = "primary", width = 10,
                   dataTableOutput("bartTable1")
               ),
               box(title = "Flights in/from Chicago O'Hare International", solidHeader = TRUE, width = 10,
                   div(plotlyOutput("bartChart1"))
-              ),
+              )),
               box(title = "Flights in/from Chicago Midway International", solidHeader = TRUE, status = "primary", width = 10,
                   dataTableOutput("bartTable2")
               ),
