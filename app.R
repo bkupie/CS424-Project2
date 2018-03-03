@@ -21,7 +21,7 @@ library(shinyWidgets)
 
 # process dataset here
 # flights dataset with carrier names in it (i.e. Spirit Airlines, etc.)
-cleanedFlights <- read.table(file = "flights-cleaned.csv", sep = ",", header = TRUE)
+cleanedFlights <- read.csv(file = "cleaned-flights.csv")
 
 # ordering flights by most common airlines
 # this takes top 20 of dataframe # top20airlines <- cleanedFlights %>% top_n(20)
@@ -31,12 +31,13 @@ popularCarriers <- data.frame(summarize(group_by(cleanedFlights, CARRIER), sum(F
 popularCarriers <- arrange(popularCarriers, -popularCarriers$sum.FR)
 popularCarriers$MIDWAY_DEPARTURES <- NA
 popularCarriers$OHARE_DEPARTURES <- NA
+popularCarriers$MIDWAY_ARRIVALS <- NA
+popularCarriers$OHARE_ARRIVALS <- NA
 
 # Midway airport ID = 13232; O'Hare airport ID = 13930
 for(i in 1:length(popularCarriers$CARRIER)) {
-  print(paste("i = ", i ))
   top1_MID <- cleanedFlights %>% filter(CARRIER == popularCarriers$CARRIER[i])
-  top1_MID = top1_MID %>% filter(ORIGIN_AIRPORT_ID == 13232)
+  top1_MID = top1_MID %>% filter(ORIGIN_AIRPORT == "Chicago Midway International")
   top1_MID = data.frame(summarize(group_by(top1_MID, CARRIER), sum(FR)))
   if (is.na(top1_MID$sum.FR.) || length(top1_MID$sum.FR.) == 0)
   {
@@ -46,7 +47,7 @@ for(i in 1:length(popularCarriers$CARRIER)) {
   }
 
   top1_OHARE <- cleanedFlights %>% filter(CARRIER == popularCarriers$CARRIER[i])
-  top1_OHARE = top1_OHARE %>% filter(ORIGIN_AIRPORT_ID == 13930)
+  top1_OHARE = top1_OHARE %>% filter(ORIGIN_AIRPORT == "Chicago O'Hare International")
   top1_OHARE = data.frame(summarize(group_by(top1_OHARE, CARRIER), sum(FR)))
   if (is.na(top1_OHARE$sum.FR.) || length(top1_OHARE$sum.FR.) == 0)
   {
@@ -56,11 +57,33 @@ for(i in 1:length(popularCarriers$CARRIER)) {
   }
 }
 
+for(i in 1:length(popularCarriers$CARRIER)) {
+  top2_MID <- cleanedFlights %>% filter(CARRIER == popularCarriers$CARRIER[i])
+  top2_MID = top2_MID %>% filter(DEST_AIRPORT == "Chicago Midway International")
+  top2_MID = data.frame(summarize(group_by(top2_MID, CARRIER), sum(FR)))
+  if (is.na(top2_MID$sum.FR.) || length(top2_MID$sum.FR.) == 0)
+  {
+    popularCarriers$MIDWAY_ARRIVALS[i] <- 0
+  } else {
+    popularCarriers$MIDWAY_ARRIVALS[i] <- top2_MID$sum.FR.
+  }
+  
+  top2_OHARE <- cleanedFlights %>% filter(CARRIER == popularCarriers$CARRIER[i])
+  top2_OHARE = top2_OHARE %>% filter(ORIGIN_AIRPORT == "Chicago O'Hare International")
+  top2_OHARE = data.frame(summarize(group_by(top2_OHARE, CARRIER), sum(FR)))
+  if (is.na(top2_OHARE$sum.FR.) || length(top2_OHARE$sum.FR.) == 0)
+  {
+    popularCarriers$OHARE_ARRIVALS[i] <- 0
+  } else {
+    popularCarriers$OHARE_ARRIVALS[i] <- top2_OHARE$sum.FR.
+  }
+}
+
 #test.csv is for isabel atm SWTICH TO CORRECT FILE IF YOU NEED IT
 #correct file = "ontime_flights.cleaned.csv"
 flights <- read.table(file = "test.csv", sep = ",", header = TRUE)
 
-# this might work
+# this fixes your data
 selectedData <- read.csv(file = "cleaned-flights.csv")
 
 #create new column that converts minutes to hour:minute
@@ -232,7 +255,19 @@ ui <- dashboardPage(
       tabItem(tabName = "info",
               h1("Project 2 for CS 424 Spring 2018 UIC"),
               h2("Authors: Vijayraj Mahida, Bartosz Kupiec, and Isabel Lindmae"),
-              h2("Libraries used:")
+              h2("Libraries used:"),
+              h2("shinydashboard"),
+              h2("ggplot2"),
+              h2("lubridate"),
+              h2("DT"),
+              h2("jpeg"),
+              h2("grid"),
+              h2("leaflet"),
+              h2("reshape2"),
+              h2("scales"),
+              h2("dplyr"),
+              h2("plotly"),
+              h2("shinyWidgets")
       )
     )
 
@@ -351,8 +386,11 @@ server <- function(input, output) {
              margin = list(b = 100)
              )
   })
-
-  # table for top carriers
+  
+  # bar chart of top carriers Departure and Arrival times
+  
+  
+  # table for top carriers Departure and Arrival times
   output$topCarriers <- DT::renderDataTable(
     DT::datatable({
       popularCarriers
