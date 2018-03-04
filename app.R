@@ -17,14 +17,34 @@ library(dplyr)
 library(plotly)
 library(shinyWidgets)
 
-
-
-# process dataset here
+# FOR NOW WE ARE USING DECEMBER 2017 AS OUR INITIAL DATASET
 # flights dataset with carrier names in it (i.e. Spirit Airlines, etc.)
 cleanedFlights <- read.csv(file = "cleaned-flights.csv")
 
+# ordering flights by day of the week (i.e. how many on all the mondays of the month and so forth)
+# handy solution on how to group by days of the week found here: https://stackoverflow.com/questions/27828850/dplyr-does-not-group-data-by-date
+# below we generate a column that has specific weekday of the flight date (i.e. 12/1/17 = Friday)
+orderByWeekday <- cleanedFlights %>% 
+  mutate(
+    FL_DATE = parse_date_time(FL_DATE,"%m/%d/%y"),
+    Weekday = wday(FL_DATE, label=TRUE, abbr=FALSE)
+  )
+
+midwayDeparturesByWeekday = orderByWeekday %>% filter(ORIGIN_AIRPORT == "Chicago Midway International") %>% group_by(Weekday) %>% summarise(Total = n())
+ohareDeparturesByWeekday = orderByWeekday %>% filter(ORIGIN_AIRPORT == "Chicago O'Hare International") %>% group_by(Weekday) %>% summarise(Total = n())
+
+midwayArrivalsByWeekday = orderByWeekday %>% filter(DEST_AIRPORT == "Chicago O'Hare International") %>% group_by(Weekday) %>% summarise(Total = n())
+ohareArrivalsByWeekday = orderByWeekday %>% filter(DEST_AIRPORT == "Chicago Midway International") %>% group_by(Weekday) %>% summarise(Total = n())
+
+flightsByWeekday <- data.frame(
+  Weekday = midwayDeparturesByWeekday$Weekday,
+  MidwayDeparturesTotal = midwayDeparturesByWeekday$Total,
+  OhareDeparturesTotal = ohareDeparturesByWeekday$Total,
+  MidwayArrivalsTotal = midwayArrivalsByWeekday$Total,
+  OhareArrivalsTotal = ohareArrivalsByWeekday$Total
+)
+
 # ordering flights by most common airlines
-# this takes top 20 of dataframe # top20airlines <- cleanedFlights %>% top_n(20)
 # based closely on following tutorial: https://rstudio-pubs-static.s3.amazonaws.com/52879_eaa8e7a9919b4bb6a2cf6e2bda587cb1.html
 cleanedFlights$CARRIER <- as.character(cleanedFlights$CARRIER)
 popularCarriers <- data.frame(summarize(group_by(cleanedFlights, CARRIER), sum(FR)))
@@ -34,7 +54,7 @@ popularCarriers$OHARE_DEPARTURES <- NA
 popularCarriers$MIDWAY_ARRIVALS <- NA
 popularCarriers$OHARE_ARRIVALS <- NA
 
-# Midway airport ID = 13232; O'Hare airport ID = 13930
+# Filter departures by only Midway and O'Hare Airports
 for(i in 1:length(popularCarriers$CARRIER)) {
   top1_MID <- cleanedFlights %>% filter(CARRIER == popularCarriers$CARRIER[i])
   top1_MID = top1_MID %>% filter(ORIGIN_AIRPORT == "Chicago Midway International")
@@ -57,6 +77,7 @@ for(i in 1:length(popularCarriers$CARRIER)) {
   }
 }
 
+# Filter arrivals by only Midway and O'Hare Airports
 for(i in 1:length(popularCarriers$CARRIER)) {
   top2_MID <- cleanedFlights %>% filter(CARRIER == popularCarriers$CARRIER[i])
   top2_MID = top2_MID %>% filter(DEST_AIRPORT == "Chicago Midway International")
@@ -174,11 +195,11 @@ ui <- dashboardPage(
   dashboardHeader(title = "CS 424 | Project 2"),
   dashboardSidebar(
     sidebarMenu(
-      menuItem("Bart", tabName = "bart", icon = icon("dashboard")),
-      menuItem("Delays", icon = icon("hourglass", lib = "font-awesome"), tabName = "delays"),
+      menuItem("Top Carriers", icon = icon("plane", lib = "font-awesome"), tabName = "arrivalDepartureTotal"),
       menuItem("Hourly Total", icon = icon("hourglass", lib = "font-awesome"), tabName = "hourlytotal"),
-      menuItem("Total Arrivals-Departures", icon = icon("plane", lib = "font-awesome"), tabName = "arrivalDepartureTotal"),
-      menuItem("Daily Arrivals-Departures", icon = icon("calendar", lib = "font-awesome"), tabName = "arrivalDepartureDaily"),
+      menuItem("Weekly Total", icon = icon("calendar", lib = "font-awesome"), tabName = "arrivalDepartureDaily"),
+      menuItem("Delays", icon = icon("hourglass", lib = "font-awesome"), tabName = "delays"),
+      menuItem("Bart", tabName = "bart", icon = icon("dashboard")),
 
       #get month
       selectInput("select", label = h5("Month"),
@@ -258,30 +279,34 @@ ui <- dashboardPage(
               )
       ),
       tabItem(tabName = "arrivalDepartureDaily",
-              #TODO
-              h4("hello world")
-              
-              
-              
-              
-              
+              fluidRow(
+                box(title = "Departures and Arrivals by Weekday Graph", solidHeader = TRUE, status = "primary", width = 12,
+                    div(plotlyOutput("weekdayGraph"))
+                )
+              ),
+              fluidRow(
+                box(title = "Departures and Arrivals by Weekday Table", solidHeader = TRUE, status = "primary", width = 12,
+                    DTOutput("weekdayTable", width = "100%")
+                )
+              )
       ),
       tabItem(tabName = "info",
-              h1("Project 2 for CS 424 Spring 2018 UIC"),
+              h1("Aeroplane Visualization"),
               h2("Authors: Vijayraj Mahida, Bartosz Kupiec, and Isabel Lindmae"),
-              h2("Libraries used:"),
-              h2("shinydashboard"),
-              h2("ggplot2"),
-              h2("lubridate"),
-              h2("DT"),
-              h2("jpeg"),
-              h2("grid"),
-              h2("leaflet"),
-              h2("reshape2"),
-              h2("scales"),
-              h2("dplyr"),
-              h2("plotly"),
-              h2("shinyWidgets")
+              h2("Project 2 for CS 424 Spring 2018 UIC"),
+              h4("Libraries used:"),
+              h4("shinydashboard"),
+              h4("ggplot2"),
+              h4("lubridate"),
+              h4("DT"),
+              h4("jpeg"),
+              h4("grid"),
+              h4("leaflet"),
+              h4("reshape2"),
+              h4("scales"),
+              h4("dplyr"),
+              h4("plotly"),
+              h4("shinyWidgets")
       )
     )
 
@@ -401,24 +426,23 @@ server <- function(input, output) {
              )
   })
   
-  # bar chart of top carriers Departure and Arrival times
-  # TODO: make it clean and look good -Vijay
+  # bar chart of top carriers total departure and arrival in ohare and midway
   output$popularGraph <- renderPlotly({
     plot_ly(popularCarriers, x = ~popularCarriers$CARRIER, y = ~popularCarriers$MIDWAY_DEPARTURES, type = 'bar', name = 'Departures Midway',
             hoverinfo = 'text', text = ~paste('</br>', popularCarriers$MIDWAY_DEPARTURES, 'Departures Midway</br>'),
             marker = list(color = 'rgb(51,160,44)')) %>%
       
-      add_trace(x = ~popularCarriers$CARRIER, y = ~popularCarriers$OHARE_DEPARTURES, name = 'Departures Ohare', hoverinfo = 'text',
-                text = ~paste('</br>', popularCarriers$OHARE_DEPARTURES, ' Departures Ohare </br>'),
-                marker = list(color = 'rgb(31,120,180)')) %>%
-      
       add_trace(x = ~popularCarriers$CARRIER, y = ~popularCarriers$MIDWAY_ARRIVALS, name = 'Arrivals Midway', hoverinfo = 'text',
                 text = ~paste('</br>', popularCarriers$MIDWAY_ARRIVALS, 'Arrivals Midway </br>'),
                 marker = list(color = 'rgb(178,223,138)')) %>%
       
+      add_trace(x = ~popularCarriers$CARRIER, y = ~popularCarriers$OHARE_DEPARTURES, name = 'Departures Ohare', hoverinfo = 'text',
+            text = ~paste('</br>', popularCarriers$OHARE_DEPARTURES, ' Departures Ohare </br>'),
+            marker = list(color = 'rgb(31,120,180)')) %>%
+      
       add_trace(x = ~popularCarriers$CARRIER, y = ~popularCarriers$OHARE_ARRIVALS, name = 'Arrivals Ohare', hoverinfo = 'text',
-                text = ~paste('</br>', popularCarriers$OHARE_ARRIVALS, 'Arrivals Ohare </br>'),
-                marker = list(color = 'rgb(166,206,227)')) %>%
+            text = ~paste('</br>', popularCarriers$OHARE_ARRIVALS, 'Arrivals Ohare </br>'),
+            marker = list(color = 'rgb(166,206,227)')) %>%
       
       layout(xaxis = list(title = "Carriers", tickangle = -45, categoryorder = "array", categoryarray = popularCarriers$CARRIER),
       yaxis = list(title = "# of Flights"),
@@ -426,7 +450,7 @@ server <- function(input, output) {
       barmode = 'group')
   })
   
-  # table for top carriers Departure and Arrival times
+  # table of top carriers total departure and arrival in ohare and midway
   output$topCarriers <- DT::renderDataTable(
     DT::datatable({
       popularCarriers
@@ -435,7 +459,39 @@ server <- function(input, output) {
     colnames = c('TOTAL_FLIGHTS' = 3)
     )
   )
-
+  
+  # bar chart of departure and arrival PER weekday in ohare and midway
+  output$weekdayGraph <- renderPlotly({
+    plot_ly(flightsByWeekday, x = ~flightsByWeekday$Weekday, y = ~flightsByWeekday$MidwayDeparturesTotal, type = 'bar', name = 'Departures Midway',
+            hoverinfo = 'text', text = ~paste('</br>', flightsByWeekday$MidwayDeparturesTotal, 'Departures Midway</br>'),
+            marker = list(color = 'rgb(51,160,44)')) %>%
+      
+      add_trace(x = ~flightsByWeekday$Weekday, y = ~flightsByWeekday$MidwayArrivalsTotal, name = 'Arrivals Midway', hoverinfo = 'text',
+                text = ~paste('</br>', flightsByWeekday$MidwayArrivalsTota, 'Arrivals Midway </br>'),
+                marker = list(color = 'rgb(178,223,138)')) %>%
+      
+      add_trace(x = ~flightsByWeekday$Weekday, y = ~flightsByWeekday$OhareDeparturesTotal, name = 'Departures Ohare', hoverinfo = 'text',
+                text = ~paste('</br>', flightsByWeekday$OhareDeparturesTotal, ' Departures Ohare </br>'),
+                marker = list(color = 'rgb(31,120,180)')) %>%
+      
+      add_trace(x = ~flightsByWeekday$Weekday, y = ~flightsByWeekday$OhareArrivalsTotal, name = 'Arrivals Ohare', hoverinfo = 'text',
+                text = ~paste('</br>', flightsByWeekday$OhareArrivalsTotal, 'Arrivals Ohare </br>'),
+                marker = list(color = 'rgb(166,206,227)')) %>%
+      
+      layout(xaxis = list(title = "Weekday", tickangle = -45, categoryorder = "array", categoryarray = popularCarriers$CARRIER),
+             yaxis = list(title = "# of Flights"),
+             margin = list(b = 130),
+             barmode = 'group')
+  })
+  
+  # table of total departure and arrival PER weekday in ohare and midway
+  output$weekdayTable <- DT::renderDataTable(
+    DT::datatable({
+      flightsByWeekday
+    },
+    options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE)
+    )
+  )
 
 }
 
