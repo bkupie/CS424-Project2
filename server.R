@@ -20,10 +20,8 @@ parseMonth <- function(fileName)
   #now combine with all the other tables we have put in
   parsedMonth <- merge(parsedMonth,carrierLookup,by="CARRIER")
   parsedMonth <- merge(parsedMonth,airlineLookup,by="AIRLINE_ID")
-  
-  
   #write code for cleaning up NA fields 
-  
+      #TODO 
   #return cleaned data 
   return(parsedMonth)
   
@@ -151,14 +149,8 @@ totalselectedDataPercentage$Percentage <-round(totalselectedDataPercentage$Perce
 #give nicer column names
 #names(totalselectedDataPercentage) <- c("Hour", "Total Delays", "% of selectedData")
 
-
-#-----------------------------------------------------------
-#bart starts here
-
 airportTotals <- function(airport_name)
 {
-
-  
   #count locations based on amount of origin
   totalOrigin <- selectedData %>% filter(DEST_AIRPORT == airport_name)
   totalOrigin <- aggregate(cbind(count = ORIGIN_AIRPORT) ~ ORIGIN_AIRPORT,
@@ -180,12 +172,10 @@ airportTotals <- function(airport_name)
   totalDepartures$"Total Count" <- totalDepartures$"Count Origin" +totalDepartures$"Count Destination"
   #last step is to sort by total count
   totalDepartures <- totalDepartures[order(-totalDepartures$"Total Count"),]
-  
-  
+
   return(totalDepartures)
-  
-    
 }
+
   v <- reactiveValues(data = NULL)
   #cleanedData <- data.table(NULL)
   
@@ -264,9 +254,6 @@ airportTotals <- function(airport_name)
                                                                                                    barmode = 'group')
     
   })
-  
-  
-  
   
   #bart outputs
   

@@ -40,6 +40,9 @@ ui <- dashboardPage(
       #get specific date !!! needs to be worked on
       dateInput("date", label = h5("Specific Date")),
       
+      #change between 12/24 hours time formats
+      switchInput(inputId = "time",label = "24 time format", value = TRUE),
+      
       #info
       menuItem("Info", tabName = "info", icon = icon("th"))
     )
