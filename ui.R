@@ -20,10 +20,11 @@ ui <- dashboardPage(
   dashboardHeader(title = "CS 424 | Project 2"),
   dashboardSidebar(
     sidebarMenu(
-      menuItem("Top 15 Airports", tabName = "bart", icon = icon("dashboard")),
-      menuItem("Delays", icon = icon("hourglass", lib = "font-awesome"), tabName = "delays"),
+      menuItem("Top Carriers", icon = icon("plane", lib = "font-awesome"), tabName = "arrivalDepartureTotal"),
+      menuItem("Top Airports", tabName = "bart", icon = icon("dashboard")),
       menuItem("Hourly Total", icon = icon("hourglass", lib = "font-awesome"), tabName = "hourlytotal"),
-      menuItem("Vijay", tabName = "vijay", icon = icon("dashboard")),
+      menuItem("Weekly Total", icon = icon("calendar", lib = "font-awesome"), tabName = "arrivalDepartureDaily"),
+      menuItem("Delays", icon = icon("hourglass", lib = "font-awesome"), tabName = "delays"),
       
       #get month
       selectInput("select", label = h5("Month"),
@@ -51,7 +52,6 @@ ui <- dashboardPage(
     
     tabItems(
       tabItem(tabName = "bart",
-              h2("Flights in/from Chicago O'Hare International/Midway"),
               fluidRow( box(title = "Flights in/from Chicago O'Hare International", solidHeader = TRUE, status = "primary", width = 10,
                   dataTableOutput("bartTable1")
               ),
@@ -97,31 +97,47 @@ ui <- dashboardPage(
                 
               )
       ),
-      
-      tabItem(tabName = "vijay",
-              h4("Popular Carriers Info-Vis"),
+      tabItem(tabName = "arrivalDepartureTotal",
               fluidRow(
-                box(title = "Popular Carriers Arr-Dep Table", solidHeader = TRUE, status = "primary", width = 12,
+                box(title = "Total Departures and Arrivals of Top Carriers Graph", solidHeader = TRUE, status = "primary", width = 12,
+                    div(plotlyOutput("popularGraph"))
+                )
+              ),
+              fluidRow(
+                box(title = "Total Departures and Arrivals of Top Carriers Table", solidHeader = TRUE, status = "primary", width = 12,
                     DTOutput("topCarriers", width = "100%")
                 )
               )
       ),
+      tabItem(tabName = "arrivalDepartureDaily",
+              fluidRow(
+                box(title = "Departures and Arrivals by Weekday Graph", solidHeader = TRUE, status = "primary", width = 12,
+                    div(plotlyOutput("weekdayGraph"))
+                )
+              ),
+              fluidRow(
+                box(title = "Departures and Arrivals by Weekday Table", solidHeader = TRUE, status = "primary", width = 12,
+                    DTOutput("weekdayTable", width = "100%")
+                )
+              )
+      ),
       tabItem(tabName = "info",
-              h1("Project 2 for CS 424 Spring 2018 UIC"),
+              h1("Aeroplane Visualization"),
               h2("Authors: Vijayraj Mahida, Bartosz Kupiec, and Isabel Lindmae"),
-              h2("Libraries used:"),
-              h2("shinydashboard"),
-              h2("ggplot2"),
-              h2("lubridate"),
-              h2("DT"),
-              h2("jpeg"),
-              h2("grid"),
-              h2("leaflet"),
-              h2("reshape2"),
-              h2("scales"),
-              h2("dplyr"),
-              h2("plotly"),
-              h2("shinyWidgets")
+              h2("Project 2 for CS 424 Spring 2018 UIC"),
+              h4("Libraries used:"),
+              h4("shinydashboard"),
+              h4("ggplot2"),
+              h4("lubridate"),
+              h4("DT"),
+              h4("jpeg"),
+              h4("grid"),
+              h4("leaflet"),
+              h4("reshape2"),
+              h4("scales"),
+              h4("dplyr"),
+              h4("plotly"),
+              h4("shinyWidgets")
       )
     )
     
