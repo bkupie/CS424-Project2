@@ -52,16 +52,16 @@ ui <- dashboardPage(
     
     tabItems(
       tabItem(tabName = "bart",
-              fluidRow( box(title = "Flights in/from Chicago O'Hare International", solidHeader = TRUE, status = "primary", width = 10,
+              fluidRow( box(title = "Flights from/to Chicago O'Hare International", solidHeader = TRUE, status = "primary", width = 10,
                   dataTableOutput("bartTable1")
               ),
-              box(title = "Flights in/from Chicago O'Hare International", solidHeader = TRUE, width = 10,
+              box(title = "Flights from/to Chicago O'Hare International", solidHeader = TRUE, width = 10,
                   div(plotlyOutput("bartChart1"))
               )),
-              box(title = "Flights in/from Chicago Midway International", solidHeader = TRUE, status = "primary", width = 10,
+              box(title = "Flights from/to Chicago Midway International", solidHeader = TRUE, status = "primary", width = 10,
                   dataTableOutput("bartTable2")
               ),
-              box(title = "Flights in/from Chicago Midway International", solidHeader = TRUE, width = 10,
+              box(title = "Flights from/to Chicago Midway International", solidHeader = TRUE, width = 10,
                   div(plotlyOutput("bartChart2"))
               )
               

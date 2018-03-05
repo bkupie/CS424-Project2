@@ -187,14 +187,14 @@ airportTotals <- function(airport_name)
                          FUN = function(x){NROW(x)})
   
   #quick rename before we can join them
-  names(totalOrigin) <- c("Airport Name", "Count Origin")
-  names(totalDest) <- c("Airport Name", "Count Destination")
+  names(totalOrigin) <- c("Airport Name", "Arrivals")
+  names(totalDest) <- c("Airport Name", "Departures")
   
   #now we combine the two totals togheter
   totalDepartures <- merge(totalDest,totalOrigin,by="Airport Name")
-  totalDepartures$"Total Count" <- totalDepartures$"Count Origin" +totalDepartures$"Count Destination"
+  totalDepartures$"Total Flights" <- totalDepartures$"Arrivals" +totalDepartures$"Departures"
   #last step is to sort by total count
-  totalDepartures <- totalDepartures[order(-totalDepartures$"Total Count"),]
+  totalDepartures <- totalDepartures[order(-totalDepartures$"Total Flights"),]
 
   return(totalDepartures)
 }
@@ -285,8 +285,8 @@ airportTotals <- function(airport_name)
     l = 50,
     r = 150,
     b = 200,
-    t = 100,
-    pad = 4
+    t = 10,
+    pad = 2
   )
   
   #render the table for departure/arrival counters
@@ -314,34 +314,28 @@ airportTotals <- function(airport_name)
     )
   )
   
-  output$bartChart1 <- renderPlotly({
-    df <- airportTotals("Chicago O'Hare International")
-    # get only the top 15 locations
-    df <- df  %>% top_n(15)
-    
-    plot_ly(df, x = ~df$"Airport Name", y = ~df$"Count Destination", type = 'bar',name = 'Count Destination', text = paste("Total for airport:" ,  (df$"Total Count"))) %>%
-      add_trace(y =  ~df$"Count Origin", name = 'Count Origin') %>%
-      layout(xaxis = list(categoryorder = "array",categoryarray = df$"Airport Name", title = "Airport Name", tickangle = -45),
-             yaxis = list(title = "Airport Connections"),
-             barmode = 'stack',
-             margin = graphMargins
-      )
-  })
+  createTop15Airports <- function(airport_name)
+  {
+    barChart <- renderPlotly({
+      df <- airportTotals(airport_name)
+      # get only the top 15 locations
+      df <- df  %>% top_n(15)
+      
+      plot_ly(df, x = ~df$"Airport Name", y = ~df$"Departures", type = 'bar',name = 'Departures', text = paste("Total airport flights:" ,  (df$"Total Flights"))) %>%
+        add_trace(y =  ~df$"Arrivals", name = 'Arrivals') %>%
+        layout(xaxis = list(categoryorder = "array",categoryarray = df$"Airport Name", title = "Airport Name", tickangle = -45),
+               yaxis = list(title = "Airport Flights"),
+               barmode = 'stack',
+               margin = graphMargins
+        )
+    })
+    return(barChart)
+  }
+  #create the two different bar charts   
+  output$bartChart1 <-createTop15Airports("Chicago O'Hare International")
   
-  output$bartChart2 <- renderPlotly({
-    df <- airportTotals("Chicago Midway International")
-    # get only the top 15 locations
-    df <- df  %>% top_n(15)
-    
-    plot_ly(df, x = ~df$"Airport Name", y = ~df$"Count Destination", type = 'bar',name = 'Count Destination', text = paste("Total for airport:" ,  (df$"Total Count"))) %>%
-      add_trace(y =  ~df$"Count Origin", name = 'Count Origin') %>%
-      layout(xaxis = list(categoryorder = "array",categoryarray = df$"Airport Name", title = "Airport Name", tickangle = -45),
-             yaxis = list(title = "Airport Connections"),
-             barmode = 'stack',
-             margin = graphMargins
-      )
-  })
-  
+  output$bartChart2 <- createTop15Airports("Chicago Midway International")
+
   # bar chart of top carriers total departure and arrival in ohare and midway
   output$popularGraph <- renderPlotly({
     plot_ly(popularCarriers, x = ~popularCarriers$CARRIER, y = ~popularCarriers$MIDWAY_DEPARTURES, type = 'bar', name = 'Departures Midway',
