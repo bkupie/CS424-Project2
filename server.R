@@ -146,6 +146,11 @@ names(totalselectedData) <- c("Hour", "Departures", "Arrivals")
 
 #add int boolean for if delay exists or not
 selectedData$delayTrue<-ifelse(selectedData$ARR_DELAY_NEW>0 | selectedData$DEP_DELAY_NEW > 0,1,0)
+selectedData$WEATHER_DELAY<-ifelse(selectedData$WEATHER_DELAY>0,1,0)
+selectedData$CARRIER_DELAY<-ifelse(selectedData$CARRIER_DELAY>0,1,0)
+selectedData$NAS_DELAY<-ifelse(selectedData$NAS_DELAY>0,1,0)
+selectedData$SECURITY_DELAY<-ifelse(selectedData$SECURITY_DELAY>0,1,0)
+selectedData$LATE_AIRCRAFT_DELAY<-ifelse(selectedData$LATE_AIRCRAFT_DELAY>0,1,0)
 
 carrierDelay <- subset(selectedData, CARRIER_DELAY > 0)
 securityDelay <- subset(selectedData, SECURITY_DELAY > 0)
@@ -156,11 +161,17 @@ hourlyDelayCount <- aggregate(cbind(count = delayTrue) ~ ARR_TIMEaggregated,
                               data = selectedData,
                               FUN = sum)
 
+carrierDelayCount <- aggregate(cbind(carrier = CARRIER_DELAY) ~ ARR_TIMEaggregated,
+                          data = selectedData,
+                          FUN = sum)
+
 #give niver column names
 names(hourlyDelayCount) <- c("Hour", "Count")
+names(carrierDelayCount) <- c("Hour", "Carrier")
 
 #create new table that will also hold percentage
-totalselectedDataPercentage <- merge(totalselectedData,hourlyDelayCount,by="Hour")
+totalselectedDataPercentage <- merge(totalselectedData,hourlyDelayCount,by="Hour", all.x= TRUE, all.y= TRUE)
+totalselectedDataPercentage <- merge(totalselectedDataPercentage,carrierDelayCount,by="Hour", all.x= TRUE, all.y= TRUE)
 totalselectedDataPercentage$Percentage <- (totalselectedDataPercentage$Count / (totalselectedDataPercentage$Departures + totalselectedDataPercentage$Arrivals)) * 100
 
 #drop arrivals and departures from table
