@@ -1,0 +1,12 @@
+name: CS424-Project2
+title: CS424-Project2
+username:
+account: bartkupiec
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 292920
+bundleId: 1252320
+url: https://bartkupiec.shinyapps.io/CS424-Project2/
+when: 1520207141.54366
+asMultiple: FALSE
+asStatic: FALSE
