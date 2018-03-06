@@ -72,7 +72,7 @@ ui <- dashboardPage(
               fluidRow(
                 radioGroupButtons(
                   inputId = "delayButtons", label = "Types of Delay :",
-                  choices = c("Carrier", "Weather", " National Air System", "Security", "Late Aircraft"),
+                  choices = c("Carrier", "Weather", "National Air System", "Security", "Late Aircraft"),
                   justified = TRUE, status = "primary",
                   checkIcon = list(yes = icon("ok", lib = "glyphicon"), no = icon("remove", lib = "glyphicon"))
                 ),

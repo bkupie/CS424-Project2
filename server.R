@@ -165,13 +165,38 @@ carrierDelayCount <- aggregate(cbind(carrier = CARRIER_DELAY) ~ ARR_TIMEaggregat
                           data = selectedData,
                           FUN = sum)
 
+weatherDelayCount <- aggregate(cbind(Weather = WEATHER_DELAY) ~ ARR_TIMEaggregated,
+                               data = selectedData,
+                               FUN = sum)
+
+securityDelayCount <- aggregate(cbind(Weather = SECURITY_DELAY) ~ ARR_TIMEaggregated,
+                               data = selectedData,
+                               FUN = sum)
+
+nasDelayCount <- aggregate(cbind(Weather = NAS_DELAY) ~ ARR_TIMEaggregated,
+                                data = selectedData,
+                                FUN = sum)
+
+lateDelayCount <- aggregate(cbind(Weather = LATE_AIRCRAFT_DELAY) ~ ARR_TIMEaggregated,
+                                data = selectedData,
+                                FUN = sum)
+
 #give niver column names
 names(hourlyDelayCount) <- c("Hour", "Count")
 names(carrierDelayCount) <- c("Hour", "Carrier")
+names(weatherDelayCount) <- c("Hour", "Weather")
+names(securityDelayCount) <- c("Hour", "Security")
+names(nasDelayCount) <- c("Hour", "National Air System")
+names(lateDelayCount) <- c("Hour", "Late Aircraft")
 
 #create new table that will also hold percentage
 totalselectedDataPercentage <- merge(totalselectedData,hourlyDelayCount,by="Hour", all.x= TRUE, all.y= TRUE)
 totalselectedDataPercentage <- merge(totalselectedDataPercentage,carrierDelayCount,by="Hour", all.x= TRUE, all.y= TRUE)
+totalselectedDataPercentage <- merge(totalselectedDataPercentage,weatherDelayCount,by="Hour", all.x= TRUE, all.y= TRUE)
+totalselectedDataPercentage <- merge(totalselectedDataPercentage,securityDelayCount,by="Hour", all.x= TRUE, all.y= TRUE)
+totalselectedDataPercentage <- merge(totalselectedDataPercentage,nasDelayCount,by="Hour", all.x= TRUE, all.y= TRUE)
+totalselectedDataPercentage <- merge(totalselectedDataPercentage,lateDelayCount,by="Hour", all.x= TRUE, all.y= TRUE)
+
 totalselectedDataPercentage$Percentage <- (totalselectedDataPercentage$Count / (totalselectedDataPercentage$Departures + totalselectedDataPercentage$Arrivals)) * 100
 
 #drop arrivals and departures from table
@@ -210,41 +235,6 @@ airportTotals <- function(airport_name)
   return(totalDepartures)
 }
 
-  v <- reactiveValues(data = NULL)
-  #cleanedData <- data.table(NULL)
-  
-  observeEvent(input$delayButtons, {
-    if(input$delayButtons == 'Carrier'){
-      v$data <- carrierDelay
-    }
-    else{
-      v$data <- securityDelay
-    }
-    
-    #count arrival delays per hour
-    hourlyDelayCount <- aggregate(cbind(count = delayTrue) ~ ARR_TIMEaggregated,
-                                  data = v$data,
-                                  FUN = sum)
-    
-    #give niver column names
-    names(hourlyDelayCount) <- c("Hour", "Count")
-    
-    # #create new table that will also hold percentage
-    # cleanedData <- merge(totalselectedData,hourlyDelayCount,by="Hour")
-    # cleanedData$Percentage <- (cleanedData$Count / (cleanedData$Departures + cleanedData$Arrivals)) * 100
-    #
-    # #drop arrivals and departures from table
-    # cleanedData <- subset(cleanedData, select = -c(2,3) )
-    #
-    # #round percentage
-    # cleanedData$Percentage <-round(cleanedData$Percentage, 0)
-    
-  })
-  
-  output$plot <- renderPlot({
-    if (is.null(v$data)) return()
-    hist(v$data)
-  })
   
   # increase the default font size
   theme_set(theme_dark(base_size = 18))
@@ -280,7 +270,9 @@ airportTotals <- function(airport_name)
   output$delayGraph <- renderPlotly({
     #if (v$data == 'Carrier') return()
     #cleanedData
-    plot_ly(data =  totalselectedDataPercentage, x = ~totalselectedDataPercentage$Hour, y = ~totalselectedDataPercentage$Count, type = "bar", showlegend=TRUE, hoverinfo = 'text',
+    userInput <- input$delayButtons
+    print(userInput)
+    plot_ly(data =  totalselectedDataPercentage, x = ~totalselectedDataPercentage$Hour, y = ~get(input$delayButtons), type = "bar", showlegend=TRUE, hoverinfo = 'text',
             text = ~paste('</br>', Count, ' Delays </br>',
                           Percentage, '% of selectedData</br>'),
             marker=list(color=~totalselectedDataPercentage$Percentage, showscale=TRUE)) %>% layout(xaxis = list(title = "Time Period", tickangle = -45),yaxis = list(title = "# of selectedData"),
