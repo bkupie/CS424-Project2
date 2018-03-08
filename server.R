@@ -197,10 +197,11 @@ totalselectedDataPercentage <- merge(totalselectedDataPercentage,securityDelayCo
 totalselectedDataPercentage <- merge(totalselectedDataPercentage,nasDelayCount,by="Hour", all.x= TRUE, all.y= TRUE)
 totalselectedDataPercentage <- merge(totalselectedDataPercentage,lateDelayCount,by="Hour", all.x= TRUE, all.y= TRUE)
 
-totalselectedDataPercentage$Percentage <- (totalselectedDataPercentage$Count / (totalselectedDataPercentage$Departures + totalselectedDataPercentage$Arrivals)) * 100
+
+totalselectedDataPercentage$Percentage <- (totalselectedDataPercentage$Weather / (totalselectedDataPercentage$Departures + totalselectedDataPercentage$Arrivals)) * 100
 
 #drop arrivals and departures from table
-totalselectedDataPercentage <- subset(totalselectedDataPercentage, select = -c(2,3) )
+#totalselectedDataPercentage <- subset(totalselectedDataPercentage, select = -c(2,3) )
 
 #round percentage
 totalselectedDataPercentage$Percentage <-round(totalselectedDataPercentage$Percentage, 0)
@@ -240,6 +241,23 @@ airportTotals <- function(airport_name)
   theme_set(theme_dark(base_size = 18))
   
   #isabel outputs
+  
+  calculatedPercentage <- reactive({
+    if ( "Security" %in% input$var) return((totalselectedDataPercentage$Security / (totalselectedDataPercentage$Departures + totalselectedDataPercentage$Arrivals)) * 100)
+    if ( "Weather" %in% input$var) return((totalselectedDataPercentage$Weather / (totalselectedDataPercentage$Departures + totalselectedDataPercentage$Arrivals)) * 100)
+  })
+  
+  
+  add_to_df <- reactive({
+    totalselectedDataPercentage$Percentage <- NA
+    nRows <- nrow(totalselectedDataPercentage)
+    totalselectedDataPercentage$Percentage <- calculatedPercentage()
+    
+    totalselectedDataPercentage
+    
+  })
+  
+  
   output$totalselectedDataTable <- renderDataTable(totalselectedData, extensions = 'Scroller', rownames = FALSE, options = list(
     deferRender = TRUE,
     scrollY = 200,
@@ -255,14 +273,14 @@ airportTotals <- function(airport_name)
   ))
   
   output$hourlyGraph <- renderPlotly({
-    plot_ly(hourlyDepartures, x = ~hourlyDepartures$Hour, y = ~hourlyDepartures$Count, type = 'bar', name = 'Departures', hoverinfo = 'text',
+    plot_ly(hourlyDepartures, x = ~hourlyDepartures$Hour, y = ~hourlyDepartures$Count, type = 'scatter', mode = 'lines', name = 'Departures', hoverinfo = 'text',
             text = ~paste('</br>', hourlyDepartures$Count, ' Departures </br>'), marker = list(color = 'rgb(49,130,189)')) %>%
-      add_trace(x = ~hourlyArrivals$Hour, y = ~hourlyArrivals$Count, name = 'Arrivals', hoverinfo = 'text',
+      add_trace(x = ~hourlyArrivals$Hour, y = ~hourlyArrivals$Count, name = 'Arrivals', type = 'scatter', mode = 'lines', hoverinfo = 'text',
                 text = ~paste('</br>', hourlyArrivals$Count, ' Arrivals </br>'),
                 
-                marker = list(color = 'rgb(204,204,204)')) %>%
+                marker = list(color = '#ff7f0e')) %>%
       layout(xaxis = list(title = "Time Period", tickangle = -45),
-             yaxis = list(title = "# of selectedData"),
+             yaxis = list(title = "# of Flights"),
              margin = list(b = 100),
              barmode = 'group')
   })
@@ -273,9 +291,9 @@ airportTotals <- function(airport_name)
     userInput <- input$delayButtons
     print(userInput)
     plot_ly(data =  totalselectedDataPercentage, x = ~totalselectedDataPercentage$Hour, y = ~get(input$delayButtons), type = "bar", showlegend=TRUE, hoverinfo = 'text',
-            text = ~paste('</br>', Count, ' Delays </br>',
-                          Percentage, '% of selectedData</br>'),
-            marker=list(color=~totalselectedDataPercentage$Percentage, showscale=TRUE)) %>% layout(xaxis = list(title = "Time Period", tickangle = -45),yaxis = list(title = "# of selectedData"),
+            text = ~paste('</br>', Weather, ' Delays </br>',
+                          Percentage, '% of Flights</br>'),
+            marker=list(color=~totalselectedDataPercentage$Percentage, showscale=TRUE)) %>% layout(xaxis = list(title = "Time Period", tickangle = -45),yaxis = list(title = "# of Flights"),
                                                                                                    margin = list(b = 100),
                                                                                                    barmode = 'group')
     
