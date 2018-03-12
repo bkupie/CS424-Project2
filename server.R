@@ -125,12 +125,12 @@ names(month_data) <- gsub("\\.csv$", "", month_files)
 # Here I combine all 12 months of data into one LARGE dataframe
 # TODO: I let the user pick which airport they want to look at.
 ILData2017 <- rbind(month_data[[1]], month_data[[2]], month_data[[3]], month_data[[4]], month_data[[5]], month_data[[6]], month_data[[7]], month_data[[8]], month_data[[9]], month_data[[10]], month_data[[11]], month_data[[12]])
+ILData2017$FR <- 1 # create frequency column to help rank popular carriers
 
-#cleanedFlights$CARRIER <- as.character(cleanedFlights$CARRIER)
-#popularCarriers <- data.frame(summarize(group_by(cleanedFlights, CARRIER), sum(FR)))
-#popularCarriers <- arrange(popularCarriers, -popularCarriers$sum.FR.)
-
-
+# rank the top carriers
+ILData2017$CARRIER <- as.character(ILData2017$CARRIER)
+allPopularCarriers <- data.frame(summarize(group_by(ILData2017, CARRIER), sum(FR)))
+allPopularCarriers <- arrange(allPopularCarriers, -allPopularCarriers$sum.FR.)
 
 
 #test.csv is for isabel atm SWTICH TO CORRECT FILE IF YOU NEED IT
