@@ -25,6 +25,7 @@ ui <- dashboardPage(
       menuItem("Hourly Total", icon = icon("hourglass", lib = "font-awesome"), tabName = "hourlytotal"),
       menuItem("Weekly Total", icon = icon("calendar", lib = "font-awesome"), tabName = "arrivalDepartureDaily"),
       menuItem("Delays", icon = icon("hourglass", lib = "font-awesome"), tabName = "delays"),
+      menuItem("All Carriers", icon = icon("hourglass", lib = "font-awesome"), tabName = "delays"),
       
       #get month
       selectInput("select", label = h5("Month"),

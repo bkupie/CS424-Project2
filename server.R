@@ -122,11 +122,13 @@ names(month_data) <- gsub("\\.csv$", "", month_files)
 # Now say you want to access flight date from january's data from IL simply do the following
 # month_data[[1]][1] OR month_data[["IL_01Jan_2017]]["FL_DATE"]
 
+# Here I combine all 12 months of data into one LARGE dataframe
+# TODO: I let the user pick which airport they want to look at.
+ILData2017 <- rbind(month_data[[1]], month_data[[2]], month_data[[3]], month_data[[4]], month_data[[5]], month_data[[6]], month_data[[7]], month_data[[8]], month_data[[9]], month_data[[10]], month_data[[11]], month_data[[12]])
 
-
-
-
-
+#cleanedFlights$CARRIER <- as.character(cleanedFlights$CARRIER)
+#popularCarriers <- data.frame(summarize(group_by(cleanedFlights, CARRIER), sum(FR)))
+#popularCarriers <- arrange(popularCarriers, -popularCarriers$sum.FR.)
 
 
 
@@ -402,6 +404,9 @@ airportTotals <- function(airport_name)
              margin = list(b = 130),
              barmode = 'group')
   })
+  
+  # obtained from the following example: https://plot.ly/r/range-slider/
+  
   
   # table of top carriers total departure and arrival in ohare and midway
   output$topCarriers <- DT::renderDataTable(
