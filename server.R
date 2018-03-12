@@ -2,7 +2,6 @@
 
 server <- function(input, output) {
 
-# FOR NOW WE ARE USING DECEMBER 2017 AS OUR INITIAL DATASET
 #first read in the lookup tables that will be needed 
 airlineLookup <- read.table(file = "data/airline.csv", sep = ",", header = TRUE)
 carrierLookup <- read.table(file = "data/carrier.csv", sep = ",", header = TRUE)
@@ -24,7 +23,6 @@ parseMonth <- function(fileName)
       #TODO 
   #return cleaned data 
   return(parsedMonth)
-  
 }
 
 # flights dataset with carrier names in it (i.e. Spirit Airlines, etc.)
@@ -279,7 +277,6 @@ airportTotals <- function(airport_name)
   })
   
   #bart outputs
-  
   # set up the margins for graphs
   graphMargins <- list(
     l = 50,
@@ -331,6 +328,7 @@ airportTotals <- function(airport_name)
     })
     return(barChart)
   }
+  
   #create the two different bar charts   
   output$bartChart1 <-createTop15Airports("Chicago O'Hare International")
   
