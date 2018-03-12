@@ -117,10 +117,15 @@ month_data <- lapply(month_files, read.csv)
 # To ensure list elements match the file names (i.e. january 2017 IL data = "IL_01Jan_2017")
 names(month_data) <- gsub("\\.csv$", "", month_files)
 
-# In example if you wish to access january's data simply do the following
-# month_data[[1]]
-# OR
-# month_data[["IL_01Jan_2017"]]
+# In example if you wish to access ALL of january's data from IL simply do the following
+# month_data[[1]] OR month_data[["IL_01Jan_2017"]]
+# Now say you want to access flight date from january's data from IL simply do the following
+# month_data[[1]][1] OR month_data[["IL_01Jan_2017]]["FL_DATE"]
+
+
+
+
+
 
 
 
