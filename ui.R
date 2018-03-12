@@ -25,7 +25,7 @@ ui <- dashboardPage(
       menuItem("Hourly Total", icon = icon("hourglass", lib = "font-awesome"), tabName = "hourlytotal"),
       menuItem("Weekly Total", icon = icon("calendar", lib = "font-awesome"), tabName = "arrivalDepartureDaily"),
       menuItem("Delays", icon = icon("hourglass", lib = "font-awesome"), tabName = "delays"),
-      menuItem("All Carriers", icon = icon("hourglass", lib = "font-awesome"), tabName = "delays"),
+      menuItem("All Carriers", icon = icon("hourglass", lib = "font-awesome"), tabName = "allCarriers"),
       
       #get month
       selectInput("select", label = h5("Month"),
@@ -121,6 +121,10 @@ ui <- dashboardPage(
                     DTOutput("weekdayTable", width = "100%")
                 )
               )
+      ),
+      tabItem(tabName = "allCarriers",
+          h4("All carriers data will be here.")
+              
       ),
       tabItem(tabName = "info",
               h1("Aeroplane Visualization"),
