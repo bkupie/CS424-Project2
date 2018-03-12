@@ -109,6 +109,23 @@ for(i in 1:length(popularCarriers$CARRIER)) {
   }
 }
 
+# Here I take all the months data and combine it into one list ==============================================
+# Code referenced from here: https://stackoverflow.com/questions/17499013/how-do-i-make-a-list-of-data-frames
+month_files = list.files(pattern = "\\.csv$")
+month_data <- lapply(month_files, read.csv)
+
+# To ensure list elements match the file names (i.e. january 2017 IL data = "IL_01Jan_2017")
+names(month_data) <- gsub("\\.csv$", "", month_files)
+
+# In example if you wish to access january's data simply do the following
+# month_data[[1]]
+# OR
+# month_data[["IL_01Jan_2017"]]
+
+
+
+
+
 #test.csv is for isabel atm SWTICH TO CORRECT FILE IF YOU NEED IT
 #correct file = "ontime_flights.cleaned.csv"
 flights <- read.table(file = "data/test.csv", sep = ",", header = TRUE)
