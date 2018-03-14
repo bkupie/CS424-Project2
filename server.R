@@ -443,21 +443,26 @@ airportTotals <- function(airport_name)
       mutate(
         FL_DATE = month(df$FL_DATE)
       )
-    
+    #make a quick copy
+    countFlights <- df
+    #add a column for frequency
+    countFlights$frequency <- 1
     #we will also have to find the overall top 15 airports, we'll do this in another dataframe
-    countFlights <- aggregate(cbind(count = DEST_AIRPORT_ID) ~ DEST_AIRPORT_ID,
-                              data = df,
-                              FUN = function(x){NROW(x)})
-    
-    countMonthly <- ddply(df, .(df$'DEST_AIRPORT_ID', df$'FL_DATE'), nrow)
-    #sort before we can get the top 15
-    countFlights <- countFlights[order(-countFlights$count),]
-    # get only the top 15 locations
-    topFlights <- countFlights %>% top_n(15)
-    # after megre rename it
-    names(countMonthly) <- c("Airport", "Month", "Freq")
+    countFlights <- data.frame(summarize(group_by(countFlights, DEST_AIRPORT_ID), sum(frequency)))
+
+    #sort before, then we can get the top 15
+    countFlights <- countFlights[order(-countFlights$frequency),] %>% top_n(15)
+
+    countFlights <- subset( countFlights, select = c(Airport) )     #keep only the names, we do not want the frequency 
+    top15Airports <- countFlights%>% top_n(15) # get only the top 15 locations    
+    dt <- data.table(df) # transpose to data.table
+    dt <- dt[, list(Freq =.N), by=list(FL_DATE,DEST_AIRPORT_ID)] # use list to name var directly
+    #now we have our sum for each month for each airport, now we get rid of the airports we do not need
+     
+    topForMonths <- merge(dt, top15Airports, by='DEST_AIRPORT_ID')
+    #TODO: ACTUALLY PLOT THE DATA 
     # create the graph now 
-    plot_ly(data = df,x = ~df$Freq, y = ~df$Month , color = df$Airport)
+    #plot_ly(data = df,x = ~df$Freq, y = ~df$Month , color = df$Airport)
   })
   
   
