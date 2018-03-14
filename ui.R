@@ -1,5 +1,8 @@
+
+#libraries to include
 library(shiny)
 library(shinydashboard)
+library(data.table)
 library(ggplot2)
 library(lubridate)
 library(DT)
@@ -11,7 +14,6 @@ library(scales)
 library(dplyr)
 library(plotly)
 library(shinyWidgets)
-#library(data.table)
 
 
 # start up the gui

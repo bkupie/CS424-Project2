@@ -1,318 +1,318 @@
 server <- function(input, output) {
-
-# FOR NOW WE ARE USING DECEMBER 2017 AS OUR INITIAL DATASET
-#first read in the lookup tables that will be needed 
-airlineLookup <- read.table(file = "data/airline.csv", sep = ",", header = TRUE)
-carrierLookup <- read.table(file = "data/carrier.csv", sep = ",", header = TRUE)
-
-#rename columns to properly line up 
-names(airlineLookup) <- c("AIRLINE_ID", "AIRLINE_DESCRIPTION")
-names(carrierLookup) <- c("CARRIER", "CARRIER_NAME")
-
-#writing a function to parse a month file into a correct data frame  
-parseMonth <- function(fileName)
-{
-  #first we read in the file in the regular way 
-  parsedMonth <- read.table(file = fileName, sep = ",", header = TRUE)
-  parsedMonth$CARRIER <- as.character(parsedMonth$CARRIER)
-  #now combine with all the other tables we have put in
-  parsedMonth <- merge(parsedMonth,carrierLookup,by="CARRIER")
-  parsedMonth <- merge(parsedMonth,airlineLookup,by="AIRLINE_ID")
-  #write code for cleaning up NA fields 
-      #TODO 
-  #return cleaned data 
-  return(parsedMonth)
   
-}
-
-# flights dataset with carrier names in it (i.e. Spirit Airlines, etc.)
-cleanedFlights <- read.csv(file = "data/cleaned-flights.csv")
-
-# ordering flights by day of the week (i.e. how many on all the mondays of the month and so forth)
-# handy solution on how to group by days of the week found here: https://stackoverflow.com/questions/27828850/dplyr-does-not-group-data-by-date
-# below we generate a column that has specific weekday of the flight date (i.e. 12/1/17 = Friday)
-orderByWeekday <- cleanedFlights %>% 
-  mutate(
-    FL_DATE = parse_date_time(FL_DATE,"%m/%d/%y"),
-    Weekday = wday(FL_DATE, label=TRUE, abbr=FALSE)
+  # FOR NOW WE ARE USING DECEMBER 2017 AS OUR INITIAL DATASET
+  #first read in the lookup tables that will be needed 
+  airlineLookup <- read.table(file = "data/airline.csv", sep = ",", header = TRUE)
+  carrierLookup <- read.table(file = "data/carrier.csv", sep = ",", header = TRUE)
+  
+  #rename columns to properly line up 
+  names(airlineLookup) <- c("AIRLINE_ID", "AIRLINE_DESCRIPTION")
+  names(carrierLookup) <- c("CARRIER", "CARRIER_NAME")
+  
+  #writing a function to parse a month file into a correct data frame  
+  parseMonth <- function(fileName)
+  {
+    #first we read in the file in the regular way 
+    parsedMonth <- read.table(file = fileName, sep = ",", header = TRUE)
+    parsedMonth$CARRIER <- as.character(parsedMonth$CARRIER)
+    #now combine with all the other tables we have put in
+    parsedMonth <- merge(parsedMonth,carrierLookup,by="CARRIER")
+    parsedMonth <- merge(parsedMonth,airlineLookup,by="AIRLINE_ID")
+    #write code for cleaning up NA fields 
+    #TODO 
+    #return cleaned data 
+    return(parsedMonth)
+    
+  }
+  
+  # flights dataset with carrier names in it (i.e. Spirit Airlines, etc.)
+  cleanedFlights <- read.csv(file = "data/cleaned-flights.csv")
+  
+  # ordering flights by day of the week (i.e. how many on all the mondays of the month and so forth)
+  # handy solution on how to group by days of the week found here: https://stackoverflow.com/questions/27828850/dplyr-does-not-group-data-by-date
+  # below we generate a column that has specific weekday of the flight date (i.e. 12/1/17 = Friday)
+  orderByWeekday <- cleanedFlights %>% 
+    mutate(
+      FL_DATE = parse_date_time(FL_DATE,"%m/%d/%y"),
+      Weekday = wday(FL_DATE, label=TRUE, abbr=FALSE)
+    )
+  
+  midwayDeparturesByWeekday = orderByWeekday %>% filter(ORIGIN_AIRPORT == "Chicago Midway International") %>% group_by(Weekday) %>% summarise(Total = n())
+  ohareDeparturesByWeekday = orderByWeekday %>% filter(ORIGIN_AIRPORT == "Chicago O'Hare International") %>% group_by(Weekday) %>% summarise(Total = n())
+  
+  midwayArrivalsByWeekday = orderByWeekday %>% filter(DEST_AIRPORT == "Chicago O'Hare International") %>% group_by(Weekday) %>% summarise(Total = n())
+  ohareArrivalsByWeekday = orderByWeekday %>% filter(DEST_AIRPORT == "Chicago Midway International") %>% group_by(Weekday) %>% summarise(Total = n())
+  
+  flightsByWeekday <- data.frame(
+    Weekday = midwayDeparturesByWeekday$Weekday,
+    MidwayDeparturesTotal = midwayDeparturesByWeekday$Total,
+    OhareDeparturesTotal = ohareDeparturesByWeekday$Total,
+    MidwayArrivalsTotal = midwayArrivalsByWeekday$Total,
+    OhareArrivalsTotal = ohareArrivalsByWeekday$Total
   )
-
-midwayDeparturesByWeekday = orderByWeekday %>% filter(ORIGIN_AIRPORT == "Chicago Midway International") %>% group_by(Weekday) %>% summarise(Total = n())
-ohareDeparturesByWeekday = orderByWeekday %>% filter(ORIGIN_AIRPORT == "Chicago O'Hare International") %>% group_by(Weekday) %>% summarise(Total = n())
-
-midwayArrivalsByWeekday = orderByWeekday %>% filter(DEST_AIRPORT == "Chicago O'Hare International") %>% group_by(Weekday) %>% summarise(Total = n())
-ohareArrivalsByWeekday = orderByWeekday %>% filter(DEST_AIRPORT == "Chicago Midway International") %>% group_by(Weekday) %>% summarise(Total = n())
-
-flightsByWeekday <- data.frame(
-  Weekday = midwayDeparturesByWeekday$Weekday,
-  MidwayDeparturesTotal = midwayDeparturesByWeekday$Total,
-  OhareDeparturesTotal = ohareDeparturesByWeekday$Total,
-  MidwayArrivalsTotal = midwayArrivalsByWeekday$Total,
-  OhareArrivalsTotal = ohareArrivalsByWeekday$Total
-)
-
-# ordering flights by most common airlines
-# based closely on following tutorial: https://rstudio-pubs-static.s3.amazonaws.com/52879_eaa8e7a9919b4bb6a2cf6e2bda587cb1.html
-cleanedFlights$CARRIER <- as.character(cleanedFlights$CARRIER)
-popularCarriers <- data.frame(summarize(group_by(cleanedFlights, CARRIER), sum(FR)))
-popularCarriers <- arrange(popularCarriers, -popularCarriers$sum.FR.)
-popularCarriers$MIDWAY_DEPARTURES <- NA
-popularCarriers$OHARE_DEPARTURES <- NA
-popularCarriers$MIDWAY_ARRIVALS <- NA
-popularCarriers$OHARE_ARRIVALS <- NA
-
-# Filter departures by only Midway and O'Hare Airports
-for(i in 1:length(popularCarriers$CARRIER)) {
-  top1_MID <- cleanedFlights %>% filter(CARRIER == popularCarriers$CARRIER[i])
-  top1_MID = top1_MID %>% filter(ORIGIN_AIRPORT == "Chicago Midway International")
-  top1_MID = data.frame(summarize(group_by(top1_MID, CARRIER), sum(FR)))
-  if (is.na(top1_MID$sum.FR.) || length(top1_MID$sum.FR.) == 0)
-  {
-    popularCarriers$MIDWAY_DEPARTURES[i] <- 0
-  } else {
-    popularCarriers$MIDWAY_DEPARTURES[i] <- top1_MID$sum.FR.
+  
+  # ordering flights by most common airlines
+  # based closely on following tutorial: https://rstudio-pubs-static.s3.amazonaws.com/52879_eaa8e7a9919b4bb6a2cf6e2bda587cb1.html
+  cleanedFlights$CARRIER <- as.character(cleanedFlights$CARRIER)
+  popularCarriers <- data.frame(summarize(group_by(cleanedFlights, CARRIER), sum(FR)))
+  popularCarriers <- arrange(popularCarriers, -popularCarriers$sum.FR.)
+  popularCarriers$MIDWAY_DEPARTURES <- NA
+  popularCarriers$OHARE_DEPARTURES <- NA
+  popularCarriers$MIDWAY_ARRIVALS <- NA
+  popularCarriers$OHARE_ARRIVALS <- NA
+  
+  # Filter departures by only Midway and O'Hare Airports
+  for(i in 1:length(popularCarriers$CARRIER)) {
+    top1_MID <- cleanedFlights %>% filter(CARRIER == popularCarriers$CARRIER[i])
+    top1_MID = top1_MID %>% filter(ORIGIN_AIRPORT == "Chicago Midway International")
+    top1_MID = data.frame(summarize(group_by(top1_MID, CARRIER), sum(FR)))
+    if (is.na(top1_MID$sum.FR.) || length(top1_MID$sum.FR.) == 0)
+    {
+      popularCarriers$MIDWAY_DEPARTURES[i] <- 0
+    } else {
+      popularCarriers$MIDWAY_DEPARTURES[i] <- top1_MID$sum.FR.
+    }
+    
+    top1_OHARE <- cleanedFlights %>% filter(CARRIER == popularCarriers$CARRIER[i])
+    top1_OHARE = top1_OHARE %>% filter(ORIGIN_AIRPORT == "Chicago O'Hare International")
+    top1_OHARE = data.frame(summarize(group_by(top1_OHARE, CARRIER), sum(FR)))
+    if (is.na(top1_OHARE$sum.FR.) || length(top1_OHARE$sum.FR.) == 0)
+    {
+      popularCarriers$OHARE_DEPARTURES[i] <- 0
+    } else {
+      popularCarriers$OHARE_DEPARTURES[i] <- top1_OHARE$sum.FR.
+    }
   }
   
-  top1_OHARE <- cleanedFlights %>% filter(CARRIER == popularCarriers$CARRIER[i])
-  top1_OHARE = top1_OHARE %>% filter(ORIGIN_AIRPORT == "Chicago O'Hare International")
-  top1_OHARE = data.frame(summarize(group_by(top1_OHARE, CARRIER), sum(FR)))
-  if (is.na(top1_OHARE$sum.FR.) || length(top1_OHARE$sum.FR.) == 0)
-  {
-    popularCarriers$OHARE_DEPARTURES[i] <- 0
-  } else {
-    popularCarriers$OHARE_DEPARTURES[i] <- top1_OHARE$sum.FR.
-  }
-}
-
-# Filter arrivals by only Midway and O'Hare Airports
-for(i in 1:length(popularCarriers$CARRIER)) {
-  top2_MID <- cleanedFlights %>% filter(CARRIER == popularCarriers$CARRIER[i])
-  top2_MID = top2_MID %>% filter(DEST_AIRPORT == "Chicago Midway International")
-  top2_MID = data.frame(summarize(group_by(top2_MID, CARRIER), sum(FR)))
-  if (is.na(top2_MID$sum.FR.) || length(top2_MID$sum.FR.) == 0)
-  {
-    popularCarriers$MIDWAY_ARRIVALS[i] <- 0
-  } else {
-    popularCarriers$MIDWAY_ARRIVALS[i] <- top2_MID$sum.FR.
-  }
-  
-  top2_OHARE <- cleanedFlights %>% filter(CARRIER == popularCarriers$CARRIER[i])
-  top2_OHARE = top2_OHARE %>% filter(ORIGIN_AIRPORT == "Chicago O'Hare International")
-  top2_OHARE = data.frame(summarize(group_by(top2_OHARE, CARRIER), sum(FR)))
-  if (is.na(top2_OHARE$sum.FR.) || length(top2_OHARE$sum.FR.) == 0)
-  {
-    popularCarriers$OHARE_ARRIVALS[i] <- 0
-  } else {
-    popularCarriers$OHARE_ARRIVALS[i] <- top2_OHARE$sum.FR.
-  }
-}
-
-# Here I take all the months data and combine it into one list ==============================================
-# Code referenced from here: https://stackoverflow.com/questions/17499013/how-do-i-make-a-list-of-data-frames
-month_files = list.files(pattern = "\\.csv$")
-month_data <- lapply(month_files, read.csv)
-
-# To ensure list elements match the file names (i.e. january 2017 IL data = "IL_01Jan_2017")
-names(month_data) <- gsub("\\.csv$", "", month_files)
-
-# In example if you wish to access ALL of january's data from IL simply do the following
-# month_data[[1]] OR month_data[["IL_01Jan_2017"]]
-# Now say you want to access flight date from january's data from IL simply do the following
-# month_data[[1]][1] OR month_data[["IL_01Jan_2017]]["FL_DATE"]
-
-# Here I combine all 12 months of data into one LARGE dataframe
-# TODO: I let the user pick which airport they want to look at.
-ILData2017 <- rbind(month_data[[1]], month_data[[2]], month_data[[3]], month_data[[4]], month_data[[5]], month_data[[6]], month_data[[7]], month_data[[8]], month_data[[9]], month_data[[10]], month_data[[11]], month_data[[12]])
-ILData2017$FR <- 1 # create frequency column to help rank popular carriers
-
-# rank the top carriers
-ILData2017$CARRIER <- as.character(ILData2017$CARRIER)
-allPopularCarriers <- data.frame(summarize(group_by(ILData2017, CARRIER), sum(FR)))
-allPopularCarriers <- arrange(allPopularCarriers, -allPopularCarriers$sum.FR.)
-
-# rank the top airports
-allPopularAirports <- data.frame(summarize(group_by(ILData2017, ORIGIN_AIRPORT_ID), sum(FR)))
-allPopularAirports <- arrange(allPopularAirports, -allPopularAirports$sum.FR.)
-
-# this monstrosity here takes the data across 12 months and filters it to Ohare and Midway
-allPopularCarriers$MIDWAY_DEPARTURES <- NA
-allPopularCarriers$OHARE_DEPARTURES <- NA
-allPopularCarriers$MIDWAY_ARRIVALS <- NA
-allPopularCarriers$OHARE_ARRIVALS <- NA
-
-# Filter departures by only Midway and O'Hare Airports
-for(i in 1:length(allPopularCarriers$CARRIER)) {
-  top1_MID <- ILData2017 %>% filter(CARRIER == allPopularCarriers$CARRIER[i])
-  top1_MID = top1_MID %>% filter(ORIGIN_AIRPORT_ID == "Chicago Midway International")
-  top1_MID = data.frame(summarize(group_by(top1_MID, CARRIER), sum(FR)))
-  if (is.na(top1_MID$sum.FR.) || length(top1_MID$sum.FR.) == 0)
-  {
-    allPopularCarriers$MIDWAY_DEPARTURES[i] <- 0
-  } else {
-    allPopularCarriers$MIDWAY_DEPARTURES[i] <- top1_MID$sum.FR.
+  # Filter arrivals by only Midway and O'Hare Airports
+  for(i in 1:length(popularCarriers$CARRIER)) {
+    top2_MID <- cleanedFlights %>% filter(CARRIER == popularCarriers$CARRIER[i])
+    top2_MID = top2_MID %>% filter(DEST_AIRPORT == "Chicago Midway International")
+    top2_MID = data.frame(summarize(group_by(top2_MID, CARRIER), sum(FR)))
+    if (is.na(top2_MID$sum.FR.) || length(top2_MID$sum.FR.) == 0)
+    {
+      popularCarriers$MIDWAY_ARRIVALS[i] <- 0
+    } else {
+      popularCarriers$MIDWAY_ARRIVALS[i] <- top2_MID$sum.FR.
+    }
+    
+    top2_OHARE <- cleanedFlights %>% filter(CARRIER == popularCarriers$CARRIER[i])
+    top2_OHARE = top2_OHARE %>% filter(ORIGIN_AIRPORT == "Chicago O'Hare International")
+    top2_OHARE = data.frame(summarize(group_by(top2_OHARE, CARRIER), sum(FR)))
+    if (is.na(top2_OHARE$sum.FR.) || length(top2_OHARE$sum.FR.) == 0)
+    {
+      popularCarriers$OHARE_ARRIVALS[i] <- 0
+    } else {
+      popularCarriers$OHARE_ARRIVALS[i] <- top2_OHARE$sum.FR.
+    }
   }
   
-  top1_OHARE <- ILData2017 %>% filter(CARRIER == allPopularCarriers$CARRIER[i])
-  top1_OHARE = top1_OHARE %>% filter(ORIGIN_AIRPORT_ID == "Chicago O'Hare International")
-  top1_OHARE = data.frame(summarize(group_by(top1_OHARE, CARRIER), sum(FR)))
-  if (is.na(top1_OHARE$sum.FR.) || length(top1_OHARE$sum.FR.) == 0)
-  {
-    allPopularCarriers$OHARE_DEPARTURES[i] <- 0
-  } else {
-    allPopularCarriers$OHARE_DEPARTURES[i] <- top1_OHARE$sum.FR.
-  }
-}
-
-# Filter arrivals by only Midway and O'Hare Airports
-for(i in 1:length(allPopularCarriers$CARRIER)) {
-  top2_MID <- ILData2017 %>% filter(CARRIER == allPopularCarriers$CARRIER[i])
-  top2_MID = top2_MID %>% filter(DEST_AIRPORT_ID == "Chicago Midway International")
-  top2_MID = data.frame(summarize(group_by(top2_MID, CARRIER), sum(FR)))
-  if (is.na(top2_MID$sum.FR.) || length(top2_MID$sum.FR.) == 0)
-  {
-    allPopularCarriers$MIDWAY_ARRIVALS[i] <- 0
-  } else {
-    allPopularCarriers$MIDWAY_ARRIVALS[i] <- top2_MID$sum.FR.
+  # Here I take all the months data and combine it into one list ==============================================
+  # Code referenced from here: https://stackoverflow.com/questions/17499013/how-do-i-make-a-list-of-data-frames
+  month_files = list.files(pattern = "\\.csv$")
+  month_data <- lapply(month_files, read.csv)
+  
+  # To ensure list elements match the file names (i.e. january 2017 IL data = "IL_01Jan_2017")
+  names(month_data) <- gsub("\\.csv$", "", month_files)
+  
+  # In example if you wish to access ALL of january's data from IL simply do the following
+  # month_data[[1]] OR month_data[["IL_01Jan_2017"]]
+  # Now say you want to access flight date from january's data from IL simply do the following
+  # month_data[[1]][1] OR month_data[["IL_01Jan_2017]]["FL_DATE"]
+  
+  # Here I combine all 12 months of data into one LARGE dataframe
+  # TODO: I let the user pick which airport they want to look at.
+  ILData2017 <- rbind(month_data[[1]], month_data[[2]], month_data[[3]], month_data[[4]], month_data[[5]], month_data[[6]], month_data[[7]], month_data[[8]], month_data[[9]], month_data[[10]], month_data[[11]], month_data[[12]])
+  ILData2017$FR <- 1 # create frequency column to help rank popular carriers
+  
+  # rank the top carriers
+  ILData2017$CARRIER <- as.character(ILData2017$CARRIER)
+  allPopularCarriers <- data.frame(summarize(group_by(ILData2017, CARRIER), sum(FR)))
+  allPopularCarriers <- arrange(allPopularCarriers, -allPopularCarriers$sum.FR.)
+  
+  # rank the top airports
+  allPopularAirports <- data.frame(summarize(group_by(ILData2017, ORIGIN_AIRPORT_ID), sum(FR)))
+  allPopularAirports <- arrange(allPopularAirports, -allPopularAirports$sum.FR.)
+  
+  # this monstrosity here takes the data across 12 months and filters it to Ohare and Midway
+  allPopularCarriers$MIDWAY_DEPARTURES <- NA
+  allPopularCarriers$OHARE_DEPARTURES <- NA
+  allPopularCarriers$MIDWAY_ARRIVALS <- NA
+  allPopularCarriers$OHARE_ARRIVALS <- NA
+  
+  # Filter departures by only Midway and O'Hare Airports
+  for(i in 1:length(allPopularCarriers$CARRIER)) {
+    top1_MID <- ILData2017 %>% filter(CARRIER == allPopularCarriers$CARRIER[i])
+    top1_MID = top1_MID %>% filter(ORIGIN_AIRPORT_ID == "Chicago Midway International")
+    top1_MID = data.frame(summarize(group_by(top1_MID, CARRIER), sum(FR)))
+    if (is.na(top1_MID$sum.FR.) || length(top1_MID$sum.FR.) == 0)
+    {
+      allPopularCarriers$MIDWAY_DEPARTURES[i] <- 0
+    } else {
+      allPopularCarriers$MIDWAY_DEPARTURES[i] <- top1_MID$sum.FR.
+    }
+    
+    top1_OHARE <- ILData2017 %>% filter(CARRIER == allPopularCarriers$CARRIER[i])
+    top1_OHARE = top1_OHARE %>% filter(ORIGIN_AIRPORT_ID == "Chicago O'Hare International")
+    top1_OHARE = data.frame(summarize(group_by(top1_OHARE, CARRIER), sum(FR)))
+    if (is.na(top1_OHARE$sum.FR.) || length(top1_OHARE$sum.FR.) == 0)
+    {
+      allPopularCarriers$OHARE_DEPARTURES[i] <- 0
+    } else {
+      allPopularCarriers$OHARE_DEPARTURES[i] <- top1_OHARE$sum.FR.
+    }
   }
   
-  top2_OHARE <- ILData2017 %>% filter(CARRIER == allPopularCarriers$CARRIER[i])
-  top2_OHARE = top2_OHARE %>% filter(ORIGIN_AIRPORT_ID == "Chicago O'Hare International")
-  top2_OHARE = data.frame(summarize(group_by(top2_OHARE, CARRIER), sum(FR)))
-  if (is.na(top2_OHARE$sum.FR.) || length(top2_OHARE$sum.FR.) == 0)
-  {
-    allPopularCarriers$OHARE_ARRIVALS[i] <- 0
-  } else {
-    allPopularCarriers$OHARE_ARRIVALS[i] <- top2_OHARE$sum.FR.
+  # Filter arrivals by only Midway and O'Hare Airports
+  for(i in 1:length(allPopularCarriers$CARRIER)) {
+    top2_MID <- ILData2017 %>% filter(CARRIER == allPopularCarriers$CARRIER[i])
+    top2_MID = top2_MID %>% filter(DEST_AIRPORT_ID == "Chicago Midway International")
+    top2_MID = data.frame(summarize(group_by(top2_MID, CARRIER), sum(FR)))
+    if (is.na(top2_MID$sum.FR.) || length(top2_MID$sum.FR.) == 0)
+    {
+      allPopularCarriers$MIDWAY_ARRIVALS[i] <- 0
+    } else {
+      allPopularCarriers$MIDWAY_ARRIVALS[i] <- top2_MID$sum.FR.
+    }
+    
+    top2_OHARE <- ILData2017 %>% filter(CARRIER == allPopularCarriers$CARRIER[i])
+    top2_OHARE = top2_OHARE %>% filter(ORIGIN_AIRPORT_ID == "Chicago O'Hare International")
+    top2_OHARE = data.frame(summarize(group_by(top2_OHARE, CARRIER), sum(FR)))
+    if (is.na(top2_OHARE$sum.FR.) || length(top2_OHARE$sum.FR.) == 0)
+    {
+      allPopularCarriers$OHARE_ARRIVALS[i] <- 0
+    } else {
+      allPopularCarriers$OHARE_ARRIVALS[i] <- top2_OHARE$sum.FR.
+    }
   }
-}
-
-#test.csv is for isabel atm SWTICH TO CORRECT FILE IF YOU NEED IT
-#correct file = "ontime_flights.cleaned.csv"
-flights <- read.table(file = "data/test.csv", sep = ",", header = TRUE)
-
-# this fixes your data
-selectedData <- read.csv(file = "data/cleaned-flights.csv")
-
-#create new column that converts minutes to hour:minute
-selectedData$DEP_TIMEaggregated <- as.POSIXct(sprintf("%04.0f", selectedData$DEP_TIME), format='%H%M')
-selectedData$DEP_TIMEaggregated <- cut(selectedData$DEP_TIMEaggregated, breaks = "hour")
-selectedData$DEP_TIMEaggregated <- substr(selectedData$DEP_TIMEaggregated, 12, 16)
-
-selectedData$ARR_TIMEaggregated <- as.POSIXct(sprintf("%04.0f", selectedData$ARR_TIME), format='%H%M')
-selectedData$ARR_TIMEaggregated <- cut(selectedData$ARR_TIMEaggregated, breaks = "hour")
-selectedData$ARR_TIMEaggregated <- substr(selectedData$ARR_TIMEaggregated, 12, 16)
-
-#count based on hour
-hourlyDepartures <- aggregate(cbind(count = CARRIER) ~ DEP_TIMEaggregated,
+  
+  #test.csv is for isabel atm SWTICH TO CORRECT FILE IF YOU NEED IT
+  #correct file = "ontime_flights.cleaned.csv"
+  flights <- read.table(file = "data/test.csv", sep = ",", header = TRUE)
+  
+  # this fixes your data
+  selectedData <- read.csv(file = "data/cleaned-flights.csv")
+  
+  #create new column that converts minutes to hour:minute
+  selectedData$DEP_TIMEaggregated <- as.POSIXct(sprintf("%04.0f", selectedData$DEP_TIME), format='%H%M')
+  selectedData$DEP_TIMEaggregated <- cut(selectedData$DEP_TIMEaggregated, breaks = "hour")
+  selectedData$DEP_TIMEaggregated <- substr(selectedData$DEP_TIMEaggregated, 12, 16)
+  
+  selectedData$ARR_TIMEaggregated <- as.POSIXct(sprintf("%04.0f", selectedData$ARR_TIME), format='%H%M')
+  selectedData$ARR_TIMEaggregated <- cut(selectedData$ARR_TIMEaggregated, breaks = "hour")
+  selectedData$ARR_TIMEaggregated <- substr(selectedData$ARR_TIMEaggregated, 12, 16)
+  
+  #count based on hour
+  hourlyDepartures <- aggregate(cbind(count = CARRIER) ~ DEP_TIMEaggregated,
+                                data = selectedData,
+                                FUN = function(x){NROW(x)})
+  
+  hourlyArrivals <- aggregate(cbind(count = CARRIER) ~ ARR_TIMEaggregated,
                               data = selectedData,
                               FUN = function(x){NROW(x)})
-
-hourlyArrivals <- aggregate(cbind(count = CARRIER) ~ ARR_TIMEaggregated,
-                            data = selectedData,
-                            FUN = function(x){NROW(x)})
-
-#add nicer names to columns
-names(hourlyDepartures) <- c("Hour", "Count")
-names(hourlyArrivals) <- c("Hour", "Count")
-
-#merge into total selectedData for both departure and arrival
-totalselectedData <- merge(hourlyDepartures,hourlyArrivals,by="Hour")
-
-#give nicer column names
-names(totalselectedData) <- c("Hour", "Departures", "Arrivals")
-
-#add int boolean for if delay exists or not
-selectedData$delayTrue<-ifelse(selectedData$ARR_DELAY_NEW>0 | selectedData$DEP_DELAY_NEW > 0,1,0)
-selectedData$WEATHER_DELAY<-ifelse(selectedData$WEATHER_DELAY>0,1,0)
-selectedData$CARRIER_DELAY<-ifelse(selectedData$CARRIER_DELAY>0,1,0)
-selectedData$NAS_DELAY<-ifelse(selectedData$NAS_DELAY>0,1,0)
-selectedData$SECURITY_DELAY<-ifelse(selectedData$SECURITY_DELAY>0,1,0)
-selectedData$LATE_AIRCRAFT_DELAY<-ifelse(selectedData$LATE_AIRCRAFT_DELAY>0,1,0)
-
-carrierDelay <- subset(selectedData, CARRIER_DELAY > 0)
-securityDelay <- subset(selectedData, SECURITY_DELAY > 0)
-
-
-#count arrival delays per hour
-hourlyDelayCount <- aggregate(cbind(count = delayTrue) ~ ARR_TIMEaggregated,
+  
+  #add nicer names to columns
+  names(hourlyDepartures) <- c("Hour", "Count")
+  names(hourlyArrivals) <- c("Hour", "Count")
+  
+  #merge into total selectedData for both departure and arrival
+  totalselectedData <- merge(hourlyDepartures,hourlyArrivals,by="Hour")
+  
+  #give nicer column names
+  names(totalselectedData) <- c("Hour", "Departures", "Arrivals")
+  
+  #add int boolean for if delay exists or not
+  selectedData$delayTrue<-ifelse(selectedData$ARR_DELAY_NEW>0 | selectedData$DEP_DELAY_NEW > 0,1,0)
+  selectedData$WEATHER_DELAY<-ifelse(selectedData$WEATHER_DELAY>0,1,0)
+  selectedData$CARRIER_DELAY<-ifelse(selectedData$CARRIER_DELAY>0,1,0)
+  selectedData$NAS_DELAY<-ifelse(selectedData$NAS_DELAY>0,1,0)
+  selectedData$SECURITY_DELAY<-ifelse(selectedData$SECURITY_DELAY>0,1,0)
+  selectedData$LATE_AIRCRAFT_DELAY<-ifelse(selectedData$LATE_AIRCRAFT_DELAY>0,1,0)
+  
+  carrierDelay <- subset(selectedData, CARRIER_DELAY > 0)
+  securityDelay <- subset(selectedData, SECURITY_DELAY > 0)
+  
+  
+  #count arrival delays per hour
+  hourlyDelayCount <- aggregate(cbind(count = delayTrue) ~ ARR_TIMEaggregated,
+                                data = selectedData,
+                                FUN = sum)
+  
+  carrierDelayCount <- aggregate(cbind(carrier = CARRIER_DELAY) ~ ARR_TIMEaggregated,
+                                 data = selectedData,
+                                 FUN = sum)
+  
+  weatherDelayCount <- aggregate(cbind(Weather = WEATHER_DELAY) ~ ARR_TIMEaggregated,
+                                 data = selectedData,
+                                 FUN = sum)
+  
+  securityDelayCount <- aggregate(cbind(Weather = SECURITY_DELAY) ~ ARR_TIMEaggregated,
+                                  data = selectedData,
+                                  FUN = sum)
+  
+  nasDelayCount <- aggregate(cbind(Weather = NAS_DELAY) ~ ARR_TIMEaggregated,
+                             data = selectedData,
+                             FUN = sum)
+  
+  lateDelayCount <- aggregate(cbind(Weather = LATE_AIRCRAFT_DELAY) ~ ARR_TIMEaggregated,
                               data = selectedData,
                               FUN = sum)
-
-carrierDelayCount <- aggregate(cbind(carrier = CARRIER_DELAY) ~ ARR_TIMEaggregated,
-                          data = selectedData,
-                          FUN = sum)
-
-weatherDelayCount <- aggregate(cbind(Weather = WEATHER_DELAY) ~ ARR_TIMEaggregated,
-                               data = selectedData,
-                               FUN = sum)
-
-securityDelayCount <- aggregate(cbind(Weather = SECURITY_DELAY) ~ ARR_TIMEaggregated,
-                               data = selectedData,
-                               FUN = sum)
-
-nasDelayCount <- aggregate(cbind(Weather = NAS_DELAY) ~ ARR_TIMEaggregated,
-                                data = selectedData,
-                                FUN = sum)
-
-lateDelayCount <- aggregate(cbind(Weather = LATE_AIRCRAFT_DELAY) ~ ARR_TIMEaggregated,
-                                data = selectedData,
-                                FUN = sum)
-
-#give niver column names
-names(hourlyDelayCount) <- c("Hour", "Count")
-names(carrierDelayCount) <- c("Hour", "Carrier")
-names(weatherDelayCount) <- c("Hour", "Weather")
-names(securityDelayCount) <- c("Hour", "Security")
-names(nasDelayCount) <- c("Hour", "National Air System")
-names(lateDelayCount) <- c("Hour", "Late Aircraft")
-
-#create new table that will also hold percentage
-totalselectedDataPercentage <- merge(totalselectedData,hourlyDelayCount,by="Hour", all.x= TRUE, all.y= TRUE)
-totalselectedDataPercentage <- merge(totalselectedDataPercentage,carrierDelayCount,by="Hour", all.x= TRUE, all.y= TRUE)
-totalselectedDataPercentage <- merge(totalselectedDataPercentage,weatherDelayCount,by="Hour", all.x= TRUE, all.y= TRUE)
-totalselectedDataPercentage <- merge(totalselectedDataPercentage,securityDelayCount,by="Hour", all.x= TRUE, all.y= TRUE)
-totalselectedDataPercentage <- merge(totalselectedDataPercentage,nasDelayCount,by="Hour", all.x= TRUE, all.y= TRUE)
-totalselectedDataPercentage <- merge(totalselectedDataPercentage,lateDelayCount,by="Hour", all.x= TRUE, all.y= TRUE)
-
-
-totalselectedDataPercentage$Percentage <- (totalselectedDataPercentage$Weather / (totalselectedDataPercentage$Departures + totalselectedDataPercentage$Arrivals)) * 100
-
-#drop arrivals and departures from table
-#totalselectedDataPercentage <- subset(totalselectedDataPercentage, select = -c(2,3) )
-
-#round percentage
-totalselectedDataPercentage$Percentage <-round(totalselectedDataPercentage$Percentage, 0)
-
-#give nicer column names
-#names(totalselectedDataPercentage) <- c("Hour", "Total Delays", "% of selectedData")
-
-airportTotals <- function(airport_name)
-{
-  #count locations based on amount of origin
-  totalOrigin <- selectedData %>% filter(DEST_AIRPORT == airport_name)
-  totalOrigin <- aggregate(cbind(count = ORIGIN_AIRPORT) ~ ORIGIN_AIRPORT,
-                           data = totalOrigin,
+  
+  #give niver column names
+  names(hourlyDelayCount) <- c("Hour", "Count")
+  names(carrierDelayCount) <- c("Hour", "Carrier")
+  names(weatherDelayCount) <- c("Hour", "Weather")
+  names(securityDelayCount) <- c("Hour", "Security")
+  names(nasDelayCount) <- c("Hour", "National Air System")
+  names(lateDelayCount) <- c("Hour", "Late Aircraft")
+  
+  #create new table that will also hold percentage
+  totalselectedDataPercentage <- merge(totalselectedData,hourlyDelayCount,by="Hour", all.x= TRUE, all.y= TRUE)
+  totalselectedDataPercentage <- merge(totalselectedDataPercentage,carrierDelayCount,by="Hour", all.x= TRUE, all.y= TRUE)
+  totalselectedDataPercentage <- merge(totalselectedDataPercentage,weatherDelayCount,by="Hour", all.x= TRUE, all.y= TRUE)
+  totalselectedDataPercentage <- merge(totalselectedDataPercentage,securityDelayCount,by="Hour", all.x= TRUE, all.y= TRUE)
+  totalselectedDataPercentage <- merge(totalselectedDataPercentage,nasDelayCount,by="Hour", all.x= TRUE, all.y= TRUE)
+  totalselectedDataPercentage <- merge(totalselectedDataPercentage,lateDelayCount,by="Hour", all.x= TRUE, all.y= TRUE)
+  
+  
+  totalselectedDataPercentage$Percentage <- (totalselectedDataPercentage$Weather / (totalselectedDataPercentage$Departures + totalselectedDataPercentage$Arrivals)) * 100
+  
+  #drop arrivals and departures from table
+  #totalselectedDataPercentage <- subset(totalselectedDataPercentage, select = -c(2,3) )
+  
+  #round percentage
+  totalselectedDataPercentage$Percentage <-round(totalselectedDataPercentage$Percentage, 0)
+  
+  #give nicer column names
+  #names(totalselectedDataPercentage) <- c("Hour", "Total Delays", "% of selectedData")
+  
+  airportTotals <- function(airport_name)
+  {
+    #count locations based on amount of origin
+    totalOrigin <- selectedData %>% filter(DEST_AIRPORT == airport_name)
+    totalOrigin <- aggregate(cbind(count = ORIGIN_AIRPORT) ~ ORIGIN_AIRPORT,
+                             data = totalOrigin,
+                             FUN = function(x){NROW(x)})
+    
+    #count locations based on amount of destination
+    totalDest <- selectedData %>% filter(ORIGIN_AIRPORT == airport_name)
+    totalDest <- aggregate(cbind(count = DEST_AIRPORT) ~ DEST_AIRPORT,
+                           data = totalDest,
                            FUN = function(x){NROW(x)})
+    
+    #quick rename before we can join them
+    names(totalOrigin) <- c("Airport Name", "Arrivals")
+    names(totalDest) <- c("Airport Name", "Departures")
+    
+    #now we combine the two totals togheter
+    totalDepartures <- merge(totalDest,totalOrigin,by="Airport Name")
+    totalDepartures$"Total Flights" <- totalDepartures$"Arrivals" +totalDepartures$"Departures"
+    #last step is to sort by total count
+    totalDepartures <- totalDepartures[order(-totalDepartures$"Total Flights"),]
+    
+    return(totalDepartures)
+  }
   
-  #count locations based on amount of destination
-  totalDest <- selectedData %>% filter(ORIGIN_AIRPORT == airport_name)
-  totalDest <- aggregate(cbind(count = DEST_AIRPORT) ~ DEST_AIRPORT,
-                         data = totalDest,
-                         FUN = function(x){NROW(x)})
-  
-  #quick rename before we can join them
-  names(totalOrigin) <- c("Airport Name", "Arrivals")
-  names(totalDest) <- c("Airport Name", "Departures")
-  
-  #now we combine the two totals togheter
-  totalDepartures <- merge(totalDest,totalOrigin,by="Airport Name")
-  totalDepartures$"Total Flights" <- totalDepartures$"Arrivals" +totalDepartures$"Departures"
-  #last step is to sort by total count
-  totalDepartures <- totalDepartures[order(-totalDepartures$"Total Flights"),]
-
-  return(totalDepartures)
-}
-
   
   # increase the default font size
   theme_set(theme_dark(base_size = 18))
@@ -433,7 +433,39 @@ airportTotals <- function(airport_name)
   output$bartChart1 <-createTop15Airports("Chicago O'Hare International")
   
   #output$bartChart2 <- createTop15Airports("Chicago Midway International")
-
+  
+  #create the top 15 airports over the 12 months 
+  output$bartChart2 <- renderPlotly({
+    #remove any information that isn't the data or destination airport 
+    df <- subset( ILData2017, select = c(FL_DATE,DEST_AIRPORT_ID) )
+    # split it up into months, so FL_DATE is only month number 
+    df <- df %>% 
+      mutate(
+        FL_DATE = month(df$FL_DATE)
+      )
+    #make a quick copy
+    countFlights <- df
+    #add a column for frequency
+    countFlights$frequency <- 1
+    #we will also have to find the overall top 15 airports, we'll do this in another dataframe
+    countFlights <- data.frame(summarize(group_by(countFlights, DEST_AIRPORT_ID), sum(frequency)))
+    
+    #sort before, then we can get the top 15
+    countFlights <- countFlights[order(-countFlights$frequency),] %>% top_n(15)
+    
+    countFlights <- subset( countFlights, select = c(Airport) )     #keep only the names, we do not want the frequency 
+    top15Airports <- countFlights%>% top_n(15) # get only the top 15 locations    
+    dt <- data.table(df) # transpose to data.table
+    dt <- dt[, list(Freq =.N), by=list(FL_DATE,DEST_AIRPORT_ID)] # use list to name var directly
+    #now we have our sum for each month for each airport, now we get rid of the airports we do not need
+    
+    topForMonths <- merge(dt, top15Airports, by='DEST_AIRPORT_ID')
+    #TODO: ACTUALLY PLOT THE DATA 
+    # create the graph now 
+    #plot_ly(data = df,x = ~df$Freq, y = ~df$Month , color = df$Airport)
+  })
+  
+  
   # bar chart of top carriers total departure and arrival in ohare and midway FOR DECEMBER 2017
   output$popularGraph <- renderPlotly({
     plot_ly(popularCarriers, x = ~popularCarriers$CARRIER, y = ~popularCarriers$MIDWAY_DEPARTURES, type = 'bar', name = 'Departures Midway',
@@ -580,4 +612,3 @@ airportTotals <- function(airport_name)
     )
   )
 }
-
