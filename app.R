@@ -15,7 +15,7 @@ library(scales)
 library(dplyr)
 library(plotly)
 library(shinyWidgets)
-library(data.table)
+#library(data.table)
 
 #put the server/ui into a seperate file 
 source('ui.R', local = TRUE)

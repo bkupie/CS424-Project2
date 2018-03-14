@@ -11,7 +11,7 @@ library(scales)
 library(dplyr)
 library(plotly)
 library(shinyWidgets)
-library(data.table)
+#library(data.table)
 
 
 # start up the gui

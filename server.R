@@ -434,38 +434,6 @@ airportTotals <- function(airport_name)
   
   #output$bartChart2 <- createTop15Airports("Chicago Midway International")
 
-  #create the top 15 airports over the 12 months 
-  output$bartChart2 <- renderPlotly({
-    #remove any information that isn't the data or destination airport 
-    df <- subset( ILData2017, select = c(FL_DATE,DEST_AIRPORT_ID) )
-    # split it up into months, so FL_DATE is only month number 
-    df <- df %>% 
-      mutate(
-        FL_DATE = month(df$FL_DATE)
-      )
-    #make a quick copy
-    countFlights <- df
-    #add a column for frequency
-    countFlights$frequency <- 1
-    #we will also have to find the overall top 15 airports, we'll do this in another dataframe
-    countFlights <- data.frame(summarize(group_by(countFlights, DEST_AIRPORT_ID), sum(frequency)))
-
-    #sort before, then we can get the top 15
-    countFlights <- countFlights[order(-countFlights$frequency),] %>% top_n(15)
-
-    countFlights <- subset( countFlights, select = c(Airport) )     #keep only the names, we do not want the frequency 
-    top15Airports <- countFlights%>% top_n(15) # get only the top 15 locations    
-    dt <- data.table(df) # transpose to data.table
-    dt <- dt[, list(Freq =.N), by=list(FL_DATE,DEST_AIRPORT_ID)] # use list to name var directly
-    #now we have our sum for each month for each airport, now we get rid of the airports we do not need
-     
-    topForMonths <- merge(dt, top15Airports, by='DEST_AIRPORT_ID')
-    #TODO: ACTUALLY PLOT THE DATA 
-    # create the graph now 
-    #plot_ly(data = df,x = ~df$Freq, y = ~df$Month , color = df$Airport)
-  })
-  
-  
   # bar chart of top carriers total departure and arrival in ohare and midway FOR DECEMBER 2017
   output$popularGraph <- renderPlotly({
     plot_ly(popularCarriers, x = ~popularCarriers$CARRIER, y = ~popularCarriers$MIDWAY_DEPARTURES, type = 'bar', name = 'Departures Midway',
