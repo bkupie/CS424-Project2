@@ -432,8 +432,35 @@ airportTotals <- function(airport_name)
   #create the two different bar charts   
   output$bartChart1 <-createTop15Airports("Chicago O'Hare International")
   
-  output$bartChart2 <- createTop15Airports("Chicago Midway International")
+  #output$bartChart2 <- createTop15Airports("Chicago Midway International")
 
+  #create the top 15 airports over the 12 months 
+  output$bartChart2 <- renderPlotly({
+    #remove any information that isn't the data or destination airport 
+    df <- subset( ILData2017, select = c(FL_DATE,DEST_AIRPORT_ID) )
+    # split it up into months, so FL_DATE is only month number 
+    df <- df %>% 
+      mutate(
+        FL_DATE = month(df$FL_DATE)
+      )
+    
+    #we will also have to find the overall top 15 airports, we'll do this in another dataframe
+    countFlights <- aggregate(cbind(count = DEST_AIRPORT_ID) ~ DEST_AIRPORT_ID,
+                              data = df,
+                              FUN = function(x){NROW(x)})
+    
+    countMonthly <- ddply(df, .(df$'DEST_AIRPORT_ID', df$'FL_DATE'), nrow)
+    #sort before we can get the top 15
+    countFlights <- countFlights[order(-countFlights$count),]
+    # get only the top 15 locations
+    topFlights <- countFlights %>% top_n(15)
+    # after megre rename it
+    names(countMonthly) <- c("Airport", "Month", "Freq")
+    # create the graph now 
+    plot_ly(data = df,x = ~df$Freq, y = ~df$Month , color = df$Airport)
+  })
+  
+  
   # bar chart of top carriers total departure and arrival in ohare and midway FOR DECEMBER 2017
   output$popularGraph <- renderPlotly({
     plot_ly(popularCarriers, x = ~popularCarriers$CARRIER, y = ~popularCarriers$MIDWAY_DEPARTURES, type = 'bar', name = 'Departures Midway',
