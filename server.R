@@ -1,5 +1,3 @@
-
-
 server <- function(input, output) {
 
 # FOR NOW WE ARE USING DECEMBER 2017 AS OUR INITIAL DATASET
@@ -132,6 +130,61 @@ ILData2017$CARRIER <- as.character(ILData2017$CARRIER)
 allPopularCarriers <- data.frame(summarize(group_by(ILData2017, CARRIER), sum(FR)))
 allPopularCarriers <- arrange(allPopularCarriers, -allPopularCarriers$sum.FR.)
 
+# rank the top airports
+allPopularAirports <- data.frame(summarize(group_by(ILData2017, ORIGIN_AIRPORT_ID), sum(FR)))
+allPopularAirports <- arrange(allPopularAirports, -allPopularAirports$sum.FR.)
+
+# this monstrosity here takes the data across 12 months and filters it to Ohare and Midway
+allPopularCarriers$MIDWAY_DEPARTURES <- NA
+allPopularCarriers$OHARE_DEPARTURES <- NA
+allPopularCarriers$MIDWAY_ARRIVALS <- NA
+allPopularCarriers$OHARE_ARRIVALS <- NA
+
+# Filter departures by only Midway and O'Hare Airports
+for(i in 1:length(allPopularCarriers$CARRIER)) {
+  top1_MID <- ILData2017 %>% filter(CARRIER == allPopularCarriers$CARRIER[i])
+  top1_MID = top1_MID %>% filter(ORIGIN_AIRPORT_ID == "Chicago Midway International")
+  top1_MID = data.frame(summarize(group_by(top1_MID, CARRIER), sum(FR)))
+  if (is.na(top1_MID$sum.FR.) || length(top1_MID$sum.FR.) == 0)
+  {
+    allPopularCarriers$MIDWAY_DEPARTURES[i] <- 0
+  } else {
+    allPopularCarriers$MIDWAY_DEPARTURES[i] <- top1_MID$sum.FR.
+  }
+  
+  top1_OHARE <- ILData2017 %>% filter(CARRIER == allPopularCarriers$CARRIER[i])
+  top1_OHARE = top1_OHARE %>% filter(ORIGIN_AIRPORT_ID == "Chicago O'Hare International")
+  top1_OHARE = data.frame(summarize(group_by(top1_OHARE, CARRIER), sum(FR)))
+  if (is.na(top1_OHARE$sum.FR.) || length(top1_OHARE$sum.FR.) == 0)
+  {
+    allPopularCarriers$OHARE_DEPARTURES[i] <- 0
+  } else {
+    allPopularCarriers$OHARE_DEPARTURES[i] <- top1_OHARE$sum.FR.
+  }
+}
+
+# Filter arrivals by only Midway and O'Hare Airports
+for(i in 1:length(allPopularCarriers$CARRIER)) {
+  top2_MID <- ILData2017 %>% filter(CARRIER == allPopularCarriers$CARRIER[i])
+  top2_MID = top2_MID %>% filter(DEST_AIRPORT_ID == "Chicago Midway International")
+  top2_MID = data.frame(summarize(group_by(top2_MID, CARRIER), sum(FR)))
+  if (is.na(top2_MID$sum.FR.) || length(top2_MID$sum.FR.) == 0)
+  {
+    allPopularCarriers$MIDWAY_ARRIVALS[i] <- 0
+  } else {
+    allPopularCarriers$MIDWAY_ARRIVALS[i] <- top2_MID$sum.FR.
+  }
+  
+  top2_OHARE <- ILData2017 %>% filter(CARRIER == allPopularCarriers$CARRIER[i])
+  top2_OHARE = top2_OHARE %>% filter(ORIGIN_AIRPORT_ID == "Chicago O'Hare International")
+  top2_OHARE = data.frame(summarize(group_by(top2_OHARE, CARRIER), sum(FR)))
+  if (is.na(top2_OHARE$sum.FR.) || length(top2_OHARE$sum.FR.) == 0)
+  {
+    allPopularCarriers$OHARE_ARRIVALS[i] <- 0
+  } else {
+    allPopularCarriers$OHARE_ARRIVALS[i] <- top2_OHARE$sum.FR.
+  }
+}
 
 #test.csv is for isabel atm SWTICH TO CORRECT FILE IF YOU NEED IT
 #correct file = "ontime_flights.cleaned.csv"
@@ -381,7 +434,7 @@ airportTotals <- function(airport_name)
   
   output$bartChart2 <- createTop15Airports("Chicago Midway International")
 
-  # bar chart of top carriers total departure and arrival in ohare and midway
+  # bar chart of top carriers total departure and arrival in ohare and midway FOR DECEMBER 2017
   output$popularGraph <- renderPlotly({
     plot_ly(popularCarriers, x = ~popularCarriers$CARRIER, y = ~popularCarriers$MIDWAY_DEPARTURES, type = 'bar', name = 'Departures Midway',
             hoverinfo = 'text', text = ~paste('</br>', popularCarriers$MIDWAY_DEPARTURES, 'Departures Midway</br>'),
@@ -406,9 +459,7 @@ airportTotals <- function(airport_name)
   })
   
   # obtained from the following example: https://plot.ly/r/range-slider/
-  
-  
-  # table of top carriers total departure and arrival in ohare and midway
+  # table of top carriers total departure and arrival in ohare and midway FOR DECEMBER 2017
   output$topCarriers <- DT::renderDataTable(
     DT::datatable({
       popularCarriers
@@ -418,7 +469,7 @@ airportTotals <- function(airport_name)
     )
   )
   
-  # bar chart of departure and arrival PER weekday in ohare and midway
+  # bar chart of departure and arrival PER weekday in ohare and midway FOR DECEMBER 2017
   output$weekdayGraph <- renderPlotly({
     plot_ly(flightsByWeekday, x = ~flightsByWeekday$Weekday, y = ~flightsByWeekday$MidwayDeparturesTotal, type = 'bar', name = 'Departures Midway',
             hoverinfo = 'text', text = ~paste('</br>', flightsByWeekday$MidwayDeparturesTotal, 'Departures Midway</br>'),
@@ -442,6 +493,84 @@ airportTotals <- function(airport_name)
              barmode = 'group')
   })
   
+  # This is for 'B' part of project. User is shown 12 months of data.
+  output$allMonthsPopularGraph <- renderPlotly({
+    plot_ly(allPopularCarriers, x = ~allPopularCarriers$CARRIER, y = ~allPopularCarriers$MIDWAY_DEPARTURES, type = 'bar', name = 'Departures Midway',
+            hoverinfo = 'text', text = ~paste('</br>', allPopularCarriers$MIDWAY_DEPARTURES, 'Departures Midway</br>'),
+            marker = list(color = 'rgb(51,160,44)')) %>%
+      
+      add_trace(x = ~allPopularCarriers$CARRIER, y = ~allPopularCarriers$MIDWAY_ARRIVALS, name = 'Arrivals Midway', hoverinfo = 'text',
+                text = ~paste('</br>', allPopularCarriers$MIDWAY_ARRIVALS, 'Arrivals Midway </br>'),
+                marker = list(color = 'rgb(178,223,138)')) %>%
+      
+      add_trace(x = ~allPopularCarriers$CARRIER, y = ~allPopularCarriers$OHARE_DEPARTURES, name = 'Departures Ohare', hoverinfo = 'text',
+                text = ~paste('</br>', allPopularCarriers$OHARE_DEPARTURES, ' Departures Ohare </br>'),
+                marker = list(color = 'rgb(31,120,180)')) %>%
+      
+      add_trace(x = ~allPopularCarriers$CARRIER, y = ~allPopularCarriers$OHARE_ARRIVALS, name = 'Arrivals Ohare', hoverinfo = 'text',
+                text = ~paste('</br>', allPopularCarriers$OHARE_ARRIVALS, 'Arrivals Ohare </br>'),
+                marker = list(color = 'rgb(166,206,227)')) %>%
+      
+      layout(xaxis = list(title = "Carriers", tickangle = -45, categoryorder = "array", categoryarray = popularCarriers$CARRIER),
+             yaxis = list(title = "# of Flights"),
+             margin = list(b = 130),
+             barmode = 'group')
+  })
+  
+  # associated data table for user is shown 12 months of data.
+  output$allMonthsTopCarriersTable <- DT::renderDataTable(
+    DT::datatable({
+      allPopularCarriers
+    },
+    options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE)
+    )
+  )
+  
+  # This is for 'A' part of project. User selects airport they want to view data for --Vijay
+  output$specificAirportPlot <- renderPlotly({
+    allPopularCarriers$S_DEPARTURES <- NA
+    allPopularCarriers$S_ARRIVALS <- NA
+    
+    # Filter departures by Specified airport
+    for(i in 1:length(allPopularCarriers$CARRIER)) {
+      top1_S <- cleanedFlights %>% filter(CARRIER == allPopularCarriers$CARRIER[i])
+      top1_S = top1_S %>% filter(ORIGIN_AIRPORT == input$airport-dropdown)
+      top1_S = data.frame(summarize(group_by(top1_S, CARRIER), sum(FR)))
+      if (is.na(top1_S$sum.FR.) || length(top1_S$sum.FR.) == 0)
+      {
+        allPopularCarriers$S_DEPARTURES[i] <- 0
+      } else {
+        allPopularCarriers$S_DEPARTURES[i] <- top1_S$sum.FR.
+      }
+    }
+    
+    # Filter arrivals by only Specified airport
+    for(i in 1:length(allPopularCarriers$CARRIER)) {
+      top2_S <- cleanedFlights %>% filter(CARRIER == allPopularCarriers$CARRIER[i])
+      top2_S = top2_S %>% filter(DEST_AIRPORT == input$airport-dropdown)
+      top2_S = data.frame(summarize(group_by(top2_MID, CARRIER), sum(FR)))
+      if (is.na(top2_S$sum.FR.) || length(top2_S$sum.FR.) == 0)
+      {
+        allPopularCarriers$S_ARRIVALS[i] <- 0
+      } else {
+        allPopularCarriers$S_ARRIVALS[i] <- top2_S$sum.FR.
+      }
+    }
+    
+    plot_ly(allPopularCarriers, x = ~allPopularCarriers$CARRIER, y = ~allPopularCarriers$S_DEPARTURES, type = 'bar', name = 'Departures',
+            hoverinfo = 'text', text = ~paste('</br>', allPopularCarriers$S_DEPARTURES, 'Departures</br>'),
+            marker = list(color = 'rgb(51,160,44)')) %>%
+      
+      add_trace(x = ~allPopularCarriers$CARRIER, y = ~allPopularCarriers$S_ARRIVALS, name = 'Arrivals', hoverinfo = 'text',
+                text = ~paste('</br>', allPopularCarriers$S_ARRIVALS, 'Arrivals </br>'),
+                marker = list(color = 'rgb(178,223,138)')) %>%
+      
+      layout(xaxis = list(title = "Carriers", tickangle = -45, categoryorder = "array", categoryarray = popularCarriers$CARRIER),
+             yaxis = list(title = "# of Flights"),
+             margin = list(b = 130),
+             barmode = 'group')
+  })
+  
   # table of total departure and arrival PER weekday in ohare and midway
   output$weekdayTable <- DT::renderDataTable(
     DT::datatable({
@@ -450,7 +579,5 @@ airportTotals <- function(airport_name)
     options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE)
     )
   )
-  
-  
 }
 

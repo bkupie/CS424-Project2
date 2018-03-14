@@ -1,4 +1,3 @@
-#libraries to include
 library(shiny)
 library(shinydashboard)
 library(ggplot2)
@@ -15,17 +14,16 @@ library(shinyWidgets)
 
 # start up the gui
 ui <- dashboardPage(
-  
   #set title and disable sidebar
   dashboardHeader(title = "CS 424 | Project 2"),
   dashboardSidebar(
     sidebarMenu(
       menuItem("Top Carriers", icon = icon("plane", lib = "font-awesome"), tabName = "arrivalDepartureTotal"),
+      menuItem("Top Carriers 12 mo.", icon = icon("plane", lib = "font-awesome"), tabName = "allMonthsCarriers"),
       menuItem("Top Airports", tabName = "bart", icon = icon("dashboard")),
       menuItem("Hourly Total", icon = icon("hourglass", lib = "font-awesome"), tabName = "hourlytotal"),
       menuItem("Weekly Total", icon = icon("calendar", lib = "font-awesome"), tabName = "arrivalDepartureDaily"),
       menuItem("Delays", icon = icon("hourglass", lib = "font-awesome"), tabName = "delays"),
-      menuItem("All Carriers", icon = icon("hourglass", lib = "font-awesome"), tabName = "allCarriers"),
       
       #get month
       selectInput("select", label = h5("Month"),
@@ -99,6 +97,7 @@ ui <- dashboardPage(
               )
       ),
       tabItem(tabName = "arrivalDepartureTotal",
+              h4("Carrier Information in December 2017"),
               fluidRow(
                 box(title = "Total Departures and Arrivals of Top Carriers Graph", solidHeader = TRUE, status = "primary", width = 12,
                     div(plotlyOutput("popularGraph"))
@@ -111,6 +110,7 @@ ui <- dashboardPage(
               )
       ),
       tabItem(tabName = "arrivalDepartureDaily",
+              h4("Weekday Information in December 2017"),
               fluidRow(
                 box(title = "Departures and Arrivals by Weekday Graph", solidHeader = TRUE, status = "primary", width = 12,
                     div(plotlyOutput("weekdayGraph"))
@@ -122,9 +122,27 @@ ui <- dashboardPage(
                 )
               )
       ),
-      tabItem(tabName = "allCarriers",
-          h4("All carriers data will be here.")
-              
+      tabItem(tabName = "allMonthsCarriers",
+          h4("Carrier Information in Midway and Ohare across 12 months"),
+          fluidRow(
+            box(title = "Total Departures and Arrivals of Top Carriers Graph", solidHeader = TRUE, status = "primary", width = 12,
+                div(plotlyOutput("allMonthsPopularGraph"))
+            )
+          ),
+          fluidRow(
+            box(title = "Total Departures and Arrivals of Top Carriers Table", solidHeader = TRUE, status = "primary", width = 12,
+                DTOutput("allMonthsTopCarriersTable", width = "100%")
+            )
+          )
+          # Below code is for 'A' part where user selects airport from list of available airports
+          # TODO: instead of having dropdown sorted by popularity have it sorted alphabetically
+          #selectInput("airport-dropdown", "Airports:", allPopularAirports$ORIGIN_AIRPORT_ID),
+          #fluidRow(
+          #  box(title = "Departures and Arrivals for Selected Airport", solidHeader = TRUE, status = "primary", width = 12,
+          #      div(plotlyOutput("specificAirportPlot"))
+          #  )
+          #)
+          
       ),
       tabItem(tabName = "info",
               h1("Aeroplane Visualization"),
