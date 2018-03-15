@@ -15,6 +15,8 @@ library(dplyr)
 library(plotly)
 library(shinyWidgets)
 
+# load any processed data here
+load("rdata/allPopularCarriers.RData")
 
 # start up the gui
 ui <- dashboardPage(
@@ -24,6 +26,7 @@ ui <- dashboardPage(
     sidebarMenu(
       menuItem("Top Carriers", icon = icon("plane", lib = "font-awesome"), tabName = "arrivalDepartureTotal"),
       menuItem("Top Carriers 12 mo.", icon = icon("plane", lib = "font-awesome"), tabName = "allMonthsCarriers"),
+      menuItem("Reactive Top Carriers", icon = icon("plane", lib = "font-awesome"), tabName = "reactiveCarriers"),
       menuItem("Top Airports", tabName = "bart", icon = icon("dashboard")),
       menuItem("Top Airports 12 mo.", tabName = "bart2", icon = icon("dashboard")),
       menuItem("Hourly Total", icon = icon("hourglass", lib = "font-awesome"), tabName = "hourlytotal"),
@@ -147,20 +150,23 @@ ui <- dashboardPage(
                 DTOutput("allMonthsTopCarriersTable", width = "100%")
             )
           )
+      ),
+      tabItem(tabName = "reactiveCarriers",
           # Below code is for 'A' part where user selects airport from list of available airports
           # TODO: instead of having dropdown sorted by popularity have it sorted alphabetically
-          #selectInput("airport-dropdown", "Airports:", allPopularAirports$ORIGIN_AIRPORT_ID),
-          #fluidRow(
-          #  box(title = "Departures and Arrivals for Selected Airport", solidHeader = TRUE, status = "primary", width = 12,
-          #      div(plotlyOutput("specificAirportPlot"))
-          #  )
-          #)
-          
+          selectInput("airport-dropdown", "Airports:", allPopularCarriers$CARRIER),
+          fluidRow(
+            box(title = "Departures and Arrivals for Selected Airport", solidHeader = TRUE, status = "primary", width = 12,
+                #div(plotlyOutput("specificAirportPlot"))
+                h4("insert plot here")
+            )
+          )
       ),
       tabItem(tabName = "info",
               h1("Aeroplane Visualization"),
               h2("Authors: Vijayraj Mahida, Bartosz Kupiec, and Isabel Lindmae"),
               h2("Project 2 for CS 424 Spring 2018 UIC"),
+              h4("If graphs are 'glitchy' resize your window."),
               h4("Libraries used:"),
               h4("shinydashboard"),
               h4("ggplot2"),

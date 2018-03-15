@@ -25,87 +25,15 @@ server <- function(input, output) {
     
   }
   
-  # flights dataset with carrier names in it (i.e. Spirit Airlines, etc.)
+  # flights dataset with carrier names in it (i.e. Spirit Airlines, etc.) [ONLY DECEMBER]
   cleanedFlights <- read.csv(file = "data/cleaned-flights.csv")
   
-  # ordering flights by day of the week (i.e. how many on all the mondays of the month and so forth)
-  # handy solution on how to group by days of the week found here: https://stackoverflow.com/questions/27828850/dplyr-does-not-group-data-by-date
-  # below we generate a column that has specific weekday of the flight date (i.e. 12/1/17 = Friday)
-  orderByWeekday <- cleanedFlights %>% 
-    mutate(
-      FL_DATE = parse_date_time(FL_DATE,"%m/%d/%y"),
-      Weekday = wday(FL_DATE, label=TRUE, abbr=FALSE)
-    )
+  # ordering flights by day of the week (i.e. how many on all the mondays of the month and so forth) [ONLY DECEMBER]
+  load("orderByWeekday.RData")
+  load("flightsByWeekday.RData")
   
-  midwayDeparturesByWeekday = orderByWeekday %>% filter(ORIGIN_AIRPORT == "Chicago Midway International") %>% group_by(Weekday) %>% summarise(Total = n())
-  ohareDeparturesByWeekday = orderByWeekday %>% filter(ORIGIN_AIRPORT == "Chicago O'Hare International") %>% group_by(Weekday) %>% summarise(Total = n())
-  
-  midwayArrivalsByWeekday = orderByWeekday %>% filter(DEST_AIRPORT == "Chicago O'Hare International") %>% group_by(Weekday) %>% summarise(Total = n())
-  ohareArrivalsByWeekday = orderByWeekday %>% filter(DEST_AIRPORT == "Chicago Midway International") %>% group_by(Weekday) %>% summarise(Total = n())
-  
-  flightsByWeekday <- data.frame(
-    Weekday = midwayDeparturesByWeekday$Weekday,
-    MidwayDeparturesTotal = midwayDeparturesByWeekday$Total,
-    OhareDeparturesTotal = ohareDeparturesByWeekday$Total,
-    MidwayArrivalsTotal = midwayArrivalsByWeekday$Total,
-    OhareArrivalsTotal = ohareArrivalsByWeekday$Total
-  )
-  
-  # ordering flights by most common airlines
-  # based closely on following tutorial: https://rstudio-pubs-static.s3.amazonaws.com/52879_eaa8e7a9919b4bb6a2cf6e2bda587cb1.html
-  cleanedFlights$CARRIER <- as.character(cleanedFlights$CARRIER)
-  popularCarriers <- data.frame(summarize(group_by(cleanedFlights, CARRIER), sum(FR)))
-  popularCarriers <- arrange(popularCarriers, -popularCarriers$sum.FR.)
-  popularCarriers$MIDWAY_DEPARTURES <- NA
-  popularCarriers$OHARE_DEPARTURES <- NA
-  popularCarriers$MIDWAY_ARRIVALS <- NA
-  popularCarriers$OHARE_ARRIVALS <- NA
-  
-  # Filter departures by only Midway and O'Hare Airports
-  for(i in 1:length(popularCarriers$CARRIER)) {
-    top1_MID <- cleanedFlights %>% filter(CARRIER == popularCarriers$CARRIER[i])
-    top1_MID = top1_MID %>% filter(ORIGIN_AIRPORT == "Chicago Midway International")
-    top1_MID = data.frame(summarize(group_by(top1_MID, CARRIER), sum(FR)))
-    if (is.na(top1_MID$sum.FR.) || length(top1_MID$sum.FR.) == 0)
-    {
-      popularCarriers$MIDWAY_DEPARTURES[i] <- 0
-    } else {
-      popularCarriers$MIDWAY_DEPARTURES[i] <- top1_MID$sum.FR.
-    }
-    
-    top1_OHARE <- cleanedFlights %>% filter(CARRIER == popularCarriers$CARRIER[i])
-    top1_OHARE = top1_OHARE %>% filter(ORIGIN_AIRPORT == "Chicago O'Hare International")
-    top1_OHARE = data.frame(summarize(group_by(top1_OHARE, CARRIER), sum(FR)))
-    if (is.na(top1_OHARE$sum.FR.) || length(top1_OHARE$sum.FR.) == 0)
-    {
-      popularCarriers$OHARE_DEPARTURES[i] <- 0
-    } else {
-      popularCarriers$OHARE_DEPARTURES[i] <- top1_OHARE$sum.FR.
-    }
-  }
-  
-  # Filter arrivals by only Midway and O'Hare Airports
-  for(i in 1:length(popularCarriers$CARRIER)) {
-    top2_MID <- cleanedFlights %>% filter(CARRIER == popularCarriers$CARRIER[i])
-    top2_MID = top2_MID %>% filter(DEST_AIRPORT == "Chicago Midway International")
-    top2_MID = data.frame(summarize(group_by(top2_MID, CARRIER), sum(FR)))
-    if (is.na(top2_MID$sum.FR.) || length(top2_MID$sum.FR.) == 0)
-    {
-      popularCarriers$MIDWAY_ARRIVALS[i] <- 0
-    } else {
-      popularCarriers$MIDWAY_ARRIVALS[i] <- top2_MID$sum.FR.
-    }
-    
-    top2_OHARE <- cleanedFlights %>% filter(CARRIER == popularCarriers$CARRIER[i])
-    top2_OHARE = top2_OHARE %>% filter(ORIGIN_AIRPORT == "Chicago O'Hare International")
-    top2_OHARE = data.frame(summarize(group_by(top2_OHARE, CARRIER), sum(FR)))
-    if (is.na(top2_OHARE$sum.FR.) || length(top2_OHARE$sum.FR.) == 0)
-    {
-      popularCarriers$OHARE_ARRIVALS[i] <- 0
-    } else {
-      popularCarriers$OHARE_ARRIVALS[i] <- top2_OHARE$sum.FR.
-    }
-  }
+  # top carriers [ONLY DECEMBER]
+  load("popularCarriers.RData")
   
   # The variable month_data = 12 months of data in IL in an array.I saved most of these into RData files
   # In example if you wish to access ALL of january's data from IL simply do the following
