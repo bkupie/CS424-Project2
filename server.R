@@ -387,6 +387,15 @@ server <- function(input, output) {
     pad = 2
   )
   
+  heatMargins <- list(
+    l = 350,
+    r = 50,
+    b = 50,
+    t = 10,
+    pad = 2
+    
+  )
+  
   #render the table for departure/arrival counters
   output$bartTable1 <- DT::renderDataTable(
     DT::datatable({
@@ -451,21 +460,22 @@ server <- function(input, output) {
     countFlights <- data.frame(summarize(group_by(countFlights, DEST_AIRPORT_ID), sum(frequency)))
     
     #sort before, then we can get the top 15
-    countFlights <- countFlights[order(-countFlights$frequency),] %>% top_n(15)
+    countFlights <- countFlights[order(-countFlights$sum.frequency),]
     
-    countFlights <- subset( countFlights, select = c(Airport) )     #keep only the names, we do not want the frequency 
-    top15Airports <- countFlights%>% top_n(15) # get only the top 15 locations    
+    countFlights <- subset( countFlights, select = c(DEST_AIRPORT_ID) )     #keep only the names, we do not want the frequency 
+    top15Airports <- head(countFlights,n = 15) # get only the top 15 locations    
     dt <- data.table(df) # transpose to data.table
-    dt <- dt[, list(Freq =.N), by=list(FL_DATE,DEST_AIRPORT_ID)] # use list to name var directly
+    df <- setDF( dt[, list(Freq =.N), by=list(FL_DATE,DEST_AIRPORT_ID)] )# use list to name var directly
     #now we have our sum for each month for each airport, now we get rid of the airports we do not need
     
-    topForMonths <- merge(dt, top15Airports, by='DEST_AIRPORT_ID')
-    #TODO: ACTUALLY PLOT THE DATA 
+    topForMonths <- merge(df, top15Airports, by='DEST_AIRPORT_ID')
+    #rename the columns 
+    names(topForMonths) <- c("Airport","Month","Frequency")
     # create the graph now 
-    #plot_ly(data = df,x = ~df$Freq, y = ~df$Month , color = df$Airport)
-  })
-  
-  
+    plot_ly(topForMonths, x = ~Month, y = topForMonths$Airport, z= ~Frequency,colorscale = "Greys", type = "heatmap")%>%
+      layout(xaxis = list(categoryorder = "array",categoryarray = df$"Airport"), margin = heatMargins)
+    
+      })
   # bar chart of top carriers total departure and arrival in ohare and midway FOR DECEMBER 2017
   output$popularGraph <- renderPlotly({
     plot_ly(popularCarriers, x = ~popularCarriers$CARRIER, y = ~popularCarriers$MIDWAY_DEPARTURES, type = 'bar', name = 'Departures Midway',
