@@ -112,16 +112,16 @@ server <- function(input, output) {
   # month_data[[1]] OR month_data[["IL_01Jan_2017"]]
   # Now say you want to access flight date from january's data from IL simply do the following
   # month_data[[1]][1] OR month_data[["IL_01Jan_2017]]["FL_DATE"]
-  load("month_data.RData")
+  load("rdata/month_data.RData")
   
   # The object below just binds all 12 months worth of data in IL into one R object
-  load("ILData2017.RData")
+  load("rdata/ILData2017.RData")
   
   # rank the top carriers across 12 months and filters it to Ohare and Midway
-  load("allPopularCarriers.RData")
+  load("rdata/allPopularCarriers.RData")
   
   # rank the top airports
-  load("allPopularAirports.RData")
+  load("rdata/allPopularAirports.RData")
   
   #test.csv is for isabel atm SWTICH TO CORRECT FILE IF YOU NEED IT
   #correct file = "ontime_flights.cleaned.csv"
