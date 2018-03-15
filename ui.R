@@ -154,11 +154,10 @@ ui <- dashboardPage(
       tabItem(tabName = "reactiveCarriers",
           # Below code is for 'A' part where user selects airport from list of available airports
           # TODO: instead of having dropdown sorted by popularity have it sorted alphabetically
-          selectInput("airport-dropdown", "Airports:", allPopularCarriers$CARRIER),
+          selectInput("airport-dropdown", "Airports:", choices = as.character(allPopularCarriers$CARRIER)),
           fluidRow(
             box(title = "Departures and Arrivals for Selected Airport", solidHeader = TRUE, status = "primary", width = 12,
-                #div(plotlyOutput("specificAirportPlot"))
-                h4("insert plot here")
+                div(plotlyOutput("specificCarrierPlot"))
             )
           )
       ),

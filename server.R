@@ -1,6 +1,34 @@
 server <- function(input, output) {
+  # 12 MONTHS data below
+  # The variable month_data = 12 months of data in IL in an array.I saved most of these into RData files
+  # In example if you wish to access ALL of january's data from IL simply do the following
+  # month_data[[1]] OR month_data[["IL_01Jan_2017"]]
+  # Now say you want to access flight date from january's data from IL simply do the following
+  # month_data[[1]][1] OR month_data[["IL_01Jan_2017]]["FL_DATE"]
+  load("rdata/month_data.RData")
   
-  # FOR NOW WE ARE USING DECEMBER 2017 AS OUR INITIAL DATASET
+  # The object below just binds all 12 months worth of data in IL into one R object
+  load("rdata/ILData2017.RData")
+  
+  # ordering flights by day of the week (i.e. how many on all the mondays of the month and so forth) [ONLY DECEMBER]
+  load("rdata/orderByWeekday.RData")
+  load("rdata/flightsByWeekday.RData")
+  
+  # rank the TOP CARRIERS across 12 months and filters it to Ohare and Midway (seperate columns)
+  load("rdata/allPopularCarriers.RData")
+  
+  # rank the TOP AIRPORTS
+  load("rdata/allPopularAirports.RData")
+  
+  # DECEMBER ONLY data below
+  # flights dataset with carrier names in it (i.e. Spirit Airlines, etc.) [ONLY DECEMBER]
+  cleanedFlights <- read.csv(file = "data/cleaned-flights.csv")
+  
+  # ordering flights by day of the WEEK (i.e. how many on all the mondays of the month and so forth) [ONLY DECEMBER]
+  load("rdata/orderByWeekday.RData")
+  load("rdata/flightsByWeekday.RData")
+  
+  # nice functions to grab all airline/carrier information
   #first read in the lookup tables that will be needed 
   airlineLookup <- read.table(file = "data/airline.csv", sep = ",", header = TRUE)
   carrierLookup <- read.table(file = "data/carrier.csv", sep = ",", header = TRUE)
@@ -25,34 +53,7 @@ server <- function(input, output) {
     
   }
   
-  # flights dataset with carrier names in it (i.e. Spirit Airlines, etc.) [ONLY DECEMBER]
-  cleanedFlights <- read.csv(file = "data/cleaned-flights.csv")
-  
-  # ordering flights by day of the week (i.e. how many on all the mondays of the month and so forth) [ONLY DECEMBER]
-  load("rdata/orderByWeekday.RData")
-  load("rdata/flightsByWeekday.RData")
-  
-  # top carriers [ONLY DECEMBER]
-  load("rdata/popularCarriers.RData")
-  
-  # The variable month_data = 12 months of data in IL in an array.I saved most of these into RData files
-  # In example if you wish to access ALL of january's data from IL simply do the following
-  # month_data[[1]] OR month_data[["IL_01Jan_2017"]]
-  # Now say you want to access flight date from january's data from IL simply do the following
-  # month_data[[1]][1] OR month_data[["IL_01Jan_2017]]["FL_DATE"]
-  load("rdata/month_data.RData")
-  
-  # The object below just binds all 12 months worth of data in IL into one R object
-  load("rdata/ILData2017.RData")
-  
-  # rank the top carriers across 12 months and filters it to Ohare and Midway
-  load("rdata/allPopularCarriers.RData")
-  
-  # rank the top airports
-  load("rdata/allPopularAirports.RData")
-  
-  #test.csv is for isabel atm SWTICH TO CORRECT FILE IF YOU NEED IT
-  #correct file = "ontime_flights.cleaned.csv"
+  # Isabel Madness for DECEMBER ONLY
   flights <- read.table(file = "data/test.csv", sep = ",", header = TRUE)
   
   # this fixes your data
@@ -444,36 +445,14 @@ server <- function(input, output) {
     )
   )
   
+  # take a CARRIER drop down menu information
+  chosenCarrier <- reactive({
+    #input$aiport-dropdown
+  })
+  
   # This is for 'A' part of project. User selects airport they want to view data for --Vijay
-  output$specificAirportPlot <- renderPlotly({
-    allPopularCarriers$S_DEPARTURES <- NA
-    allPopularCarriers$S_ARRIVALS <- NA
-    
-    # Filter departures by Specified airport
-    for(i in 1:length(allPopularCarriers$CARRIER)) {
-      top1_S <- cleanedFlights %>% filter(CARRIER == allPopularCarriers$CARRIER[i])
-      top1_S = top1_S %>% filter(ORIGIN_AIRPORT == input$airport-dropdown)
-      top1_S = data.frame(summarize(group_by(top1_S, CARRIER), sum(FR)))
-      if (is.na(top1_S$sum.FR.) || length(top1_S$sum.FR.) == 0)
-      {
-        allPopularCarriers$S_DEPARTURES[i] <- 0
-      } else {
-        allPopularCarriers$S_DEPARTURES[i] <- top1_S$sum.FR.
-      }
-    }
-    
-    # Filter arrivals by only Specified airport
-    for(i in 1:length(allPopularCarriers$CARRIER)) {
-      top2_S <- cleanedFlights %>% filter(CARRIER == allPopularCarriers$CARRIER[i])
-      top2_S = top2_S %>% filter(DEST_AIRPORT == input$airport-dropdown)
-      top2_S = data.frame(summarize(group_by(top2_MID, CARRIER), sum(FR)))
-      if (is.na(top2_S$sum.FR.) || length(top2_S$sum.FR.) == 0)
-      {
-        allPopularCarriers$S_ARRIVALS[i] <- 0
-      } else {
-        allPopularCarriers$S_ARRIVALS[i] <- top2_S$sum.FR.
-      }
-    }
+  output$specificCarrierPlot <- renderPlotly({
+    allPopularCarriers <- chosenCarrier()
     
     plot_ly(allPopularCarriers, x = ~allPopularCarriers$CARRIER, y = ~allPopularCarriers$S_DEPARTURES, type = 'bar', name = 'Departures',
             hoverinfo = 'text', text = ~paste('</br>', allPopularCarriers$S_DEPARTURES, 'Departures</br>'),
