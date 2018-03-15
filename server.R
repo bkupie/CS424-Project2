@@ -29,11 +29,11 @@ server <- function(input, output) {
   cleanedFlights <- read.csv(file = "data/cleaned-flights.csv")
   
   # ordering flights by day of the week (i.e. how many on all the mondays of the month and so forth) [ONLY DECEMBER]
-  load("orderByWeekday.RData")
-  load("flightsByWeekday.RData")
+  load("rdata/orderByWeekday.RData")
+  load("rdata/flightsByWeekday.RData")
   
   # top carriers [ONLY DECEMBER]
-  load("popularCarriers.RData")
+  load("rdata/popularCarriers.RData")
   
   # The variable month_data = 12 months of data in IL in an array.I saved most of these into RData files
   # In example if you wish to access ALL of january's data from IL simply do the following
