@@ -202,6 +202,17 @@ server <- function(input, output) {
   selectedData$ARR_TIMEaggregated <- cut(selectedData$ARR_TIMEaggregated, breaks = "hour")
   selectedData$ARR_TIMEaggregated <- substr(selectedData$ARR_TIMEaggregated, 12, 16)
   
+  #continue this method into am/pm formatting
+  ILData2017$DEP_TIMEampm <- as.POSIXct(sprintf("%04.0f", ILData2017$DEP_TIME), format='%H%M')
+  ILData2017$DEP_TIMEampm <- cut(ILData2017$DEP_TIMEampm, breaks = "hour")
+  ILData2017$DEP_TIMEampm <- substr(ILData2017$DEP_TIMEampm, 12, 16)
+  ILData2017$DEP_TIMEampm <- format(strptime(ILData2017$DEP_TIMEampm,format ='%H:%M'), "%I:%M %p")
+
+  selectedData$ARR_TIMEampm <- as.POSIXct(sprintf("%04.0f", selectedData$ARR_TIME), format='%H%M')
+  selectedData$ARR_TIMEampm <- cut(selectedData$ARR_TIMEampm, breaks = "hour")
+  selectedData$ARR_TIMEampm <- substr(selectedData$ARR_TIMEampm, 12, 16)
+  ILData2017$ARR_TIMEampm <- format(strptime(ILData2017$ARR_TIMEampm,format ='%H:%M'), "%I:%M %p")
+  
   #count based on hour
   hourlyDepartures <- aggregate(cbind(count = CARRIER) ~ DEP_TIMEaggregated,
                                 data = selectedData,
@@ -441,10 +452,10 @@ server <- function(input, output) {
   #create the two different bar charts   
   output$bartChart1 <-createTop15Airports("Chicago O'Hare International")
   
-  #output$bartChart2 <- createTop15Airports("Chicago Midway International")
+  output$bartChart2 <- createTop15Airports("Chicago Midway International")
   
   #create the top 15 airports over the 12 months 
-  output$bartChart2 <- renderPlotly({
+  output$top15Airports12months <- renderPlotly({
     #remove any information that isn't the data or destination airport 
     df <- subset( ILData2017, select = c(FL_DATE,DEST_AIRPORT_ID) )
     # split it up into months, so FL_DATE is only month number 

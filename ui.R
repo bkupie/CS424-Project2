@@ -25,6 +25,7 @@ ui <- dashboardPage(
       menuItem("Top Carriers", icon = icon("plane", lib = "font-awesome"), tabName = "arrivalDepartureTotal"),
       menuItem("Top Carriers 12 mo.", icon = icon("plane", lib = "font-awesome"), tabName = "allMonthsCarriers"),
       menuItem("Top Airports", tabName = "bart", icon = icon("dashboard")),
+      menuItem("Top Airports 12 mo.", tabName = "bart2", icon = icon("dashboard")),
       menuItem("Hourly Total", icon = icon("hourglass", lib = "font-awesome"), tabName = "hourlytotal"),
       menuItem("Weekly Total", icon = icon("calendar", lib = "font-awesome"), tabName = "arrivalDepartureDaily"),
       menuItem("Delays", icon = icon("hourglass", lib = "font-awesome"), tabName = "delays"),
@@ -66,6 +67,14 @@ ui <- dashboardPage(
               ),
               box(title = "Flights from/to Chicago Midway International", solidHeader = TRUE, width = 10,
                   div(plotlyOutput("bartChart2"))
+              )
+              
+      ),
+      tabItem(tabName = "bart2",
+              fluidRow(
+              box(title = "Heatmap", solidHeader = TRUE, width = 10,
+                  div(plotlyOutput("top15Airports12months"))
+              )
               )
               
       ),
