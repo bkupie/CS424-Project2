@@ -92,7 +92,12 @@ ui <- dashboardPage(
                 ),
                 box(status = "primary", solidHeader = TRUE, width = 12, height = NULL,
                     DT::dataTableOutput("totalselectedDataPercentageTable")
+                ),
+                box(status = "warning", solidHeader = TRUE, width = 12, height = NULL,
+                    div(plotlyOutput("yearlyDelaysGraph"))
                 )
+                
+                
                 
               )
       ),
