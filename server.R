@@ -12,7 +12,6 @@ server <- function(input, output) {
   # rank the TOP AIRPORTS across 12 months
   load("rdata/allPopularAirports.RData")
 
-  # Isabel madness almost all refactored
   #continue this method into am/pm formatting
   #ILData2017$DEP_TIMEampm <- as.POSIXct(sprintf("%04.0f", ILData2017$DEP_TIME), format='%H%M')
   #ILData2017$DEP_TIMEampm <- cut(ILData2017$DEP_TIMEampm, breaks = "hour")
@@ -347,8 +346,6 @@ server <- function(input, output) {
     popularCarriers
   })
   
-  
-  
   # Output Graphs and Visualizations =========================================================================
   # Actual visualizations of the data is done below. We have many reactive variables which are all defined 
   # above. We used various naming conventions so I tried to centralize it. -Vijay
@@ -405,24 +402,19 @@ server <- function(input, output) {
              barmode = 'group')
   })
   
-  output$hourlyYearGraphArr <- renderPlotly(
-    {
+  output$hourlyYearGraphArr <- renderPlotly({
       data <- hourlyDataYear()
       
       plot_ly(x= data$Month,y= data$Time, z = data$Arrivals, type = "heatmap")
-    }
-  )
+    })
   
-  output$hourlyYearGraphDep <- renderPlotly(
-    {
+  output$hourlyYearGraphDep <- renderPlotly({
       data <- hourlyDataYear()
       
       plot_ly(x= data$Month,y= data$Time, z = data$Departures, type = "heatmap")
-    }
-  )
+    })
   
-  output$yearlyDelaysGraph <- renderPlotly(
-    {
+  output$yearlyDelaysGraph <- renderPlotly({
       data <- yearlyDelays()
     
       plot_ly(data, x = ~Month, y = ~Carrier, type = 'bar', name = 'Carrier Delay') %>%
@@ -430,11 +422,7 @@ server <- function(input, output) {
         add_trace(y = ~`National Air System`, name = 'National Air System Delay') %>% 
         add_trace(y = ~`Late Aircraft`, name = 'Late Aircraft Delay') %>%
         layout(yaxis = list(title = 'Count'), barmode = 'stack')
-    }
-  )
-  
-  
-  
+    })
   
   output$delayGraph <- renderPlotly({
     totalselectedDataPercentage <- tsdpData()
