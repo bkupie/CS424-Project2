@@ -24,9 +24,7 @@ ui <- dashboardPage(
   dashboardHeader(title = "CS 424 | Project 2"),
   dashboardSidebar(
     sidebarMenu(
-      menuItem("Top Carriers", icon = icon("plane", lib = "font-awesome"), tabName = "arrivalDepartureTotal"),
-      menuItem("Top Carriers 12 mo.", icon = icon("plane", lib = "font-awesome"), tabName = "allMonthsCarriers"),
-      menuItem("Reactive Top Carriers", icon = icon("plane", lib = "font-awesome"), tabName = "reactiveCarriers"),
+      menuItem("Top Carriers", icon = icon("plane", lib = "font-awesome"), tabName = "topCarriers"),
       menuItem("Top Airports", tabName = "bart", icon = icon("dashboard")),
       menuItem("Top Airports 12 mo.", tabName = "bart2", icon = icon("dashboard")),
       menuItem("Hourly Total", icon = icon("hourglass", lib = "font-awesome"), tabName = "hourlytotal"),
@@ -117,23 +115,13 @@ ui <- dashboardPage(
                   tabPanel("Arrivals", div(plotlyOutput("hourlyYearGraphArr"))),
                   tabPanel("Departures", div(plotlyOutput("hourlyYearGraphDep")))
                 )
-                
-              )
-      ),
-      tabItem(tabName = "arrivalDepartureTotal",
-              h4("Carrier Information in December 2017"),
-              fluidRow(
-                box(title = "Total Departures and Arrivals of Top Carriers Graph", solidHeader = TRUE, status = "primary", width = 12,
-                    div(plotlyOutput("popularGraph"))
-                )
               ),
-              fluidRow(
-                box(title = "Total Departures and Arrivals of Top Carriers Table", solidHeader = TRUE, status = "primary", width = 12,
-                    DT::dataTableOutput("topCarriersTable")
-                )
-              )
-      ),
-      tabItem(tabName = "arrivalDepartureDaily",
+              
+              
+              
+              
+              
+              # My weekday stuff. Trying to figure out best way to display it. -Vijay
               h4("Weekday Information in December 2017"),
               fluidRow(
                 box(title = "Departures and Arrivals by Weekday Graph", solidHeader = TRUE, status = "primary", width = 12,
@@ -146,28 +134,40 @@ ui <- dashboardPage(
                 )
               )
       ),
-      tabItem(tabName = "allMonthsCarriers",
-          h4("Carrier Information in Midway and Ohare across 12 months"),
-          fluidRow(
-            box(title = "Total Departures and Arrivals of Top Carriers Graph", solidHeader = TRUE, status = "primary", width = 12,
-                div(plotlyOutput("allMonthsPopularGraph"))
-            )
-          ),
-          fluidRow(
-            box(title = "Total Departures and Arrivals of Top Carriers Table", solidHeader = TRUE, status = "primary", width = 12,
-                DTOutput("allMonthsTopCarriersTable", width = "100%")
-            )
-          )
-      ),
-      tabItem(tabName = "reactiveCarriers",
-          # Below code is for 'A' part where user selects airport from list of available airports
-          # TODO: instead of having dropdown sorted by popularity have it sorted alphabetically
-          selectInput("airline-dropdown", "Airports:", choices = as.character(allPopularCarriers$CARRIER)),
-          fluidRow(
-            box(title = "Departures and Arrivals for Selected Airport", solidHeader = TRUE, status = "primary", width = 12,
-                div(plotlyOutput("specificCarrierPlot"))
-            )
-          )
+      tabItem(tabName = "topCarriers",
+              # Data across chosen month (from month dropdown)
+              h4("Top Airlines Visualization"),
+              fluidRow(
+                box(title = "Month View - Total Departures/Arrivals", solidHeader = TRUE, status = "primary", width = 12,
+                  tabBox(
+                    # The id lets us use input$tabset1 on the server to find the current tab
+                    title = textOutput('monthText', inline = TRUE),
+                    id = "monthTopCarriers", height = "100%", width = "100%",
+                    tabPanel("Graph", div(plotlyOutput("popularGraph"))),
+                    tabPanel("Table", div(DT::dataTableOutput("topCarriersTable")))
+                  )
+                )
+              ),
+              
+              # User selects CARRIER from list of available airlines
+              # TODO: instead of having dropdown sorted by popularity have it sorted alphabetically
+              selectInput("airline-dropdown", "Airline:", choices = as.character(allPopularCarriers$CARRIER)),
+              fluidRow(
+                box(title = "Departures/Arrivals for Selected Airline", solidHeader = TRUE, status = "primary", width = 12,
+                    div(plotlyOutput("specificCarrierPlot"))
+                )
+              ),
+              
+              # Data across year 2017
+              h4("Carrier Information in Midway and Ohare across 12 months"),
+              fluidRow(
+                box(title = "Across 2017 - Top Airlines Total Departures/Arrivals Graph", solidHeader = TRUE, status = "primary", width = 6,
+                    div(plotlyOutput("allMonthsPopularGraph"))
+                ),
+                box(title = "Across 2017 - Top Airlines Total Departures/Arrivals Table", solidHeader = TRUE, status = "primary", width = 6,
+                    DTOutput("allMonthsTopCarriersTable", width = "100%")
+                )
+              )
       ),
       tabItem(tabName = "info",
               h1("Aeroplane Visualization"),

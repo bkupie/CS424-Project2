@@ -346,6 +346,14 @@ server <- function(input, output) {
     popularCarriers
   })
   
+  mData <- reactive({
+    textOfMonth <- list("January", "February", "March", "April ", "May", "June", "July", "August", "September", "October", "November", "December")
+    yearOfData <- list(" 2017")
+    cMonth <- paste(textOfMonth[[as.numeric(input$"month-select")]], yearOfData[[1]])
+    
+    cMonth
+  })
+  
   # Output Graphs and Visualizations =========================================================================
   # Actual visualizations of the data is done below. We have many reactive variables which are all defined 
   # above. We used various naming conventions so I tried to centralize it. -Vijay
@@ -616,6 +624,8 @@ server <- function(input, output) {
     plot_ly(topForMonths, x = ~Month, y = topForMonths$Airport, z= ~Frequency,colorscale = "Greys", type = "heatmap") %>%
       layout(xaxis = list(categoryorder = "array",categoryarray = df$"Airport"), margin = heatMargins)
   })
+  
+  output$monthText <- renderText({ mData() })
   
   # Tables ===================================================================================================
   output$totalselectedDataTable <- renderDataTable(tsData(), extensions = 'Scroller', 
