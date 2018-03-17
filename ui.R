@@ -24,7 +24,7 @@ ui <- dashboardPage(
   dashboardHeader(title = "CS 424 | Project 2"),
   dashboardSidebar(
     sidebarMenu(
-      menuItem("Top Carriers", icon = icon("plane", lib = "font-awesome"), tabName = "topCarriers"),
+      menuItem("Top Airlines", icon = icon("plane", lib = "font-awesome"), tabName = "topCarriers"),
       menuItem("Top Airports", tabName = "bart", icon = icon("dashboard")),
       menuItem("Top Airports 12 mo.", tabName = "bart2", icon = icon("dashboard")),
       menuItem("Hourly Total", icon = icon("hourglass", lib = "font-awesome"), tabName = "hourlytotal"),
@@ -136,36 +136,43 @@ ui <- dashboardPage(
       ),
       tabItem(tabName = "topCarriers",
               # Data across chosen month (from month dropdown)
-              h4("Top Airlines Visualization"),
               fluidRow(
-                box(title = "Month View - Total Departures/Arrivals", solidHeader = TRUE, status = "primary", width = 12,
+                box(title = "Month View - Top Airlines Total Departures/Arrivals", solidHeader = TRUE, status = "primary", width = 6,
                   tabBox(
-                    # The id lets us use input$tabset1 on the server to find the current tab
+                    # The id lets us use input$monthText on the server to find the current tab
                     title = textOutput('monthText', inline = TRUE),
                     id = "monthTopCarriers", height = "100%", width = "100%",
                     tabPanel("Graph", div(plotlyOutput("popularGraph"))),
                     tabPanel("Table", div(DT::dataTableOutput("topCarriersTable")))
                   )
+                ),
+                box(title = "Year View - Top Airlines Total Departures/Arrivals", solidHeader = TRUE, status = "primary", width = 6,
+                    tabBox(
+                      title = "January - December 2017",
+                      id = "yearTopCarriers", height = "100%", width = "100%",
+                      tabPanel("Graph", div(plotlyOutput("allMonthsPopularGraph"))),
+                      tabPanel("Table", div(DT::dataTableOutput("allMonthsTopCarriersTable")))
+                    )
                 )
               ),
               
               # User selects CARRIER from list of available airlines
               # TODO: instead of having dropdown sorted by popularity have it sorted alphabetically
-              selectInput("airline-dropdown", "Airline:", choices = as.character(allPopularCarriers$CARRIER)),
               fluidRow(
                 box(title = "Departures/Arrivals for Selected Airline", solidHeader = TRUE, status = "primary", width = 12,
-                    div(plotlyOutput("specificCarrierPlot"))
-                )
-              ),
-              
-              # Data across year 2017
-              h4("Carrier Information in Midway and Ohare across 12 months"),
-              fluidRow(
-                box(title = "Across 2017 - Top Airlines Total Departures/Arrivals Graph", solidHeader = TRUE, status = "primary", width = 6,
-                    div(plotlyOutput("allMonthsPopularGraph"))
-                ),
-                box(title = "Across 2017 - Top Airlines Total Departures/Arrivals Table", solidHeader = TRUE, status = "primary", width = 6,
-                    DTOutput("allMonthsTopCarriersTable", width = "100%")
+                    selectInput("airline-dropdown", "Airline:", choices = as.character(allPopularCarriers$CARRIER)),
+                    tabBox( # TODO: 24 hour breakdown of chosen carrier
+                      title = "24 Hour Breakdown of [CARRIER]",
+                      id = "twentyFourTopCarriers", height = "100%", width = "100%"#,
+                      #tabPanel("Graph", div(plotlyOutput("specificCarrierPlot")))#,
+                      #tabPanel("Table", div(DT::dataTableOutput("allMonthsTopCarriersTable")))
+                    ),
+                    tabBox( # TODO: Year breakdown of chosen carrier
+                      title = "January - December 2017",
+                      id = "yearChosenTopCarrier", height = "100%", width = "100%"#,
+                      #tabPanel("Graph", div(plotlyOutput("allMonthsPopularGraph")))#,
+                      #tabPanel("Table", div(DT::dataTableOutput("allMonthsTopCarriersTable")))
+                    )
                 )
               )
       ),
