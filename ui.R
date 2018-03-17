@@ -104,6 +104,9 @@ ui <- dashboardPage(
                 ),
                 box(status = "primary", solidHeader = TRUE, width = 12, height = NULL,
                     DT::dataTableOutput("totalselectedDataTable")
+                ),
+                box(status = "primary", solidHeader = TRUE, width = 12, height = NULL,
+                    div(plotlyOutput("hourlyYearGraph"))
                 )
                 
               )

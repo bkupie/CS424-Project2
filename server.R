@@ -29,10 +29,43 @@ server <- function(input, output) {
     as.numeric(input$"month-select")
   })
   
+  hourlyDataYear <- reactive({
+    selectedData <- month_data[[chosenMonth()]]
+    
+    #get only certain columns
+    hourlyFlightsYear <- subset( selectedData, select = c(FL_DATE,CARRIER,DEP_TIME,ARR_TIME, ORIGIN_AIRPORT_ID, DEST_AIRPORT_ID) )
+    #filter to show only ohare and midway
+    hourlyFlightsYear <- hourlyFlightsYear %>% filter(DEST_AIRPORT_ID == "Chicago O'Hare International" ||DEST_AIRPORT_ID == "Chicago Midway International" || ORIGIN_AIRPORT_ID == "Chicago O'Hare International" ||ORIGIN_AIRPORT_ID == "Chicago Midway International")
+    
+    #change date to show only month
+    hourlyFlightsYear <- hourlyFlightsYear %>% mutate(FL_DATE = month(hourlyFlightsYear$FL_DATE))
+    
+    #round times
+    hourlyFlightsYear$DEP_TIME <- as.POSIXct(sprintf("%04.0f", hourlyFlightsYear$DEP_TIME), format='%H%M')
+    hourlyFlightsYear$DEP_TIME <- cut(hourlyFlightsYear$DEP_TIME, breaks = "hour")
+    hourlyFlightsYear$DEP_TIME <- substr(hourlyFlightsYear$DEP_TIME, 12, 16)
+    
+    hourlyFlightsYear$ARR_TIME <- as.POSIXct(sprintf("%04.0f", hourlyFlightsYear$ARR_TIME), format='%H%M')
+    hourlyFlightsYear$ARR_TIME <- cut(hourlyFlightsYear$ARR_TIME, breaks = "hour")
+    hourlyFlightsYear$ARR_TIME <- substr(hourlyFlightsYear$ARR_TIME, 12, 16)
+    
+    #get arrivals and departues per hour per year
+    hourlyFlightsYearArrival <- hourlyFlightsYear %>% group_by(FL_DATE, ARR_TIME) %>% summarize(n())
+    names(hourlyFlightsYearArrival) <- c("Month", "Time", "Arrivals")
+    hourlyFlightsYearDeparture <- hourlyFlightsYear %>% group_by(FL_DATE, DEP_TIME) %>% summarize(n())
+    names(hourlyFlightsYearDeparture) <- c("Month", "Time", "Departures")
+    
+    hourlyYearlyData <- merge(hourlyFlightsYearArrival,hourlyFlightsYearDeparture,by=c("Month","Time"))
+    
+    hourlyYearlyData
+  })
+  
   # selectedData based on chosen Month
   sData <- reactive({
     selectedData <- month_data[[chosenMonth()]]
     
+    selectedData <- selectedData %>% filter(ORIGIN_AIRPORT_ID == "Chicago O'Hare International" ||ORIGIN_AIRPORT_ID == "Chicago Midway International" || DEST_AIRPORT_ID == "Chicago O'Hare International" ||DEST_AIRPORT_ID == "Chicago Midway International")
+
     #create new column that converts minutes to hour:minute
     selectedData$DEP_TIMEaggregated <- as.POSIXct(sprintf("%04.0f", selectedData$DEP_TIME), format='%H%M')
     selectedData$DEP_TIMEaggregated <- cut(selectedData$DEP_TIMEaggregated, breaks = "hour")
@@ -252,6 +285,8 @@ server <- function(input, output) {
     popularCarriers
   })
   
+  
+  
   # Output Graphs and Visualizations =========================================================================
   # Actual visualizations of the data is done below. We have many reactive variables which are all defined 
   # above. We used various naming conventions so I tried to centralize it. -Vijay
@@ -308,6 +343,13 @@ server <- function(input, output) {
              barmode = 'group')
   })
   
+  output$hourlyYearGraph <- renderPlotly(
+    {
+      data <- hourlyDataYear()
+      
+      plot_ly(x= data$Month,y= data$Time, z = data$Arrivals, type = "heatmap")
+    }
+  )
   output$delayGraph <- renderPlotly({
     totalselectedDataPercentage <- tsdpData()
     
