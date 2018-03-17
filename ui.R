@@ -34,19 +34,15 @@ ui <- dashboardPage(
       menuItem("Delays", icon = icon("hourglass", lib = "font-awesome"), tabName = "delays"),
       
       #get month
-      selectInput("select", label = h5("Month"),
-                  choices = list("January" = 1, "February" = 2, "March" = 3,
-                                 "April" = 4, "May" = 5, "June" = 6,
-                                 "July" = 7, "August" = 8, "September" = 9,
-                                 "October" = 10, "November" = 11, "December" = 12), selected = 1),
-      #get day of week
-      selectInput("select", label = h5("Day of Week"),
-                  choices = list("Monday" = 1, "Tuesday" = 2, "Wednesday" = 3,
-                                 "Thursday" = 4, "Friday" = 5, "Saturday" = 6,
-                                 "Sunday" = 7, "All" = 8), selected = 8),
+      selectInput("month-select", label = "Month", list("January" = 1, "February" = 2, "March" = 3, "April" = 4, "May" = 5, "June" = 6, "July" = 7, "August" = 8, "September" = 9, "October" = 10, "November" = 11, "December" = 12),
+                  selected = 1),
       
-      #get specific date !!! needs to be worked on
-      dateInput("date", label = h5("Specific Date")),
+      #get day of week
+      selectInput("week-select", label = "Day of Week", list("Monday" = 1, "Tuesday" = 2, "Wednesday" = 3, "Thursday" = 4, "Friday" = 5, "Saturday" = 6, "Sunday" = 7, "All" = 8), 
+                  selected = 8),
+
+      #get specific date
+      dateInput("date-select", label = h5("Specific Date")),
       
       #change between 12/24 hours time formats
       switchInput(inputId = "time",label = "24 time format", value = TRUE),
@@ -121,7 +117,7 @@ ui <- dashboardPage(
               ),
               fluidRow(
                 box(title = "Total Departures and Arrivals of Top Carriers Table", solidHeader = TRUE, status = "primary", width = 12,
-                    DTOutput("topCarriers", width = "100%")
+                    DT::dataTableOutput("topCarriersTable")
                 )
               )
       ),
@@ -134,7 +130,7 @@ ui <- dashboardPage(
               ),
               fluidRow(
                 box(title = "Departures and Arrivals by Weekday Table", solidHeader = TRUE, status = "primary", width = 12,
-                    DTOutput("weekdayTable", width = "100%")
+                    DT::dataTableOutput("weekdayTable")
                 )
               )
       ),
@@ -154,7 +150,7 @@ ui <- dashboardPage(
       tabItem(tabName = "reactiveCarriers",
           # Below code is for 'A' part where user selects airport from list of available airports
           # TODO: instead of having dropdown sorted by popularity have it sorted alphabetically
-          selectInput("airport-dropdown", "Airports:", choices = as.character(allPopularCarriers$CARRIER)),
+          selectInput("airline-dropdown", "Airports:", choices = as.character(allPopularCarriers$CARRIER)),
           fluidRow(
             box(title = "Departures and Arrivals for Selected Airport", solidHeader = TRUE, status = "primary", width = 12,
                 div(plotlyOutput("specificCarrierPlot"))
