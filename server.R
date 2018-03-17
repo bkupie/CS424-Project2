@@ -30,7 +30,7 @@ server <- function(input, output) {
   })
   
   hourlyDataYear <- reactive({
-    selectedData <- month_data[[chosenMonth()]]
+    selectedData <- ILData2017
     
     #get only certain columns
     hourlyFlightsYear <- subset( selectedData, select = c(FL_DATE,CARRIER,DEP_TIME,ARR_TIME, ORIGIN_AIRPORT_ID, DEST_AIRPORT_ID) )
@@ -343,13 +343,22 @@ server <- function(input, output) {
              barmode = 'group')
   })
   
-  output$hourlyYearGraph <- renderPlotly(
+  output$hourlyYearGraphArr <- renderPlotly(
     {
       data <- hourlyDataYear()
       
       plot_ly(x= data$Month,y= data$Time, z = data$Arrivals, type = "heatmap")
     }
   )
+  
+  output$hourlyYearGraphDep <- renderPlotly(
+    {
+      data <- hourlyDataYear()
+      
+      plot_ly(x= data$Month,y= data$Time, z = data$Departures, type = "heatmap")
+    }
+  )
+  
   output$delayGraph <- renderPlotly({
     totalselectedDataPercentage <- tsdpData()
     

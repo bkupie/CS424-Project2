@@ -105,8 +105,12 @@ ui <- dashboardPage(
                 box(status = "primary", solidHeader = TRUE, width = 12, height = NULL,
                     DT::dataTableOutput("totalselectedDataTable")
                 ),
-                box(status = "primary", solidHeader = TRUE, width = 12, height = NULL,
-                    div(plotlyOutput("hourlyYearGraph"))
+                tabBox(
+                  title = "Yearly",
+                  # The id lets us use input$tabset1 on the server to find the current tab
+                  id = "tabset1", height = "250px",
+                  tabPanel("Arrivals", div(plotlyOutput("hourlyYearGraphArr"))),
+                  tabPanel("Departures", div(plotlyOutput("hourlyYearGraphDep")))
                 )
                 
               )
