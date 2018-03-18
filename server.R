@@ -25,6 +25,8 @@ server <- function(input, output) {
   #load data for yearly arrivals and departures heatmap
   load("rdata/hourlyYearlyData.RData")
   
+  #load data for the top 50 airports
+  
   #continue this method into am/pm formatting
   #ILData2017$DEP_TIMEampm <- as.POSIXct(sprintf("%04.0f", ILData2017$DEP_TIME), format='%H%M')
   #ILData2017$DEP_TIMEampm <- cut(ILData2017$DEP_TIMEampm, breaks = "hour")
@@ -40,10 +42,14 @@ server <- function(input, output) {
   time <- c("12:00 AM","1:00 AM","2:00 AM","3:00 AM","4:00 AM","5:00 AM","6:00 AM","7:00 AM","8:00 AM","9:00 AM","10:00 AM","11:00 AM",
             "12:00 PM","1:00 PM","2:00 PM","3:00 PM","4:00 PM","5:00 PM","6:00 PM","7:00 PM","8:00 PM","9:00 PM","10:00 PM","11:00 PM")
   timeampm <- data_frame(time)
+  timeampmExtended <- rbind(timeampm,c("No Time"))
+  timeampmExtended <- timeampmExtended[rep(row.names(timeampmExtended),12),1]
+  
   time <- c("0:00","1:00","2:00","3:00","4:00","5:00","6:00","7:00","8:00","9:00","10:00","11:00","12:00",
                "13:00","14:00","15:00","16:00","17:00","18:00","19:00","20:00","21:00","22:00","23:00")
   timereg <- data_frame(time)
-  
+  timeregExtended <- rbind(timereg,c("No Time"))
+  timeregExtended <- timeregExtended[rep(row.names(timeregExtended),12),1]
   # reactive elements are here ============================================================================
  getTimeFrame <- reactive({
    if(input$time)
@@ -53,6 +59,13 @@ server <- function(input, output) {
    selectedTime
    })
 
+  getTimeFrameHeat <- reactive({
+    if(input$time)
+    {selectedTime <- timeregExtended}
+    else if(!input$time)
+    {selectedTime <- timeampmExtended}  
+    selectedTime
+  })
   
    chosenMonth <- reactive({
     as.numeric(input$"month-select")
@@ -447,7 +460,7 @@ server <- function(input, output) {
   # increase the default font size
   theme_set(theme_dark(base_size = 18))
   
-  # set up the margins for graphs - Bart
+  # set up the margins for graphs
   graphMargins <- list(
     l = 50,
     r = 200,
@@ -468,6 +481,8 @@ server <- function(input, output) {
   output$hourlyGraph <- renderPlotly({
     selectedData <- sData()  
     timeFrame <- getTimeFrame()
+    monthChoice <- chosenMonth()
+    
     #count based on hour
     hourlyDepartures <- aggregate(cbind(count = CARRIER) ~ DEP_TIMEaggregated,
                                   data = selectedData,
@@ -489,7 +504,7 @@ server <- function(input, output) {
                 text = ~paste('</br>', hourlyArrivals$Count, ' Arrivals </br>'),
                 marker = list(color = '#ff7f0e')) %>%
       
-      layout(xaxis = list(title = "Time Period", tickangle = -45,categoryorder = "array",categoryarray = timeFrame$time),
+      layout(title=paste("Total Hourly flights",month.abb[monthChoice],"2017", sep=" "), xaxis = list(title = "Time Period", tickangle = -45,categoryorder = "array",categoryarray = timeFrame$time),
              yaxis = list(title = "# of Flights"),
              margin = list(b = 100),
              barmode = 'group')
@@ -497,18 +512,17 @@ server <- function(input, output) {
   
   output$hourlyYearGraphArr <- renderPlotly({
       data <- hourlyYearlyData
-      timeFrame <- getTimeFrame()
-      plot_ly(x= data$Month,y= data$Time, z = data$Arrivals, type = "heatmap",hoverinfo = 'text',
+      timeFrame <- getTimeFrameHeat()
+      plot_ly(x= data$Month,y= timeFrame$time, z = data$Arrivals, type = "heatmap",hoverinfo = 'text',
               text = ~paste('</br> Departures: ', data$Departures, '</br> Month: ', data$Month, '</br> Time: ', timeFrame$time ))%>%
-        layout(xaxis = list(title = "Month", autotick = F, dtick = 1))%>%
         layout(xaxis = list(title = "Month", autotick = F, dtick = 1),
                yaxis = list(categoryorder = "array",categoryarray = timeFrame$time))
     })
   
   output$hourlyYearGraphDep <- renderPlotly({
       data <- hourlyYearlyData
-      timeFrame <- getTimeFrame()
-      plot_ly(x= data$Month,y= data$Time, z = data$Departures, type = "heatmap", hoverinfo = 'text',
+      timeFrame <- getTimeFrameHeat()
+      plot_ly(x= data$Month,y= timeFrame$time, z = data$Departures, type = "heatmap", hoverinfo = 'text',
               text = ~paste('</br> Departures: ', data$Departures, '</br> Month: ', data$Month, '</br> Time: ', timeFrame$time ))%>%
         layout(xaxis = list(title = "Month", autotick = F, dtick = 1),
                yaxis = list(title = "Time",categoryorder = "array",categoryarray = timeFrame$time))
@@ -522,6 +536,7 @@ server <- function(input, output) {
         add_trace(y = ~Weather, name = 'Weather Delay') %>% add_trace(y = ~Security, name = 'Security Delay') %>% 
         add_trace(y = ~`National Air System`, name = 'National Air System Delay') %>% 
         add_trace(y = ~`Late Aircraft`, name = 'Late Aircraft Delay') %>%
+        layout(title = "Total Delays in 2017", xaxis = list(title = "Month", autotick = F, dtick = 1)) %>%
         layout(yaxis = list(title = 'Count'), barmode = 'stack')
     })
   
@@ -529,16 +544,20 @@ server <- function(input, output) {
     totalselectedDataPercentage <- tsdpData()
     timeFrame <- getTimeFrame()
     userInput <- input$delayButtons
-    # print(userInput)
+    monthChoice <- chosenMonth()
+    
+    
+    #newTitle <- userInput + " Delays in Month"
     
     plot_ly(data =  totalselectedDataPercentage, x = ~timeFrame$time, y = ~get(input$delayButtons), 
             type = "bar", showlegend=TRUE, hoverinfo = 'text', 
             text = ~paste('</br>', Weather, ' Delays </br>', Percentage, '% of Flights</br>'), 
             marker=list(color=~totalselectedDataPercentage$Percentage, showscale=TRUE)) %>%
       
-      layout(xaxis = list(title = "Time Period", tickangle = -45,categoryorder = "array",categoryarray = timeFrame$time),yaxis = list(title = "# of Flights"),
+      layout(title = paste("Hourly", userInput, "Delays in", month.abb[monthChoice],"2017", sep=" "), xaxis = list(title = "Time Period", tickangle = -45,categoryorder = "array",categoryarray = timeFrame$time),yaxis = list(title = "# of Flights"),
              margin = list(b = 100), barmode = 'group')
   })
+  
   
   # bar chart of top carriers total departure and arrival in ohare and midway FOR CHOSEN MONTH
   output$popularGraph <- renderPlotly({
@@ -615,7 +634,8 @@ server <- function(input, output) {
   # chart of dep/arr in ohare and midway FOR CHOSEN WEEKDAY ACROSS THE YEAR
   output$specificWeekdayYearPlot <- renderPlotly({
     selectedData <- sWeekday()
-    
+    timeFrame <- getTimeFrame()
+    #BARTT
     #count based on hour
     hourlyDepartures <- aggregate(cbind(count = CARRIER) ~ DEP_TIMEaggregated,
                                   data = selectedData,
@@ -629,15 +649,15 @@ server <- function(input, output) {
     names(hourlyDepartures) <- c("Hour", "Count")
     names(hourlyArrivals) <- c("Hour", "Count")
     
-    plot_ly(hourlyDepartures, x = ~hourlyDepartures$Hour, y = ~hourlyDepartures$Count, type = 'scatter', mode = 'lines', name = 'Departures', 
+    plot_ly(hourlyDepartures, x = ~timeFrame$time, y = ~hourlyDepartures$Count, type = 'scatter', mode = 'lines', name = 'Departures', 
             hoverinfo = 'text', text = ~paste('</br>', hourlyDepartures$Count, ' Departures </br>'), 
             marker = list(color = 'rgb(49,130,189)')) %>%
       
-      add_trace(x = ~hourlyArrivals$Hour, y = ~hourlyArrivals$Count, name = 'Arrivals', type = 'scatter', mode = 'lines', hoverinfo = 'text',
+      add_trace(x = ~timeFrame$time, y = ~hourlyArrivals$Count, name = 'Arrivals', type = 'scatter', mode = 'lines', hoverinfo = 'text',
                 text = ~paste('</br>', hourlyArrivals$Count, ' Arrivals </br>'),
                 marker = list(color = '#ff7f0e')) %>%
       
-      layout(xaxis = list(title = "Time Period", tickangle = -45),
+      layout(xaxis = list(title = "Time Period", tickangle = -45,categoryorder = "array",categoryarray = timeFrame$time),
              yaxis = list(title = "# of Flights"),
              margin = list(b = 100),
              barmode = 'group')
@@ -646,15 +666,16 @@ server <- function(input, output) {
   # chart of total delays in ohare and midway FOR CHOSEN WEEKDAY ACROSS THE YEAR
   output$specificWeekdayDelayPlot <- renderPlotly({
     totalselectedDataPercentage <- sDelayWeekdayYear()
+    timeFrame <- getTimeFrame()
     
     userInput <- input$delayButtons2
-    
-    plot_ly(data =  totalselectedDataPercentage, x = ~totalselectedDataPercentage$Hour, y = ~get(input$delayButtons2), 
+
+    plot_ly(data =  totalselectedDataPercentage, x = ~timeFrame$time, y = ~get(input$delayButtons2), 
             type = "bar", showlegend=TRUE, hoverinfo = 'text', 
             text = ~paste('</br>', Weather, ' Delays </br>', Percentage, '% of Flights</br>'), 
             marker=list(color=~totalselectedDataPercentage$Percentage, showscale=TRUE)) %>%
       
-      layout(xaxis = list(title = "Time Period", tickangle = -45),yaxis = list(title = "# of Flights"),
+      layout(xaxis = list(title = "Time Period", tickangle = -45,categoryorder = "array",categoryarray = timeFrame$time),yaxis = list(title = "# of Flights"),
              margin = list(b = 100), barmode = 'group')
   })
   
@@ -706,7 +727,7 @@ server <- function(input, output) {
       add_trace(x = ~hourlyArrivals$Hour, y = ~hourlyArrivals$Count, name = 'Arrivals', type = 'scatter', mode = 'lines', hoverinfo = 'text',
                 text = ~paste('</br>', hourlyArrivals$Count, ' Arrivals </br>'),
                 marker = list(color = '#ff7f0e')) %>%
-      #BARTT
+
       layout(xaxis = list(title = "Time Period", tickangle = -45),#categoryorder = "array",categoryarray = timeFrame$time),
              yaxis = list(title = "# of Flights"),
              margin = list(b = 100),
@@ -781,7 +802,7 @@ server <- function(input, output) {
       plot_ly(df, x = ~df$"Airport Name", y = ~df$"Departures", type = 'bar',name = 'Departures', text = paste("Total airport flights:" ,  (df$"Total Flights"))) %>%
         add_trace(y =  ~df$"Arrivals", name = 'Arrivals') %>%
         layout(xaxis = list(categoryorder = "array",categoryarray = df$"Airport Name", title = "Airport Name", tickangle = -45),
-               yaxis = list(title = "Airport Flights"),
+               yaxis = list(title = "Airport Flights",range=c(0,2000)),
                barmode = 'stack',
                margin = graphMargins
         )
@@ -798,7 +819,8 @@ server <- function(input, output) {
   output$top15Airports12months <- renderPlotly({
     
     # create the graph now 
-    plot_ly(topForMonths, x = ~Month, y = topForMonths$Airport, z= ~topForMonths$Frequency,colors = colorRamp(c("blue","white", "black")), type = "heatmap")%>%
+    plot_ly(topForMonths, x = ~Month, y = topForMonths$Airport, z= ~topForMonths$Frequency,colors = colorRamp(c("white","blue","black")), type = "heatmap")%>%
+      colorbar(title = "Departures+Arrivals per month") %>%
       layout(yaxis = list(categoryorder = "array",categoryarray = top15Airports$Airport), xaxis = list( dtick = 1), margin = heatMargins)
     
   })
@@ -848,7 +870,7 @@ server <- function(input, output) {
   output$totalselectedDataTable <- renderDataTable(tsData(), extensions = 'Scroller', 
     rownames = FALSE, options = list(
       deferRender = TRUE,
-      scrollY = 200,
+      scrollY = 1000,
       scroller = TRUE,
       bFilter=0
     )
@@ -857,7 +879,7 @@ server <- function(input, output) {
   output$totalselectedDataPercentageTable <- renderDataTable(tsdpData(), extensions = 'Scroller', 
     rownames = FALSE, options = list(
       deferRender = TRUE,
-      scrollY = 200,
+      scrollY = 650,
       scroller = TRUE,
       bFilter=0
     )
