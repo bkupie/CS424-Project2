@@ -11,7 +11,6 @@ server <- function(input, output) {
   
   # rank the TOP AIRPORTS across 12 months
   load("rdata/allPopularAirports.RData")
-
   
   #load the data that will be used to create the map
   load("rdata/FlightMap.rdata")
@@ -20,8 +19,11 @@ server <- function(input, output) {
   load("rdata/topForMonths.RData")
   load("rdata/top15Airports.RData")
   
-  #load data for yearly delays heatmapt
+  #load data for yearly delays graph
   load("rdata/yearlyDelays.RData")
+  
+  #load data for yearly arrivals and departures heatmap
+  load("rdata/hourlyYearlyData.RData")
   
   #continue this method into am/pm formatting
   #ILData2017$DEP_TIMEampm <- as.POSIXct(sprintf("%04.0f", ILData2017$DEP_TIME), format='%H%M')
@@ -37,37 +39,6 @@ server <- function(input, output) {
   # reactive elements are here ============================================================================
   chosenMonth <- reactive({
     as.numeric(input$"month-select")
-  })
-  
-  hourlyDataYear <- reactive({
-    selectedData <- ILData2017
-    
-    #get only certain columns
-    hourlyFlightsYear <- subset( selectedData, select = c(FL_DATE,CARRIER,DEP_TIME,ARR_TIME, ORIGIN_AIRPORT_ID, DEST_AIRPORT_ID) )
-    #filter to show only ohare and midway
-    hourlyFlightsYear <- hourlyFlightsYear %>% filter(DEST_AIRPORT_ID == "Chicago O'Hare International" ||DEST_AIRPORT_ID == "Chicago Midway International" || ORIGIN_AIRPORT_ID == "Chicago O'Hare International" ||ORIGIN_AIRPORT_ID == "Chicago Midway International")
-    
-    #change date to show only month
-    hourlyFlightsYear <- hourlyFlightsYear %>% mutate(FL_DATE = month(hourlyFlightsYear$FL_DATE))
-    
-    #round times
-    hourlyFlightsYear$DEP_TIME <- as.POSIXct(sprintf("%04.0f", hourlyFlightsYear$DEP_TIME), format='%H%M')
-    hourlyFlightsYear$DEP_TIME <- cut(hourlyFlightsYear$DEP_TIME, breaks = "hour")
-    hourlyFlightsYear$DEP_TIME <- substr(hourlyFlightsYear$DEP_TIME, 12, 16)
-    
-    hourlyFlightsYear$ARR_TIME <- as.POSIXct(sprintf("%04.0f", hourlyFlightsYear$ARR_TIME), format='%H%M')
-    hourlyFlightsYear$ARR_TIME <- cut(hourlyFlightsYear$ARR_TIME, breaks = "hour")
-    hourlyFlightsYear$ARR_TIME <- substr(hourlyFlightsYear$ARR_TIME, 12, 16)
-    
-    #get arrivals and departues per hour per year
-    hourlyFlightsYearArrival <- hourlyFlightsYear %>% group_by(FL_DATE, ARR_TIME) %>% summarize(n())
-    names(hourlyFlightsYearArrival) <- c("Month", "Time", "Arrivals")
-    hourlyFlightsYearDeparture <- hourlyFlightsYear %>% group_by(FL_DATE, DEP_TIME) %>% summarize(n())
-    names(hourlyFlightsYearDeparture) <- c("Month", "Time", "Departures")
-    
-    hourlyYearlyData <- merge(hourlyFlightsYearArrival,hourlyFlightsYearDeparture,by=c("Month","Time"))
-    
-    hourlyYearlyData
   })
   
   # selectedData based on chosen Month
@@ -511,13 +482,13 @@ server <- function(input, output) {
   })
   
   output$hourlyYearGraphArr <- renderPlotly({
-      data <- hourlyDataYear()
+      data <- hourlyYearlyData
       
       plot_ly(x= data$Month,y= data$Time, z = data$Arrivals, type = "heatmap")
     })
   
   output$hourlyYearGraphDep <- renderPlotly({
-      data <- hourlyDataYear()
+      data <- hourlyYearlyData
       
       plot_ly(x= data$Month,y= data$Time, z = data$Departures, type = "heatmap")
     })
