@@ -162,7 +162,7 @@ ui <- dashboardPage(
                   tabBox(
                     title = textOutput('mWeekdayText', inline = TRUE),
                     id = "weekdayTab", height = "100%", width = "100%",
-                    tabPanel("Graph", plotlyOutput("weekdayGraph")),
+                    tabPanel("Graph", plotlyOutput("weekdayGraph") %>% withSpinner(color="#0dc5c1")),
                     tabPanel("Table", DT::dataTableOutput("weekdayTable"))
                   )
                 )
@@ -170,7 +170,24 @@ ui <- dashboardPage(
               # User selects WEEKDAY (i.e. Sunday, Monday, etc.)
               fluidRow(
                 box(title = "Departures/Arrivals per Selected Weekday", solidHeader = TRUE, status = "primary", width = 12,
-                    selectInput("weekday-select", label = "Day of Week", list("Monday" = 1, "Tuesday" = 2, "Wednesday" = 3, "Thursday" = 4, "Friday" = 5, "Saturday" = 6, "Sunday" = 7), selected = 7)
+                    selectInput("weekday-select", label = "Day of Week", list("Monday" = 1, "Tuesday" = 2, "Wednesday" = 3, "Thursday" = 4, "Friday" = 5, "Saturday" = 6, "Sunday" = 7), selected = 7),
+                    tabBox(
+                      title = textOutput('weekdayText', inline = TRUE),
+                      height = "100%", width = "100%",
+                      tabPanel("Graph", plotlyOutput("specificWeekdayYearPlot") %>% withSpinner(color="#0dc5c1"))
+                    ),
+                    tabBox(
+                      title = textOutput('weekdayText2', inline = TRUE),
+                      height = "100%", width = "100%",
+                      tabPanel("Graph", 
+                               radioGroupButtons(
+                                 inputId = "delayButtons2", label = "Types of Delay :",
+                                 choices = c("Carrier", "Weather", "National Air System", "Security", "Late Aircraft"),
+                                 justified = TRUE, status = "primary",
+                                 checkIcon = list(yes = icon("ok", lib = "glyphicon"), no = icon("remove", lib = "glyphicon"))
+                               ),
+                               plotlyOutput("specificWeekdayDelayPlot") %>% withSpinner(color="#0dc5c1"))
+                    )
                     
                 )
               )

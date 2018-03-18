@@ -386,6 +386,123 @@ server <- function(input, output) {
     selectedData
   })
   
+  sWeekday <- reactive({
+    selectedData <- ILData2017 %>% filter(DAY_OF_WEEK == as.character(input$"weekday-select"))
+    
+    selectedData <- selectedData %>% filter(ORIGIN_AIRPORT_ID == "Chicago O'Hare International" ||ORIGIN_AIRPORT_ID == "Chicago Midway International" || DEST_AIRPORT_ID == "Chicago O'Hare International" ||DEST_AIRPORT_ID == "Chicago Midway International")
+    
+    #create new column that converts minutes to hour:minute
+    selectedData$DEP_TIMEaggregated <- as.POSIXct(sprintf("%04.0f", selectedData$DEP_TIME), format='%H%M')
+    selectedData$DEP_TIMEaggregated <- cut(selectedData$DEP_TIMEaggregated, breaks = "hour")
+    selectedData$DEP_TIMEaggregated <- substr(selectedData$DEP_TIMEaggregated, 12, 16)
+    
+    selectedData$ARR_TIMEaggregated <- as.POSIXct(sprintf("%04.0f", selectedData$ARR_TIME), format='%H%M')
+    selectedData$ARR_TIMEaggregated <- cut(selectedData$ARR_TIMEaggregated, breaks = "hour")
+    selectedData$ARR_TIMEaggregated <- substr(selectedData$ARR_TIMEaggregated, 12, 16)
+    
+    selectedData
+  })
+  
+  sDelayWeekdayYear <- reactive({
+    selectedData <- ILData2017 %>% filter(DAY_OF_WEEK == as.character(input$"weekday-select"))
+    
+    selectedData <- selectedData %>% filter(ORIGIN_AIRPORT_ID == "Chicago O'Hare International" ||ORIGIN_AIRPORT_ID == "Chicago Midway International" || DEST_AIRPORT_ID == "Chicago O'Hare International" ||DEST_AIRPORT_ID == "Chicago Midway International")
+    
+    #create new column that converts minutes to hour:minute
+    selectedData$DEP_TIMEaggregated <- as.POSIXct(sprintf("%04.0f", selectedData$DEP_TIME), format='%H%M')
+    selectedData$DEP_TIMEaggregated <- cut(selectedData$DEP_TIMEaggregated, breaks = "hour")
+    selectedData$DEP_TIMEaggregated <- substr(selectedData$DEP_TIMEaggregated, 12, 16)
+    
+    selectedData$ARR_TIMEaggregated <- as.POSIXct(sprintf("%04.0f", selectedData$ARR_TIME), format='%H%M')
+    selectedData$ARR_TIMEaggregated <- cut(selectedData$ARR_TIMEaggregated, breaks = "hour")
+    selectedData$ARR_TIMEaggregated <- substr(selectedData$ARR_TIMEaggregated, 12, 16)
+    
+    #add int boolean for if delay exists or not
+    selectedData$delayTrue<-ifelse(selectedData$ARR_DELAY_NEW>0 | selectedData$DEP_DELAY_NEW > 0,1,0)
+    selectedData$WEATHER_DELAY<-ifelse(selectedData$WEATHER_DELAY>0,1,0)
+    selectedData$CARRIER_DELAY<-ifelse(selectedData$CARRIER_DELAY>0,1,0)
+    selectedData$NAS_DELAY<-ifelse(selectedData$NAS_DELAY>0,1,0)
+    selectedData$SECURITY_DELAY<-ifelse(selectedData$SECURITY_DELAY>0,1,0)
+    selectedData$LATE_AIRCRAFT_DELAY<-ifelse(selectedData$LATE_AIRCRAFT_DELAY>0,1,0)
+    
+    #count based on hour
+    hourlyDepartures <- aggregate(cbind(count = CARRIER) ~ DEP_TIMEaggregated,
+                                  data = selectedData,
+                                  FUN = function(x){NROW(x)})
+    
+    hourlyArrivals <- aggregate(cbind(count = CARRIER) ~ ARR_TIMEaggregated,
+                                data = selectedData,
+                                FUN = function(x){NROW(x)})
+    
+    #add nicer names to columns
+    names(hourlyDepartures) <- c("Hour", "Count")
+    names(hourlyArrivals) <- c("Hour", "Count")
+    
+    # merge into total selectedData for both departure and arrival
+    totalselectedData <- merge(hourlyDepartures,hourlyArrivals,by="Hour")
+    
+    #give nicer column names
+    names(totalselectedData) <- c("Hour", "Departures", "Arrivals")
+    
+    carrierDelay <- subset(selectedData, CARRIER_DELAY > 0)
+    securityDelay <- subset(selectedData, SECURITY_DELAY > 0)
+    
+    
+    #count arrival delays per hour
+    hourlyDelayCount <- aggregate(cbind(count = delayTrue) ~ ARR_TIMEaggregated,
+                                  data = selectedData,
+                                  FUN = sum)
+    
+    carrierDelayCount <- aggregate(cbind(carrier = CARRIER_DELAY) ~ ARR_TIMEaggregated,
+                                   data = selectedData,
+                                   FUN = sum)
+    
+    weatherDelayCount <- aggregate(cbind(Weather = WEATHER_DELAY) ~ ARR_TIMEaggregated,
+                                   data = selectedData,
+                                   FUN = sum)
+    
+    securityDelayCount <- aggregate(cbind(Weather = SECURITY_DELAY) ~ ARR_TIMEaggregated,
+                                    data = selectedData,
+                                    FUN = sum)
+    
+    nasDelayCount <- aggregate(cbind(Weather = NAS_DELAY) ~ ARR_TIMEaggregated,
+                               data = selectedData,
+                               FUN = sum)
+    
+    lateDelayCount <- aggregate(cbind(Weather = LATE_AIRCRAFT_DELAY) ~ ARR_TIMEaggregated,
+                                data = selectedData,
+                                FUN = sum)
+    
+    #give niver column names
+    names(hourlyDelayCount) <- c("Hour", "Count")
+    names(carrierDelayCount) <- c("Hour", "Carrier")
+    names(weatherDelayCount) <- c("Hour", "Weather")
+    names(securityDelayCount) <- c("Hour", "Security")
+    names(nasDelayCount) <- c("Hour", "National Air System")
+    names(lateDelayCount) <- c("Hour", "Late Aircraft")
+    
+    #create new table that will also hold percentage
+    totalselectedDataPercentage <- merge(totalselectedData,hourlyDelayCount,by="Hour", all.x= TRUE, all.y= TRUE)
+    totalselectedDataPercentage <- merge(totalselectedDataPercentage,carrierDelayCount,by="Hour", all.x= TRUE, all.y= TRUE)
+    totalselectedDataPercentage <- merge(totalselectedDataPercentage,weatherDelayCount,by="Hour", all.x= TRUE, all.y= TRUE)
+    totalselectedDataPercentage <- merge(totalselectedDataPercentage,securityDelayCount,by="Hour", all.x= TRUE, all.y= TRUE)
+    totalselectedDataPercentage <- merge(totalselectedDataPercentage,nasDelayCount,by="Hour", all.x= TRUE, all.y= TRUE)
+    totalselectedDataPercentage <- merge(totalselectedDataPercentage,lateDelayCount,by="Hour", all.x= TRUE, all.y= TRUE)
+    
+    
+    totalselectedDataPercentage$Percentage <- (totalselectedDataPercentage$Weather / (totalselectedDataPercentage$Departures + totalselectedDataPercentage$Arrivals)) * 100
+    
+    #drop arrivals and departures from table
+    #totalselectedDataPercentage <- subset(totalselectedDataPercentage, select = -c(2,3) )
+    
+    #round percentage
+    totalselectedDataPercentage$Percentage <-round(totalselectedDataPercentage$Percentage, 0)
+    
+    #give nicer column names
+    #names(totalselectedDataPercentage) <- c("Hour", "Total Delays", "% of selectedData")
+    totalselectedDataPercentage
+  })
+  
   # Output Graphs and Visualizations =========================================================================
   # Actual visualizations of the data is done below. We have many reactive variables which are all defined 
   # above. We used various naming conventions so I tried to centralize it. -Vijay
@@ -530,6 +647,52 @@ server <- function(input, output) {
              yaxis = list(title = "# of Flights"),
              margin = list(b = 130),
              barmode = 'group')
+  })
+  
+  # chart of dep/arr in ohare and midway FOR CHOSEN WEEKDAY ACROSS THE YEAR
+  output$specificWeekdayYearPlot <- renderPlotly({
+    selectedData <- sWeekday()
+    
+    #count based on hour
+    hourlyDepartures <- aggregate(cbind(count = CARRIER) ~ DEP_TIMEaggregated,
+                                  data = selectedData,
+                                  FUN = function(x){NROW(x)})
+    
+    hourlyArrivals <- aggregate(cbind(count = CARRIER) ~ ARR_TIMEaggregated,
+                                data = selectedData,
+                                FUN = function(x){NROW(x)})
+    
+    #add nicer names to columns
+    names(hourlyDepartures) <- c("Hour", "Count")
+    names(hourlyArrivals) <- c("Hour", "Count")
+    
+    plot_ly(hourlyDepartures, x = ~hourlyDepartures$Hour, y = ~hourlyDepartures$Count, type = 'scatter', mode = 'lines', name = 'Departures', 
+            hoverinfo = 'text', text = ~paste('</br>', hourlyDepartures$Count, ' Departures </br>'), 
+            marker = list(color = 'rgb(49,130,189)')) %>%
+      
+      add_trace(x = ~hourlyArrivals$Hour, y = ~hourlyArrivals$Count, name = 'Arrivals', type = 'scatter', mode = 'lines', hoverinfo = 'text',
+                text = ~paste('</br>', hourlyArrivals$Count, ' Arrivals </br>'),
+                marker = list(color = '#ff7f0e')) %>%
+      
+      layout(xaxis = list(title = "Time Period", tickangle = -45),
+             yaxis = list(title = "# of Flights"),
+             margin = list(b = 100),
+             barmode = 'group')
+  })
+  
+  # chart of total delays in ohare and midway FOR CHOSEN WEEKDAY ACROSS THE YEAR
+  output$specificWeekdayDelayPlot <- renderPlotly({
+    totalselectedDataPercentage <- sDelayWeekdayYear()
+    
+    userInput <- input$delayButtons2
+    
+    plot_ly(data =  totalselectedDataPercentage, x = ~totalselectedDataPercentage$Hour, y = ~get(input$delayButtons2), 
+            type = "bar", showlegend=TRUE, hoverinfo = 'text', 
+            text = ~paste('</br>', Weather, ' Delays </br>', Percentage, '% of Flights</br>'), 
+            marker=list(color=~totalselectedDataPercentage$Percentage, showscale=TRUE)) %>%
+      
+      layout(xaxis = list(title = "Time Period", tickangle = -45),yaxis = list(title = "# of Flights"),
+             margin = list(b = 100), barmode = 'group')
   })
   
   # This is for 'B' part of project. User is top carriers total dep/arr in ohare and midway FOR YEAR
@@ -707,7 +870,9 @@ server <- function(input, output) {
   
   output$carrierText2 <- renderText({ paste(as.character(input$"airline-dropdown"), "January - December 2017")})
   
-  output$weekdayText <- renderText({ wData() })
+  output$weekdayText <- renderText({ paste("Departures/Arrivals for ", wData()) })
+  
+  output$weekdayText2 <- renderText({ paste("Delays for", wData()) })
   
   output$mWeekdayText <- renderText({ paste("Departures/Arrivals by Weekday for ", mData())})
   
