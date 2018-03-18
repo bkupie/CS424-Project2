@@ -125,7 +125,7 @@ ui <- dashboardPage(
                     id = "monthTopCarriers", height = "100%", width = "100%",
                     tabPanel("Common Scale", div(plotlyOutput("popularGraph") %>% withSpinner(color="#0dc5c1"))),
                     tabPanel("Midway", div(plotlyOutput("popularGraphMIDWAY") %>% withSpinner(color="#0dc5c1"))),
-                    #tabPanel("O'Hare", div(plotlyOutput("popularGraphOHARE") %>% withSpinner(color="#0dc5c1"))),
+                    tabPanel("O'Hare", div(plotlyOutput("popularGraphOHARE") %>% withSpinner(color="#0dc5c1"))),
                     tabPanel("Table", div(DT::dataTableOutput("topCarriersTable") %>% withSpinner(color="#0dc5c1")))
                   )
                 ),
