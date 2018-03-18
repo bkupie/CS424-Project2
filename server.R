@@ -465,6 +465,8 @@ server <- function(input, output) {
   output$hourlyGraph <- renderPlotly({
     selectedData <- sData()  
     timeFrame <- getTimeFrame()
+    monthChoice <- chosenMonth()
+    
     #count based on hour
     hourlyDepartures <- aggregate(cbind(count = CARRIER) ~ DEP_TIMEaggregated,
                                   data = selectedData,
@@ -486,7 +488,7 @@ server <- function(input, output) {
                 text = ~paste('</br>', hourlyArrivals$Count, ' Arrivals </br>'),
                 marker = list(color = '#ff7f0e')) %>%
       
-      layout(xaxis = list(title = "Time Period", tickangle = -45,categoryorder = "array",categoryarray = timeFrame$time),
+      layout(title=paste("Total Hourly flights",month.abb[monthChoice],"2017", sep=" "), xaxis = list(title = "Time Period", tickangle = -45,categoryorder = "array",categoryarray = timeFrame$time),
              yaxis = list(title = "# of Flights"),
              margin = list(b = 100),
              barmode = 'group')
@@ -497,7 +499,6 @@ server <- function(input, output) {
       timeFrame <- getTimeFrame()
       plot_ly(x= data$Month,y= data$Time, z = data$Arrivals, type = "heatmap",hoverinfo = 'text',
               text = ~paste('</br> Departures: ', data$Departures, '</br> Month: ', data$Month, '</br> Time: ', timeFrame$time ))%>%
-        layout(xaxis = list(title = "Month", autotick = F, dtick = 1))%>%
         layout(xaxis = list(title = "Month", autotick = F, dtick = 1),
                yaxis = list(categoryorder = "array",categoryarray = timeFrame$time))
     })
@@ -831,7 +832,7 @@ server <- function(input, output) {
   output$totalselectedDataTable <- renderDataTable(tsData(), extensions = 'Scroller', 
     rownames = FALSE, options = list(
       deferRender = TRUE,
-      scrollY = 200,
+      scrollY = 1000,
       scroller = TRUE,
       bFilter=0
     )
@@ -840,7 +841,7 @@ server <- function(input, output) {
   output$totalselectedDataPercentageTable <- renderDataTable(tsdpData(), extensions = 'Scroller', 
     rownames = FALSE, options = list(
       deferRender = TRUE,
-      scrollY = 200,
+      scrollY = 650,
       scroller = TRUE,
       bFilter=0
     )

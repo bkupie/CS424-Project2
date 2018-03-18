@@ -99,18 +99,18 @@ ui <- dashboardPage(
       
       tabItem(tabName = "hourlytotal",
               fluidRow(
-                box(status = "warning", solidHeader = TRUE, width = 12, height = NULL,
-                    div(plotlyOutput("hourlyGraph"))
+                box(status = "warning", solidHeader = TRUE, width = 12, 
+                    div(plotlyOutput("hourlyGraph", height = 1000))
                 ),
-                box(status = "primary", solidHeader = TRUE, width = 12, height = NULL,
-                    DT::dataTableOutput("totalselectedDataTable")
+                box(status = "primary", solidHeader = TRUE, width = 6, height = NULL,
+                    DT::dataTableOutput("totalselectedDataTable", height = 1000)
                 ),
                 tabBox(
                   title = "Yearly",
-                  # The id lets us use input$tabset1 on the server to find the current tab
-                  id = "tabset1", height = "250px",
-                  tabPanel("Arrivals", div(plotlyOutput("hourlyYearGraphArr"))),
-                  tabPanel("Departures", div(plotlyOutput("hourlyYearGraphDep")))
+                  width = 6,
+                  id = "tabset1", height = "1000px",
+                  tabPanel("Arrivals", div(plotlyOutput("hourlyYearGraphArr", height = 1000))),
+                  tabPanel("Departures", div(plotlyOutput("hourlyYearGraphDep", height = 1000)))
                 )
               )
       ),
