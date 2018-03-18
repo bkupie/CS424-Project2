@@ -42,10 +42,14 @@ server <- function(input, output) {
   time <- c("12:00 AM","1:00 AM","2:00 AM","3:00 AM","4:00 AM","5:00 AM","6:00 AM","7:00 AM","8:00 AM","9:00 AM","10:00 AM","11:00 AM",
             "12:00 PM","1:00 PM","2:00 PM","3:00 PM","4:00 PM","5:00 PM","6:00 PM","7:00 PM","8:00 PM","9:00 PM","10:00 PM","11:00 PM")
   timeampm <- data_frame(time)
+  timeampmExtended <- rbind(timeampm,c("No Time"))
+  timeampmExtended <- timeampmExtended[rep(row.names(timeampmExtended),12),1]
+  
   time <- c("0:00","1:00","2:00","3:00","4:00","5:00","6:00","7:00","8:00","9:00","10:00","11:00","12:00",
                "13:00","14:00","15:00","16:00","17:00","18:00","19:00","20:00","21:00","22:00","23:00")
   timereg <- data_frame(time)
-  
+  timeregExtended <- rbind(timereg,c("No Time"))
+  timeregExtended <- timeregExtended[rep(row.names(timeregExtended),12),1]
   # reactive elements are here ============================================================================
  getTimeFrame <- reactive({
    if(input$time)
@@ -55,6 +59,13 @@ server <- function(input, output) {
    selectedTime
    })
 
+  getTimeFrameHeat <- reactive({
+    if(input$time)
+    {selectedTime <- timeregExtended}
+    else if(!input$time)
+    {selectedTime <- timeampmExtended}  
+    selectedTime
+  })
   
    chosenMonth <- reactive({
     as.numeric(input$"month-select")
@@ -498,8 +509,8 @@ server <- function(input, output) {
   
   output$hourlyYearGraphArr <- renderPlotly({
       data <- hourlyYearlyData
-      timeFrame <- getTimeFrame()
-      plot_ly(x= data$Month,y= data$Time, z = data$Arrivals, type = "heatmap",hoverinfo = 'text',
+      timeFrame <- getTimeFrameHeat()
+      plot_ly(x= data$Month,y= timeFrame$time, z = data$Arrivals, type = "heatmap",hoverinfo = 'text',
               text = ~paste('</br> Departures: ', data$Departures, '</br> Month: ', data$Month, '</br> Time: ', timeFrame$time ))%>%
         layout(xaxis = list(title = "Month", autotick = F, dtick = 1),
                yaxis = list(categoryorder = "array",categoryarray = timeFrame$time))
@@ -507,8 +518,8 @@ server <- function(input, output) {
   
   output$hourlyYearGraphDep <- renderPlotly({
       data <- hourlyYearlyData
-      timeFrame <- getTimeFrame()
-      plot_ly(x= data$Month,y= data$Time, z = data$Departures, type = "heatmap", hoverinfo = 'text',
+      timeFrame <- getTimeFrameHeat()
+      plot_ly(x= data$Month,y= timeFrame$time, z = data$Departures, type = "heatmap", hoverinfo = 'text',
               text = ~paste('</br> Departures: ', data$Departures, '</br> Month: ', data$Month, '</br> Time: ', timeFrame$time ))%>%
         layout(xaxis = list(title = "Month", autotick = F, dtick = 1),
                yaxis = list(title = "Time",categoryorder = "array",categoryarray = timeFrame$time))
@@ -769,7 +780,7 @@ server <- function(input, output) {
       plot_ly(df, x = ~df$"Airport Name", y = ~df$"Departures", type = 'bar',name = 'Departures', text = paste("Total airport flights:" ,  (df$"Total Flights"))) %>%
         add_trace(y =  ~df$"Arrivals", name = 'Arrivals') %>%
         layout(xaxis = list(categoryorder = "array",categoryarray = df$"Airport Name", title = "Airport Name", tickangle = -45),
-               yaxis = list(title = "Airport Flights"),
+               yaxis = list(title = "Airport Flights",range=c(0,2000)),
                barmode = 'stack',
                margin = graphMargins
         )
