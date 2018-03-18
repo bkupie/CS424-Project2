@@ -145,7 +145,7 @@ server <- function(input, output) {
                                 FUN = sum)
     
     #give niver column names
-    names(hourlyDelayCount) <- c("Hour", "Count")
+    names(hourlyDelayCount) <- c("Hour", "Total Flights")
     names(carrierDelayCount) <- c("Hour", "Carrier")
     names(weatherDelayCount) <- c("Hour", "Weather")
     names(securityDelayCount) <- c("Hour", "Security")
@@ -167,7 +167,7 @@ server <- function(input, output) {
     totalselectedDataPercentage$Percentage <- (totalselectedDataPercentage[[userInput]] / (totalselectedDataPercentage$Departures + totalselectedDataPercentage$Arrivals)) * 100
     
     #drop arrivals and departures from table
-    #totalselectedDataPercentage <- subset(totalselectedDataPercentage, select = -c(2,3) )
+    totalselectedDataPercentage <- subset(totalselectedDataPercentage, select = -c(2,3) )
     
     #round percentage
     totalselectedDataPercentage$Percentage <-round(totalselectedDataPercentage$Percentage, 0)
@@ -493,7 +493,7 @@ server <- function(input, output) {
   })
   
   output$hourlyYearGraphArr <- renderPlotly({
-      data <- hourlyDataYear()
+      data <- hourlyYearlyData
       timeFrame <- getTimeFrame()
       plot_ly(x= data$Month,y= data$Time, z = data$Arrivals, type = "heatmap",hoverinfo = 'text',
               text = ~paste('</br> Departures: ', data$Departures, '</br> Month: ', data$Month, '</br> Time: ', timeFrame$time ))%>%
@@ -503,7 +503,7 @@ server <- function(input, output) {
     })
   
   output$hourlyYearGraphDep <- renderPlotly({
-      data <- hourlyDataYear()
+      data <- hourlyYearlyData
       timeFrame <- getTimeFrame()
       plot_ly(x= data$Month,y= data$Time, z = data$Departures, type = "heatmap", hoverinfo = 'text',
               text = ~paste('</br> Departures: ', data$Departures, '</br> Month: ', data$Month, '</br> Time: ', timeFrame$time ))%>%
