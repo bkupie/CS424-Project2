@@ -147,7 +147,7 @@ server <- function(input, output) {
                                 FUN = sum)
     
     #give niver column names
-    names(hourlyDelayCount) <- c("Hour", "Count")
+    names(hourlyDelayCount) <- c("Hour", "Total Flights")
     names(carrierDelayCount) <- c("Hour", "Carrier")
     names(weatherDelayCount) <- c("Hour", "Weather")
     names(securityDelayCount) <- c("Hour", "Security")
@@ -169,7 +169,7 @@ server <- function(input, output) {
     totalselectedDataPercentage$Percentage <- (totalselectedDataPercentage[[userInput]] / (totalselectedDataPercentage$Departures + totalselectedDataPercentage$Arrivals)) * 100
     
     #drop arrivals and departures from table
-    #totalselectedDataPercentage <- subset(totalselectedDataPercentage, select = -c(2,3) )
+    totalselectedDataPercentage <- subset(totalselectedDataPercentage, select = -c(2,3) )
     
     #round percentage
     totalselectedDataPercentage$Percentage <-round(totalselectedDataPercentage$Percentage, 0)
@@ -495,7 +495,7 @@ server <- function(input, output) {
   })
   
   output$hourlyYearGraphArr <- renderPlotly({
-      data <- hourlyDataYear()
+      data <- hourlyYearlyData
       timeFrame <- getTimeFrame()
       plot_ly(x= data$Month,y= data$Time, z = data$Arrivals, type = "heatmap",hoverinfo = 'text',
               text = ~paste('</br> Departures: ', data$Departures, '</br> Month: ', data$Month, '</br> Time: ', timeFrame$time ))%>%
@@ -505,7 +505,7 @@ server <- function(input, output) {
     })
   
   output$hourlyYearGraphDep <- renderPlotly({
-      data <- hourlyDataYear()
+      data <- hourlyYearlyData
       timeFrame <- getTimeFrame()
       plot_ly(x= data$Month,y= data$Time, z = data$Departures, type = "heatmap", hoverinfo = 'text',
               text = ~paste('</br> Departures: ', data$Departures, '</br> Month: ', data$Month, '</br> Time: ', timeFrame$time ))%>%
@@ -521,6 +521,7 @@ server <- function(input, output) {
         add_trace(y = ~Weather, name = 'Weather Delay') %>% add_trace(y = ~Security, name = 'Security Delay') %>% 
         add_trace(y = ~`National Air System`, name = 'National Air System Delay') %>% 
         add_trace(y = ~`Late Aircraft`, name = 'Late Aircraft Delay') %>%
+        layout(title = "Total Delays in 2017", xaxis = list(title = "Month", autotick = F, dtick = 1)) %>%
         layout(yaxis = list(title = 'Count'), barmode = 'stack')
     })
   
@@ -528,16 +529,20 @@ server <- function(input, output) {
     totalselectedDataPercentage <- tsdpData()
     timeFrame <- getTimeFrame()
     userInput <- input$delayButtons
-    # print(userInput)
+    monthChoice <- chosenMonth()
+    
+    
+    #newTitle <- userInput + " Delays in Month"
     
     plot_ly(data =  totalselectedDataPercentage, x = ~timeFrame$time, y = ~get(input$delayButtons), 
             type = "bar", showlegend=TRUE, hoverinfo = 'text', 
             text = ~paste('</br>', Weather, ' Delays </br>', Percentage, '% of Flights</br>'), 
             marker=list(color=~totalselectedDataPercentage$Percentage, showscale=TRUE)) %>%
       
-      layout(xaxis = list(title = "Time Period", tickangle = -45,categoryorder = "array",categoryarray = timeFrame$time),yaxis = list(title = "# of Flights"),
+      layout(title = paste("Hourly", userInput, "Delays in", month.abb[monthChoice],"2017", sep=" "), xaxis = list(title = "Time Period", tickangle = -45,categoryorder = "array",categoryarray = timeFrame$time),yaxis = list(title = "# of Flights"),
              margin = list(b = 100), barmode = 'group')
   })
+  
   
   # bar chart of top carriers total departure and arrival in ohare and midway FOR CHOSEN MONTH
   output$popularGraph <- renderPlotly({
