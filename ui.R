@@ -47,22 +47,22 @@ ui <- dashboardPage(
     tabItems(
       tabItem(tabName = "TopAirport",
               fluidRow( box(title = "Flights from/to Chicago O'Hare International", solidHeader = TRUE, status = "primary", width = 6,
-                  dataTableOutput("top15Table1")
+                  dataTableOutput("top15Table1") %>% withSpinner(color="#0dc5c1")
               ),
               box(title = "Flights from/to Chicago Midway International", solidHeader = TRUE, status = "primary", width = 6,
-                  dataTableOutput("top15Table2")
+                  dataTableOutput("top15Table2") %>% withSpinner(color="#0dc5c1")
               )),
               fluidRow(
               box(title = "Flights from/to Chicago O'Hare International", solidHeader = TRUE, width = 6,
-                  div(plotlyOutput("top15Chart1"))
+                  div(plotlyOutput("top15Chart1") %>% withSpinner(color="#0dc5c1"))
               ),
               box(title = "Flights from/to Chicago Midway International", solidHeader = TRUE, width = 6,
-                  div(plotlyOutput("top15Chart2"))
+                  div(plotlyOutput("top15Chart2") %>% withSpinner(color="#0dc5c1"))
               )),
               fluidRow(
                 
                 box(title = "Top airports for 12 months", solidHeader = TRUE, width = 12,
-                    div(plotlyOutput("top15Airports12months"))
+                    div(plotlyOutput("top15Airports12months") %>% withSpinner(color="#0dc5c1"))
                 ))
               
       ),
@@ -70,7 +70,7 @@ ui <- dashboardPage(
               tags$style(type = "text/css", "#FLightMap {height: calc(100vh - 80px) !important;}"),
               fluidRow(
                 box(title = "Heatmap", solidHeader = TRUE, height = 400,width = 400,
-                    plotlyOutput("FLightMap")
+                    plotlyOutput("FLightMap") %>% withSpinner(color="#0dc5c1")
               ))),
       
       
