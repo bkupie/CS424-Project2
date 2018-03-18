@@ -11,7 +11,6 @@ server <- function(input, output) {
   
   # rank the TOP AIRPORTS across 12 months
   load("rdata/allPopularAirports.RData")
-
   
   #load the data that will be used to create the map
   load("rdata/FlightMap.rdata")
@@ -19,6 +18,12 @@ server <- function(input, output) {
   #load data for the heatmap
   load("rdata/topForMonths.RData")
   load("rdata/top15Airports.RData")
+  
+  #load data for yearly delays graph
+  load("rdata/yearlyDelays.RData")
+  
+  #load data for yearly arrivals and departures heatmap
+  load("rdata/hourlyYearlyData.RData")
   
   #continue this method into am/pm formatting
   #ILData2017$DEP_TIMEampm <- as.POSIXct(sprintf("%04.0f", ILData2017$DEP_TIME), format='%H%M')
@@ -51,37 +56,6 @@ server <- function(input, output) {
   
    chosenMonth <- reactive({
     as.numeric(input$"month-select")
-  })
-  
-  hourlyDataYear <- reactive({
-    selectedData <- ILData2017
-    
-    #get only certain columns
-    hourlyFlightsYear <- subset( selectedData, select = c(FL_DATE,CARRIER,DEP_TIME,ARR_TIME, ORIGIN_AIRPORT_ID, DEST_AIRPORT_ID) )
-    #filter to show only ohare and midway
-    hourlyFlightsYear <- hourlyFlightsYear %>% filter(DEST_AIRPORT_ID == "Chicago O'Hare International" ||DEST_AIRPORT_ID == "Chicago Midway International" || ORIGIN_AIRPORT_ID == "Chicago O'Hare International" ||ORIGIN_AIRPORT_ID == "Chicago Midway International")
-    
-    #change date to show only month
-    hourlyFlightsYear <- hourlyFlightsYear %>% mutate(FL_DATE = month(hourlyFlightsYear$FL_DATE))
-    
-    #round times
-    hourlyFlightsYear$DEP_TIME <- as.POSIXct(sprintf("%04.0f", hourlyFlightsYear$DEP_TIME), format='%H%M')
-    hourlyFlightsYear$DEP_TIME <- cut(hourlyFlightsYear$DEP_TIME, breaks = "hour")
-    hourlyFlightsYear$DEP_TIME <- substr(hourlyFlightsYear$DEP_TIME, 12, 16)
-    
-    hourlyFlightsYear$ARR_TIME <- as.POSIXct(sprintf("%04.0f", hourlyFlightsYear$ARR_TIME), format='%H%M')
-    hourlyFlightsYear$ARR_TIME <- cut(hourlyFlightsYear$ARR_TIME, breaks = "hour")
-    hourlyFlightsYear$ARR_TIME <- substr(hourlyFlightsYear$ARR_TIME, 12, 16)
-    
-    #get arrivals and departues per hour per year
-    hourlyFlightsYearArrival <- hourlyFlightsYear %>% group_by(FL_DATE, ARR_TIME) %>% summarize(n())
-    names(hourlyFlightsYearArrival) <- c("Month", "Time", "Arrivals")
-    hourlyFlightsYearDeparture <- hourlyFlightsYear %>% group_by(FL_DATE, DEP_TIME) %>% summarize(n())
-    names(hourlyFlightsYearDeparture) <- c("Month", "Time", "Departures")
-    
-    hourlyYearlyData <- merge(hourlyFlightsYearArrival,hourlyFlightsYearDeparture,by=c("Month","Time"))
-    
-    hourlyYearlyData
   })
   
   # selectedData based on chosen Month
@@ -186,8 +160,11 @@ server <- function(input, output) {
     totalselectedDataPercentage <- merge(totalselectedDataPercentage,nasDelayCount,by="Hour", all.x= TRUE, all.y= TRUE)
     totalselectedDataPercentage <- merge(totalselectedDataPercentage,lateDelayCount,by="Hour", all.x= TRUE, all.y= TRUE)
     
+    userInput <- input$delayButtons
+    print(userInput)
     
-    totalselectedDataPercentage$Percentage <- (totalselectedDataPercentage$Weather / (totalselectedDataPercentage$Departures + totalselectedDataPercentage$Arrivals)) * 100
+  #~get(input$delayButtons)
+    totalselectedDataPercentage$Percentage <- (totalselectedDataPercentage[[userInput]] / (totalselectedDataPercentage$Departures + totalselectedDataPercentage$Arrivals)) * 100
     
     #drop arrivals and departures from table
     #totalselectedDataPercentage <- subset(totalselectedDataPercentage, select = -c(2,3) )
@@ -198,75 +175,6 @@ server <- function(input, output) {
     #give nicer column names
     #names(totalselectedDataPercentage) <- c("Hour", "Total Delays", "% of selectedData")
     totalselectedDataPercentage
-  })
-  
-  yearlyDelays <- reactive({
-    yearlyDelays <- ILData2017
-    selectedData <- yearlyDelays
-    
-    selectedData <- selectedData %>% filter(ORIGIN_AIRPORT_ID == "Chicago O'Hare International" ||ORIGIN_AIRPORT_ID == "Chicago Midway International" || DEST_AIRPORT_ID == "Chicago O'Hare International" ||DEST_AIRPORT_ID == "Chicago Midway International")
-    
-    #selectedData <- selectedData %>% filter(DEP_DELAY_NEW > 0 ||ARR_DELAY_NEW > 0)
-    
-    #get only certain columns
-    selectedData <- subset( selectedData, select = c(FL_DATE,CARRIER_DELAY,WEATHER_DELAY,NAS_DELAY, SECURITY_DELAY, LATE_AIRCRAFT_DELAY) )
-    
-    
-    #change date to show only month
-    selectedData <- selectedData %>% mutate(FL_DATE = month(selectedData$FL_DATE))
-    
-    #add int boolean for if delay exists or not
-    selectedData$WEATHER_DELAY<-ifelse(selectedData$WEATHER_DELAY>0,1,0)
-    selectedData$CARRIER_DELAY<-ifelse(selectedData$CARRIER_DELAY>0,1,0)
-    selectedData$NAS_DELAY<-ifelse(selectedData$NAS_DELAY>0,1,0)
-    selectedData$SECURITY_DELAY<-ifelse(selectedData$SECURITY_DELAY>0,1,0)
-    selectedData$LATE_AIRCRAFT_DELAY<-ifelse(selectedData$LATE_AIRCRAFT_DELAY>0,1,0)
-    
-    #get counts
-    weatherDelayCount <- aggregate(cbind(Weather = WEATHER_DELAY) ~ FL_DATE,
-                                   data = selectedData,
-                                   FUN = sum)
-    
-    carrierDelayCount <- aggregate(cbind(Weather = CARRIER_DELAY) ~ FL_DATE,
-                                   data = selectedData,
-                                   FUN = sum)
-    
-    securityDelayCount <- aggregate(cbind(Weather = SECURITY_DELAY) ~ FL_DATE,
-                                    data = selectedData,
-                                    FUN = sum)
-    
-    nasDelayCount <- aggregate(cbind(Weather = NAS_DELAY) ~ FL_DATE,
-                               data = selectedData,
-                               FUN = sum)
-    
-    lateDelayCount <- aggregate(cbind(Weather = LATE_AIRCRAFT_DELAY) ~ FL_DATE,
-                                data = selectedData,
-                                FUN = sum)
-    
-    #give niver column names
-    names(carrierDelayCount) <- c("Month", "Carrier")
-    names(weatherDelayCount) <- c("Month", "Weather")
-    names(securityDelayCount) <- c("Month", "Security")
-    names(nasDelayCount) <- c("Month", "National Air System")
-    names(lateDelayCount) <- c("Month", "Late Aircraft")
-    
-    
-    #create new table that will also hold percentage
-    yearlyDelays <- merge(carrierDelayCount,weatherDelayCount,by="Month", all.x= TRUE, all.y= TRUE)
-    yearlyDelays <- merge(yearlyDelays,securityDelayCount,by="Month", all.x= TRUE, all.y= TRUE)
-    yearlyDelays <- merge(yearlyDelays,nasDelayCount,by="Month", all.x= TRUE, all.y= TRUE)
-    yearlyDelays <- merge(yearlyDelays,lateDelayCount,by="Month", all.x= TRUE, all.y= TRUE)
-    
-    
-    
-    yearlyDelays  
-  })
-  
-  calculatedPercentage <- reactive({
-    totalselectedDataPercentage <- tsdpData()
-    
-    if ( "Security" %in% input$var) return((totalselectedDataPercentage$Security / (totalselectedDataPercentage$Departures + totalselectedDataPercentage$Arrivals)) * 100)
-    if ( "Weather" %in% input$var) return((totalselectedDataPercentage$Weather / (totalselectedDataPercentage$Departures + totalselectedDataPercentage$Arrivals)) * 100)
   })
   
   add_to_df <- reactive({
@@ -587,19 +495,25 @@ server <- function(input, output) {
   output$hourlyYearGraphArr <- renderPlotly({
       data <- hourlyDataYear()
       timeFrame <- getTimeFrame()
-      plot_ly(x= data$Month,y= data$Time, z = data$Arrivals, type = "heatmap")%>%
-        layout(yaxis = list(categoryorder = "array",categoryarray = timeFrame$time))
+      plot_ly(x= data$Month,y= data$Time, z = data$Arrivals, type = "heatmap",hoverinfo = 'text',
+              text = ~paste('</br> Departures: ', data$Departures, '</br> Month: ', data$Month, '</br> Time: ', timeFrame$time ))%>%
+        layout(xaxis = list(title = "Month", autotick = F, dtick = 1))%>%
+        layout(xaxis = list(title = "Month", autotick = F, dtick = 1),
+               yaxis = list(categoryorder = "array",categoryarray = timeFrame$time))
     })
   
   output$hourlyYearGraphDep <- renderPlotly({
       data <- hourlyDataYear()
       timeFrame <- getTimeFrame()
-      plot_ly(x= data$Month,y= data$Time, z = data$Departures, type = "heatmap")%>%
-        layout(yaxis = list(categoryorder = "array",categoryarray = timeFrame$time))
+      plot_ly(x= data$Month,y= data$Time, z = data$Departures, type = "heatmap", hoverinfo = 'text',
+              text = ~paste('</br> Departures: ', data$Departures, '</br> Month: ', data$Month, '</br> Time: ', timeFrame$time ))%>%
+        layout(xaxis = list(title = "Month", autotick = F, dtick = 1),
+               yaxis = list(title = "Time",categoryorder = "array",categoryarray = timeFrame$time))
+
     })
   
   output$yearlyDelaysGraph <- renderPlotly({
-      data <- yearlyDelays()
+      data <- yearlyDelays
     
       plot_ly(data, x = ~Month, y = ~Carrier, type = 'bar', name = 'Carrier Delay') %>%
         add_trace(y = ~Weather, name = 'Weather Delay') %>% add_trace(y = ~Security, name = 'Security Delay') %>% 
