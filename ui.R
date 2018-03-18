@@ -37,7 +37,7 @@ ui <- dashboardPage(
       
       #change between 12/24 hours time formats
       materialSwitch(inputId = "time", label = "24 Time Format", status = "primary", right = TRUE, value = TRUE),
-      
+
       #info
       menuItem("Info", tabName = "info", icon = icon("th"))
     )
