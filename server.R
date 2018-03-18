@@ -354,6 +354,38 @@ server <- function(input, output) {
     cMonth
   })
   
+  wData <- reactive({
+    textOfWeekday <- list("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
+    yearOfData <- list(" in 2017")
+    cWeekday <- paste(textOfWeekday[[as.numeric(input$"weekday-select")]], yearOfData[[1]])
+    
+    cWeekday
+  })
+  
+  sCarrierData <- reactive({
+    selectedData <- ILData2017 %>% filter(FL_DATE == as.character(input$"date-selectCarrier")) %>% filter(CARRIER == as.character(input$"airline-dropdown"))
+    
+    selectedData <- selectedData %>% filter(ORIGIN_AIRPORT_ID == "Chicago O'Hare International" ||ORIGIN_AIRPORT_ID == "Chicago Midway International" || DEST_AIRPORT_ID == "Chicago O'Hare International" ||DEST_AIRPORT_ID == "Chicago Midway International")
+    
+    #create new column that converts minutes to hour:minute
+    selectedData$DEP_TIMEaggregated <- as.POSIXct(sprintf("%04.0f", selectedData$DEP_TIME), format='%H%M')
+    selectedData$DEP_TIMEaggregated <- cut(selectedData$DEP_TIMEaggregated, breaks = "hour")
+    selectedData$DEP_TIMEaggregated <- substr(selectedData$DEP_TIMEaggregated, 12, 16)
+    
+    selectedData$ARR_TIMEaggregated <- as.POSIXct(sprintf("%04.0f", selectedData$ARR_TIME), format='%H%M')
+    selectedData$ARR_TIMEaggregated <- cut(selectedData$ARR_TIMEaggregated, breaks = "hour")
+    selectedData$ARR_TIMEaggregated <- substr(selectedData$ARR_TIMEaggregated, 12, 16)
+    
+    selectedData
+  })
+  
+  sCarrierYearData <- reactive({
+    selectedData <- ILData2017 %>% filter(CARRIER == as.character(input$"airline-dropdown"))
+    selectedData <- selectedData %>% filter(ORIGIN_AIRPORT_ID == "Chicago O'Hare International" ||ORIGIN_AIRPORT_ID == "Chicago Midway International" || DEST_AIRPORT_ID == "Chicago O'Hare International" ||DEST_AIRPORT_ID == "Chicago Midway International")
+    
+    selectedData
+  })
+  
   # Output Graphs and Visualizations =========================================================================
   # Actual visualizations of the data is done below. We have many reactive variables which are all defined 
   # above. We used various naming conventions so I tried to centralize it. -Vijay
@@ -524,21 +556,65 @@ server <- function(input, output) {
              barmode = 'group')
   })
   
-  # This is for 'A' part of project. User selects CARRIER they want to view data for --Vijay
-  output$specificCarrierPlot <- renderPlotly({
-    allPopularCarriers <- chosenCarrier()
+  # This is for 'A' part of project. User selects CARRIER and DATE --> generates total dep/arr per hour graph
+  output$specificCarrier24Plot <- renderPlotly({
+    selectedData <- sCarrierData()
     
-    plot_ly(allPopularCarriers, x = ~allPopularCarriers$CARRIER, y = ~allPopularCarriers$S_DEPARTURES, type = 'bar', name = 'Departures',
-            hoverinfo = 'text', text = ~paste('</br>', allPopularCarriers$S_DEPARTURES, 'Departures</br>'),
-            marker = list(color = 'rgb(51,160,44)')) %>%
+    #count based on hour
+    hourlyDepartures <- aggregate(cbind(count = CARRIER) ~ DEP_TIMEaggregated,
+                                  data = selectedData,
+                                  FUN = function(x){NROW(x)})
+    
+    hourlyArrivals <- aggregate(cbind(count = CARRIER) ~ ARR_TIMEaggregated,
+                                data = selectedData,
+                                FUN = function(x){NROW(x)})
+    
+    #add nicer names to columns
+    names(hourlyDepartures) <- c("Hour", "Count")
+    names(hourlyArrivals) <- c("Hour", "Count")
+    
+    plot_ly(hourlyDepartures, x = ~hourlyDepartures$Hour, y = ~hourlyDepartures$Count, type = 'scatter', mode = 'lines', name = 'Departures', 
+            hoverinfo = 'text', text = ~paste('</br>', hourlyDepartures$Count, ' Departures </br>'), 
+            marker = list(color = 'rgb(49,130,189)')) %>%
       
-      add_trace(x = ~allPopularCarriers$CARRIER, y = ~allPopularCarriers$S_ARRIVALS, name = 'Arrivals', hoverinfo = 'text',
-                text = ~paste('</br>', allPopularCarriers$S_ARRIVALS, 'Arrivals </br>'),
-                marker = list(color = 'rgb(178,223,138)')) %>%
+      add_trace(x = ~hourlyArrivals$Hour, y = ~hourlyArrivals$Count, name = 'Arrivals', type = 'scatter', mode = 'lines', hoverinfo = 'text',
+                text = ~paste('</br>', hourlyArrivals$Count, ' Arrivals </br>'),
+                marker = list(color = '#ff7f0e')) %>%
       
-      layout(xaxis = list(title = "Carriers", tickangle = -45, categoryorder = "array", categoryarray = popularCarriers$CARRIER),
+      layout(xaxis = list(title = "Time Period", tickangle = -45),
              yaxis = list(title = "# of Flights"),
-             margin = list(b = 130),
+             margin = list(b = 100),
+             barmode = 'group')
+  })
+  
+  # This is for 'A' part of project. User selects CARRIER --> generates total dep/arr per hour graph
+  output$specificCarrierYearPlot <- renderPlotly({
+    selectedData <- sCarrierYearData()
+    
+    #count based on hour
+    departures <- aggregate(cbind(count = CARRIER) ~ FL_DATE,
+                                  data = selectedData,
+                                  FUN = function(x){NROW(x)})
+    
+    arrivals <- aggregate(cbind(count = CARRIER) ~ FL_DATE,
+                                data = selectedData,
+                                FUN = function(x){NROW(x)})
+    
+    #add nicer names to columns
+    names(departures) <- c("Date", "Count")
+    names(arrivals) <- c("Date", "Count")
+    
+    plot_ly(departures, x = ~departures$Date, y = ~departures$Count, type = 'scatter', mode = 'lines', name = 'Departures', 
+            hoverinfo = 'text', text = ~paste('</br>', departures$Count, ' Departures </br>'), 
+            marker = list(color = 'rgb(49,130,189)')) %>%
+      
+      add_trace(x = ~arrivals$Date, y = ~arrivals$Count, name = 'Arrivals', type = 'scatter', mode = 'lines', hoverinfo = 'text',
+                text = ~paste('</br>', arrivals$Count, ' Arrivals </br>'),
+                marker = list(color = '#ff7f0e')) %>%
+      
+      layout(xaxis = list(title = "Time Period", tickangle = -45),
+             yaxis = list(title = "# of Flights"),
+             margin = list(b = 100),
              barmode = 'group')
   })
   
@@ -626,6 +702,14 @@ server <- function(input, output) {
   })
   
   output$monthText <- renderText({ mData() })
+  
+  output$carrierText <- renderText({ paste(as.character(input$"airline-dropdown"), "on ", as.character(input$"date-selectCarrier"))})
+  
+  output$carrierText2 <- renderText({ paste(as.character(input$"airline-dropdown"), "January - December 2017")})
+  
+  output$weekdayText <- renderText({ wData() })
+  
+  output$mWeekdayText <- renderText({ paste("Departures/Arrivals by Weekday for ", mData())})
   
   # Tables ===================================================================================================
   output$totalselectedDataTable <- renderDataTable(tsData(), extensions = 'Scroller', 

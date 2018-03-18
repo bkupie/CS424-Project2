@@ -14,6 +14,7 @@ library(scales)
 library(dplyr)
 library(plotly)
 library(shinyWidgets)
+library(shinycssloaders)
 
 # load any processed data here
 load("rdata/allPopularCarriers.RData")
@@ -28,22 +29,15 @@ ui <- dashboardPage(
       menuItem("Top Airports", tabName = "bart", icon = icon("dashboard")),
       menuItem("Top Airports 12 mo.", tabName = "bart2", icon = icon("dashboard")),
       menuItem("Hourly Total", icon = icon("hourglass", lib = "font-awesome"), tabName = "hourlytotal"),
-      menuItem("Weekly Total", icon = icon("calendar", lib = "font-awesome"), tabName = "arrivalDepartureDaily"),
+      menuItem("Weekly Total", icon = icon("calendar", lib = "font-awesome"), tabName = "weeklyTotal"),
       menuItem("Delays", icon = icon("hourglass", lib = "font-awesome"), tabName = "delays"),
       
       #get month
       selectInput("month-select", label = "Month", list("January" = 1, "February" = 2, "March" = 3, "April" = 4, "May" = 5, "June" = 6, "July" = 7, "August" = 8, "September" = 9, "October" = 10, "November" = 11, "December" = 12),
                   selected = 1),
       
-      #get day of week
-      selectInput("week-select", label = "Day of Week", list("Monday" = 1, "Tuesday" = 2, "Wednesday" = 3, "Thursday" = 4, "Friday" = 5, "Saturday" = 6, "Sunday" = 7, "All" = 8), 
-                  selected = 8),
-
-      #get specific date
-      dateInput("date-select", label = h5("Specific Date")),
-      
       #change between 12/24 hours time formats
-      switchInput(inputId = "time",label = "24 time format", value = TRUE),
+      materialSwitch(inputId = "time", label = "24 Time Format", status = "primary", right = TRUE, value = TRUE),
       
       #info
       menuItem("Info", tabName = "info", icon = icon("th"))
@@ -115,25 +109,9 @@ ui <- dashboardPage(
                   tabPanel("Arrivals", div(plotlyOutput("hourlyYearGraphArr"))),
                   tabPanel("Departures", div(plotlyOutput("hourlyYearGraphDep")))
                 )
-              ),
-              
-              
-              
-              
-              
-              # My weekday stuff. Trying to figure out best way to display it. -Vijay
-              h4("Weekday Information in December 2017"),
-              fluidRow(
-                box(title = "Departures and Arrivals by Weekday Graph", solidHeader = TRUE, status = "primary", width = 12,
-                    div(plotlyOutput("weekdayGraph"))
-                )
-              ),
-              fluidRow(
-                box(title = "Departures and Arrivals by Weekday Table", solidHeader = TRUE, status = "primary", width = 12,
-                    DT::dataTableOutput("weekdayTable")
-                )
               )
       ),
+      
       tabItem(tabName = "topCarriers",
               # Data across chosen month (from month dropdown)
               fluidRow(
@@ -142,16 +120,16 @@ ui <- dashboardPage(
                     # The id lets us use input$monthText on the server to find the current tab
                     title = textOutput('monthText', inline = TRUE),
                     id = "monthTopCarriers", height = "100%", width = "100%",
-                    tabPanel("Graph", div(plotlyOutput("popularGraph"))),
-                    tabPanel("Table", div(DT::dataTableOutput("topCarriersTable")))
+                    tabPanel("Graph", div(plotlyOutput("popularGraph") %>% withSpinner(color="#0dc5c1"))),
+                    tabPanel("Table", div(DT::dataTableOutput("topCarriersTable") %>% withSpinner(color="#0dc5c1")))
                   )
                 ),
                 box(title = "Year View - Top Airlines Total Departures/Arrivals", solidHeader = TRUE, status = "primary", width = 6,
                     tabBox(
                       title = "January - December 2017",
                       id = "yearTopCarriers", height = "100%", width = "100%",
-                      tabPanel("Graph", div(plotlyOutput("allMonthsPopularGraph"))),
-                      tabPanel("Table", div(DT::dataTableOutput("allMonthsTopCarriersTable")))
+                      tabPanel("Graph", div(plotlyOutput("allMonthsPopularGraph")  %>% withSpinner(color="#0dc5c1"))),
+                      tabPanel("Table", div(DT::dataTableOutput("allMonthsTopCarriersTable")  %>% withSpinner(color="#0dc5c1")))
                     )
                 )
               ),
@@ -161,18 +139,39 @@ ui <- dashboardPage(
               fluidRow(
                 box(title = "Departures/Arrivals for Selected Airline", solidHeader = TRUE, status = "primary", width = 12,
                     selectInput("airline-dropdown", "Airline:", choices = as.character(allPopularCarriers$CARRIER)),
-                    tabBox( # TODO: 24 hour breakdown of chosen carrier
-                      title = "24 Hour Breakdown of [CARRIER]",
-                      id = "twentyFourTopCarriers", height = "100%", width = "100%"#,
-                      #tabPanel("Graph", div(plotlyOutput("specificCarrierPlot")))#,
+                    dateInput("date-selectCarrier", label = "Select Date", format = "yyyy-mm-dd", value = "2017-01-01"),
+                    tabBox(
+                      title = textOutput('carrierText', inline = TRUE),
+                      id = "twentyFourTopCarriers", height = "100%", width = "100%",
+                      tabPanel("Graph", div(plotlyOutput("specificCarrier24Plot")  %>% withSpinner(color="#0dc5c1")))#,
                       #tabPanel("Table", div(DT::dataTableOutput("allMonthsTopCarriersTable")))
                     ),
-                    tabBox( # TODO: Year breakdown of chosen carrier
-                      title = "January - December 2017",
-                      id = "yearChosenTopCarrier", height = "100%", width = "100%"#,
-                      #tabPanel("Graph", div(plotlyOutput("allMonthsPopularGraph")))#,
+                    tabBox(
+                      title = textOutput('carrierText2', inline = TRUE),
+                      id = "yearChosenTopCarrier", height = "100%", width = "100%",
+                      tabPanel("Graph", div(plotlyOutput("specificCarrierYearPlot")  %>% withSpinner(color="#0dc5c1")))#,
                       #tabPanel("Table", div(DT::dataTableOutput("allMonthsTopCarriersTable")))
                     )
+                )
+              )
+      ),
+      
+      tabItem(tabName = "weeklyTotal",
+              fluidRow(
+                box(title = "Month View - Total Departures/Arrivals per Weekday", solidHeader = TRUE, status = "primary", width = 12,
+                  tabBox(
+                    title = textOutput('mWeekdayText', inline = TRUE),
+                    id = "weekdayTab", height = "100%", width = "100%",
+                    tabPanel("Graph", plotlyOutput("weekdayGraph")),
+                    tabPanel("Table", DT::dataTableOutput("weekdayTable"))
+                  )
+                )
+              ),
+              # User selects WEEKDAY (i.e. Sunday, Monday, etc.)
+              fluidRow(
+                box(title = "Departures/Arrivals per Selected Weekday", solidHeader = TRUE, status = "primary", width = 12,
+                    selectInput("weekday-select", label = "Day of Week", list("Monday" = 1, "Tuesday" = 2, "Wednesday" = 3, "Thursday" = 4, "Friday" = 5, "Saturday" = 6, "Sunday" = 7), selected = 7)
+                    
                 )
               )
       ),
@@ -193,7 +192,8 @@ ui <- dashboardPage(
               h4("scales"),
               h4("dplyr"),
               h4("plotly"),
-              h4("shinyWidgets")
+              h4("shinyWidgets"),
+              h4("shinycssloaders")
       )
     )
     
