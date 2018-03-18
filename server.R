@@ -143,8 +143,11 @@ server <- function(input, output) {
     totalselectedDataPercentage <- merge(totalselectedDataPercentage,nasDelayCount,by="Hour", all.x= TRUE, all.y= TRUE)
     totalselectedDataPercentage <- merge(totalselectedDataPercentage,lateDelayCount,by="Hour", all.x= TRUE, all.y= TRUE)
     
+    userInput <- input$delayButtons
+    print(userInput)
     
-    totalselectedDataPercentage$Percentage <- (totalselectedDataPercentage$Weather / (totalselectedDataPercentage$Departures + totalselectedDataPercentage$Arrivals)) * 100
+  #~get(input$delayButtons)
+    totalselectedDataPercentage$Percentage <- (totalselectedDataPercentage[[userInput]] / (totalselectedDataPercentage$Departures + totalselectedDataPercentage$Arrivals)) * 100
     
     #drop arrivals and departures from table
     #totalselectedDataPercentage <- subset(totalselectedDataPercentage, select = -c(2,3) )
@@ -155,15 +158,6 @@ server <- function(input, output) {
     #give nicer column names
     #names(totalselectedDataPercentage) <- c("Hour", "Total Delays", "% of selectedData")
     totalselectedDataPercentage
-  })
-  
-
-  
-  calculatedPercentage <- reactive({
-    totalselectedDataPercentage <- tsdpData()
-    
-    if ( "Security" %in% input$var) return((totalselectedDataPercentage$Security / (totalselectedDataPercentage$Departures + totalselectedDataPercentage$Arrivals)) * 100)
-    if ( "Weather" %in% input$var) return((totalselectedDataPercentage$Weather / (totalselectedDataPercentage$Departures + totalselectedDataPercentage$Arrivals)) * 100)
   })
   
   add_to_df <- reactive({
@@ -484,13 +478,21 @@ server <- function(input, output) {
   output$hourlyYearGraphArr <- renderPlotly({
       data <- hourlyYearlyData
       
-      plot_ly(x= data$Month,y= data$Time, z = data$Arrivals, type = "heatmap")
+      plot_ly(x= data$Month,y= data$Time, z = data$Arrivals, type = "heatmap", hoverinfo = 'text',
+              text = ~paste('</br> Departures: ', data$Arrivals, '</br> Month: ', data$Month, '</br> Time: ', data$Time)) %>%
+        
+        layout(xaxis = list(title = "Month", autotick = F, dtick = 1),
+               yaxis = list(title = "Time"))
     })
   
   output$hourlyYearGraphDep <- renderPlotly({
       data <- hourlyYearlyData
       
-      plot_ly(x= data$Month,y= data$Time, z = data$Departures, type = "heatmap")
+      plot_ly(x= data$Month,y= data$Time, z = data$Departures, type = "heatmap", hoverinfo = 'text',
+              text = ~paste('</br> Departures: ', data$Departures, '</br> Month: ', data$Month, '</br> Time: ', data$Time )) %>%
+        
+        layout(xaxis = list(title = "Month", autotick = F, dtick = 1),
+               yaxis = list(title = "Time"))
     })
   
   output$yearlyDelaysGraph <- renderPlotly({
