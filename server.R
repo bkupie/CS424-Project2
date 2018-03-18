@@ -20,6 +20,9 @@ server <- function(input, output) {
   load("rdata/topForMonths.RData")
   load("rdata/top15Airports.RData")
   
+  #load data for yearly delays heatmapt
+  load("rdata/yearlyDelays.RData")
+  
   #continue this method into am/pm formatting
   #ILData2017$DEP_TIMEampm <- as.POSIXct(sprintf("%04.0f", ILData2017$DEP_TIME), format='%H%M')
   #ILData2017$DEP_TIMEampm <- cut(ILData2017$DEP_TIMEampm, breaks = "hour")
@@ -183,67 +186,7 @@ server <- function(input, output) {
     totalselectedDataPercentage
   })
   
-  yearlyDelays <- reactive({
-    yearlyDelays <- ILData2017
-    selectedData <- yearlyDelays
-    
-    selectedData <- selectedData %>% filter(ORIGIN_AIRPORT_ID == "Chicago O'Hare International" ||ORIGIN_AIRPORT_ID == "Chicago Midway International" || DEST_AIRPORT_ID == "Chicago O'Hare International" ||DEST_AIRPORT_ID == "Chicago Midway International")
-    
-    #selectedData <- selectedData %>% filter(DEP_DELAY_NEW > 0 ||ARR_DELAY_NEW > 0)
-    
-    #get only certain columns
-    selectedData <- subset( selectedData, select = c(FL_DATE,CARRIER_DELAY,WEATHER_DELAY,NAS_DELAY, SECURITY_DELAY, LATE_AIRCRAFT_DELAY) )
-    
-    
-    #change date to show only month
-    selectedData <- selectedData %>% mutate(FL_DATE = month(selectedData$FL_DATE))
-    
-    #add int boolean for if delay exists or not
-    selectedData$WEATHER_DELAY<-ifelse(selectedData$WEATHER_DELAY>0,1,0)
-    selectedData$CARRIER_DELAY<-ifelse(selectedData$CARRIER_DELAY>0,1,0)
-    selectedData$NAS_DELAY<-ifelse(selectedData$NAS_DELAY>0,1,0)
-    selectedData$SECURITY_DELAY<-ifelse(selectedData$SECURITY_DELAY>0,1,0)
-    selectedData$LATE_AIRCRAFT_DELAY<-ifelse(selectedData$LATE_AIRCRAFT_DELAY>0,1,0)
-    
-    #get counts
-    weatherDelayCount <- aggregate(cbind(Weather = WEATHER_DELAY) ~ FL_DATE,
-                                   data = selectedData,
-                                   FUN = sum)
-    
-    carrierDelayCount <- aggregate(cbind(Weather = CARRIER_DELAY) ~ FL_DATE,
-                                   data = selectedData,
-                                   FUN = sum)
-    
-    securityDelayCount <- aggregate(cbind(Weather = SECURITY_DELAY) ~ FL_DATE,
-                                    data = selectedData,
-                                    FUN = sum)
-    
-    nasDelayCount <- aggregate(cbind(Weather = NAS_DELAY) ~ FL_DATE,
-                               data = selectedData,
-                               FUN = sum)
-    
-    lateDelayCount <- aggregate(cbind(Weather = LATE_AIRCRAFT_DELAY) ~ FL_DATE,
-                                data = selectedData,
-                                FUN = sum)
-    
-    #give niver column names
-    names(carrierDelayCount) <- c("Month", "Carrier")
-    names(weatherDelayCount) <- c("Month", "Weather")
-    names(securityDelayCount) <- c("Month", "Security")
-    names(nasDelayCount) <- c("Month", "National Air System")
-    names(lateDelayCount) <- c("Month", "Late Aircraft")
-    
-    
-    #create new table that will also hold percentage
-    yearlyDelays <- merge(carrierDelayCount,weatherDelayCount,by="Month", all.x= TRUE, all.y= TRUE)
-    yearlyDelays <- merge(yearlyDelays,securityDelayCount,by="Month", all.x= TRUE, all.y= TRUE)
-    yearlyDelays <- merge(yearlyDelays,nasDelayCount,by="Month", all.x= TRUE, all.y= TRUE)
-    yearlyDelays <- merge(yearlyDelays,lateDelayCount,by="Month", all.x= TRUE, all.y= TRUE)
-    
-    
-    
-    yearlyDelays  
-  })
+
   
   calculatedPercentage <- reactive({
     totalselectedDataPercentage <- tsdpData()
@@ -580,7 +523,7 @@ server <- function(input, output) {
     })
   
   output$yearlyDelaysGraph <- renderPlotly({
-      data <- yearlyDelays()
+      data <- yearlyDelays
     
       plot_ly(data, x = ~Month, y = ~Carrier, type = 'bar', name = 'Carrier Delay') %>%
         add_trace(y = ~Weather, name = 'Weather Delay') %>% add_trace(y = ~Security, name = 'Security Delay') %>% 
