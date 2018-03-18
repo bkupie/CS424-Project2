@@ -12,6 +12,9 @@ server <- function(input, output) {
   # rank the TOP AIRPORTS across 12 months
   load("rdata/allPopularAirports.RData")
 
+  #load the data that will be used to create the map
+  load("rdata/FlightMap.rdata")
+  
   #continue this method into am/pm formatting
   #ILData2017$DEP_TIMEampm <- as.POSIXct(sprintf("%04.0f", ILData2017$DEP_TIME), format='%H%M')
   #ILData2017$DEP_TIMEampm <- cut(ILData2017$DEP_TIMEampm, breaks = "hour")
@@ -862,6 +865,33 @@ server <- function(input, output) {
     # create the graph now 
     plot_ly(topForMonths, x = ~Month, y = topForMonths$Airport, z= ~Frequency,colorscale = "Greys", type = "heatmap") %>%
       layout(xaxis = list(categoryorder = "array",categoryarray = df$"Airport"), margin = heatMargins)
+  })
+  
+  #Create the map
+  output$FLightMap <- renderPlotly({
+    l <- list(color = toRGB("white"), width = 2)
+    
+    FlightMap$Hover <- with(FlightMap, paste(State, '<br>', "Origin Freq.", Origin.Freq, "Dest Freq.", Dest.Freq,
+                                             "<br>","Origin + Dest", Sum.Freq, "Total percentage", Percent))
+    #focus only on the USA 
+    g <- list(
+      scope = 'usa',
+      projection = list(type = 'albers usa'),
+      showlakes = TRUE,
+      lakecolor = toRGB('white')
+    )
+    
+    p <- plot_geo(FlightMap, locationmode = 'USA-states') %>%
+      add_trace(
+        z = ~FlightMap$Percent, text = ~FlightMap$Hover, locations = ~FlightMap$State,
+        color = ~FlightMap$Percent, colors = 'Purples'
+      ) %>%
+      colorbar(title = "Percent") %>%
+      layout(
+        title = '2017 Flights To/From Illinois <br>(Hover for breakdown)',
+        geo = g
+      )
+    
   })
   
   output$monthText <- renderText({ mData() })
