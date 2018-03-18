@@ -646,6 +646,42 @@ server <- function(input, output) {
              barmode = 'group')
   })
   
+  output$weekdayGraphMIDWAY <- renderPlotly({
+    flightsByWeekday <- fbwData()
+    popularCarriers <- pcData()
+    
+    plot_ly(flightsByWeekday, x = ~flightsByWeekday$Weekday, y = ~flightsByWeekday$MidwayDeparturesTotal, type = 'bar', name = 'Departures Midway',
+            hoverinfo = 'text', text = ~paste('</br>', flightsByWeekday$MidwayDeparturesTotal, 'Departures Midway</br>'),
+            marker = list(color = 'rgb(51,160,44)')) %>%
+      
+      add_trace(x = ~flightsByWeekday$Weekday, y = ~flightsByWeekday$MidwayArrivalsTotal, name = 'Arrivals Midway', hoverinfo = 'text',
+                text = ~paste('</br>', flightsByWeekday$MidwayArrivalsTota, 'Arrivals Midway </br>'),
+                marker = list(color = 'rgb(178,223,138)')) %>%
+      
+      layout(xaxis = list(title = "Weekday", tickangle = -45, categoryorder = "array", categoryarray = popularCarriers$CARRIER),
+             yaxis = list(title = "# of Flights"),
+             margin = list(b = 130),
+             barmode = 'group')
+  })
+  
+  output$weekdayGraphOHARE <- renderPlotly({
+    flightsByWeekday <- fbwData()
+    popularCarriers <- pcData()
+    
+    plot_ly(flightsByWeekday, x = ~flightsByWeekday$Weekday, y = ~flightsByWeekday$OhareDeparturesTotal, type = 'bar', name = 'Departures Ohare', hoverinfo = 'text',
+                text = ~paste('</br>', flightsByWeekday$OhareDeparturesTotal, ' Departures Ohare </br>'),
+                marker = list(color = 'rgb(31,120,180)')) %>%
+      
+      add_trace(x = ~flightsByWeekday$Weekday, y = ~flightsByWeekday$OhareArrivalsTotal, name = 'Arrivals Ohare', hoverinfo = 'text',
+                text = ~paste('</br>', flightsByWeekday$OhareArrivalsTotal, 'Arrivals Ohare </br>'),
+                marker = list(color = 'rgb(166,206,227)')) %>%
+      
+      layout(xaxis = list(title = "Weekday", tickangle = -45, categoryorder = "array", categoryarray = popularCarriers$CARRIER),
+             yaxis = list(title = "# of Flights"),
+             margin = list(b = 130),
+             barmode = 'group')
+  })
+  
   # chart of dep/arr in ohare and midway FOR CHOSEN WEEKDAY ACROSS THE YEAR
   output$specificWeekdayYearPlot <- renderPlotly({
     selectedData <- sWeekday()

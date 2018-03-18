@@ -133,7 +133,7 @@ ui <- dashboardPage(
                     tabBox(
                       title = "January - December 2017",
                       id = "yearTopCarriers", height = "100%", width = "100%",
-                      tabPanel("Graph", div(plotlyOutput("allMonthsPopularGraph")  %>% withSpinner(color="#0dc5c1"))),
+                      tabPanel("Common Scale", div(plotlyOutput("allMonthsPopularGraph")  %>% withSpinner(color="#0dc5c1"))),
                       tabPanel("Table", div(DT::dataTableOutput("allMonthsTopCarriersTable")  %>% withSpinner(color="#0dc5c1")))
                     )
                 )
@@ -167,7 +167,9 @@ ui <- dashboardPage(
                   tabBox(
                     title = textOutput('mWeekdayText', inline = TRUE),
                     id = "weekdayTab", height = "100%", width = "100%",
-                    tabPanel("Graph", plotlyOutput("weekdayGraph") %>% withSpinner(color="#0dc5c1")),
+                    tabPanel("Common Scale", plotlyOutput("weekdayGraph") %>% withSpinner(color="#0dc5c1")),
+                    tabPanel("Midway", plotlyOutput("weekdayGraphMIDWAY") %>% withSpinner(color="#0dc5c1")),
+                    tabPanel("Ohare", plotlyOutput("weekdayGraphOHARE") %>% withSpinner(color="#0dc5c1")),
                     tabPanel("Table", DT::dataTableOutput("weekdayTable"))
                   )
                 )
