@@ -163,7 +163,7 @@ server <- function(input, output) {
     userInput <- input$delayButtons
     print(userInput)
     
-  #~get(input$delayButtons)
+    #~get(input$delayButtons)
     totalselectedDataPercentage$Percentage <- (totalselectedDataPercentage[[userInput]] / (totalselectedDataPercentage$Departures + totalselectedDataPercentage$Arrivals)) * 100
     
     #drop arrivals and departures from table
@@ -407,7 +407,7 @@ server <- function(input, output) {
                                 FUN = sum)
     
     #give niver column names
-    names(hourlyDelayCount) <- c("Hour", "Count")
+    names(hourlyDelayCount) <- c("Hour", "Total Flights")
     names(carrierDelayCount) <- c("Hour", "Carrier")
     names(weatherDelayCount) <- c("Hour", "Weather")
     names(securityDelayCount) <- c("Hour", "Security")
@@ -422,11 +422,14 @@ server <- function(input, output) {
     totalselectedDataPercentage <- merge(totalselectedDataPercentage,nasDelayCount,by="Hour", all.x= TRUE, all.y= TRUE)
     totalselectedDataPercentage <- merge(totalselectedDataPercentage,lateDelayCount,by="Hour", all.x= TRUE, all.y= TRUE)
     
+    userInput <- input$delayButtons2
+    print(userInput)
     
-    totalselectedDataPercentage$Percentage <- (totalselectedDataPercentage$Weather / (totalselectedDataPercentage$Departures + totalselectedDataPercentage$Arrivals)) * 100
+    #~get(input$delayButtons)
+    totalselectedDataPercentage$Percentage <- (totalselectedDataPercentage[[userInput]] / (totalselectedDataPercentage$Departures + totalselectedDataPercentage$Arrivals)) * 100
     
     #drop arrivals and departures from table
-    #totalselectedDataPercentage <- subset(totalselectedDataPercentage, select = -c(2,3) )
+    totalselectedDataPercentage <- subset(totalselectedDataPercentage, select = -c(2,3) )
     
     #round percentage
     totalselectedDataPercentage$Percentage <-round(totalselectedDataPercentage$Percentage, 0)
@@ -562,6 +565,25 @@ server <- function(input, output) {
              margin = list(b = 130),
              barmode = 'group')
   })
+  
+  output$popularGraphMIDWAY <- renderPlotly({
+    popularCarriers <- pcData()
+    
+    plot_ly(popularCarriers, x = ~popularCarriers$CARRIER, y = ~popularCarriers$MIDWAY_DEPARTURES, type = 'bar', name = 'Departures Midway',
+            hoverinfo = 'text', text = ~paste('</br>', popularCarriers$MIDWAY_DEPARTURES, 'Departures Midway</br>'),
+            marker = list(color = 'rgb(51,160,44)')) %>%
+      
+      add_trace(x = ~popularCarriers$CARRIER, y = ~popularCarriers$MIDWAY_ARRIVALS, name = 'Arrivals Midway', hoverinfo = 'text',
+                text = ~paste('</br>', popularCarriers$MIDWAY_ARRIVALS, 'Arrivals Midway </br>'),
+                marker = list(color = 'rgb(178,223,138)')) %>%
+      
+      layout(xaxis = list(title = "Carriers", tickangle = -45, categoryorder = "array", categoryarray = popularCarriers$CARRIER),
+             yaxis = list(title = "# of Flights"),
+             margin = list(b = 130),
+             barmode = 'group')
+  })
+  
+  
   
   # bar chart of departure and arrival PER weekday in ohare and midway FOR CHOSEN MONTH
   output$weekdayGraph <- renderPlotly({

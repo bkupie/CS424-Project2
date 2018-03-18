@@ -123,7 +123,9 @@ ui <- dashboardPage(
                     # The id lets us use input$monthText on the server to find the current tab
                     title = textOutput('monthText', inline = TRUE),
                     id = "monthTopCarriers", height = "100%", width = "100%",
-                    tabPanel("Graph", div(plotlyOutput("popularGraph") %>% withSpinner(color="#0dc5c1"))),
+                    tabPanel("Common Scale", div(plotlyOutput("popularGraph") %>% withSpinner(color="#0dc5c1"))),
+                    tabPanel("Midway", div(plotlyOutput("popularGraphMIDWAY") %>% withSpinner(color="#0dc5c1"))),
+                    tabPanel("O'Hare", div(plotlyOutput("popularGraphOHARE") %>% withSpinner(color="#0dc5c1"))),
                     tabPanel("Table", div(DT::dataTableOutput("topCarriersTable") %>% withSpinner(color="#0dc5c1")))
                   )
                 ),
