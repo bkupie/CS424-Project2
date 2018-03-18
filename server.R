@@ -12,8 +12,13 @@ server <- function(input, output) {
   # rank the TOP AIRPORTS across 12 months
   load("rdata/allPopularAirports.RData")
 
+  
   #load the data that will be used to create the map
   load("rdata/FlightMap.rdata")
+  
+  #load data for the heatmap
+  load("rdata/topForMonths.RData")
+  load("rdata/top15Airports.RData")
   
   #continue this method into am/pm formatting
   #ILData2017$DEP_TIMEampm <- as.POSIXct(sprintf("%04.0f", ILData2017$DEP_TIME), format='%H%M')
@@ -368,8 +373,8 @@ server <- function(input, output) {
   # set up the margins for graphs - Bart
   graphMargins <- list(
     l = 50,
-    r = 150,
-    b = 200,
+    r = 200,
+    b = 220,
     t = 10,
     pad = 2
   )
@@ -591,49 +596,30 @@ server <- function(input, output) {
   }
   
   #create the two different bar charts   
-  output$bartChart1 <-createTop15Airports("Chicago O'Hare International")
+  output$top15Chart1 <-createTop15Airports("Chicago O'Hare International")
   
-  output$bartChart2 <- createTop15Airports("Chicago Midway International")
+  output$top15Chart2 <- createTop15Airports("Chicago Midway International")
+  
+  reactiveTop15 <- reactive({
+   cleanedFlights <- month_data[[chosenMonth()]]
+  })
   
   #create the top 15 airports over the 12 months 
   output$top15Airports12months <- renderPlotly({
-    #remove any information that isn't the data or destination airport 
-    df <- subset( ILData2017, select = c(FL_DATE,DEST_AIRPORT_ID) )
-    # split it up into months, so FL_DATE is only month number 
-    df <- df %>% 
-      mutate(
-        FL_DATE = month(df$FL_DATE)
-      )
-    #make a quick copy
-    countFlights <- df
-    #add a column for frequency
-    countFlights$frequency <- 1
-    #we will also have to find the overall top 15 airports, we'll do this in another dataframe
-    countFlights <- data.frame(summarize(group_by(countFlights, DEST_AIRPORT_ID), sum(frequency)))
     
-    #sort before, then we can get the top 15
-    countFlights <- countFlights[order(-countFlights$sum.frequency),]
-    
-    countFlights <- subset( countFlights, select = c(DEST_AIRPORT_ID) )     #keep only the names, we do not want the frequency 
-    top15Airports <- head(countFlights,n = 15) # get only the top 15 locations    
-    dt <- data.table(df) # transpose to data.table
-    df <- setDF( dt[, list(Freq =.N), by=list(FL_DATE,DEST_AIRPORT_ID)] )# use list to name var directly
-    #now we have our sum for each month for each airport, now we get rid of the airports we do not need
-    
-    topForMonths <- merge(df, top15Airports, by='DEST_AIRPORT_ID')
-    #rename the columns 
-    names(topForMonths) <- c("Airport","Month","Frequency")
     # create the graph now 
-    plot_ly(topForMonths, x = ~Month, y = topForMonths$Airport, z= ~Frequency,colorscale = "Greys", type = "heatmap") %>%
-      layout(xaxis = list(categoryorder = "array",categoryarray = df$"Airport"), margin = heatMargins)
+    plot_ly(topForMonths, x = ~Month, y = topForMonths$Airport, z= ~topForMonths$Frequency,colors = colorRamp(c("blue","white", "black")), type = "heatmap")%>%
+      layout(yaxis = list(categoryorder = "array",categoryarray = top15Airports$Airport), xaxis = list( dtick = 1), margin = heatMargins)
+    
   })
   
   #Create the map
   output$FLightMap <- renderPlotly({
     l <- list(color = toRGB("white"), width = 2)
     
-    FlightMap$Hover <- with(FlightMap, paste(State, '<br>', "Origin Freq.", Origin.Freq, "Dest Freq.", Dest.Freq,
-                                             "<br>","Origin + Dest", Sum.Freq, "Total percentage", Percent))
+    #On hover, give more information
+    FlightMap$Hover <- with(FlightMap, paste(State, '<br>', "Origin Freq.", Origin.Freq, " | Dest Freq. : ", Dest.Freq,
+                                             "<br>","Origin + Dest :", Sum.Freq, "| Total percentage", Percent , "%", "<br>"))
     #focus only on the USA 
     g <- list(
       scope = 'usa',
@@ -642,15 +628,16 @@ server <- function(input, output) {
       lakecolor = toRGB('white')
     )
     
+    #create the actual map
     p <- plot_geo(FlightMap, locationmode = 'USA-states') %>%
       add_trace(
         z = ~FlightMap$Percent, text = ~FlightMap$Hover, locations = ~FlightMap$State,
         color = ~FlightMap$Percent, colors = 'Purples'
       ) %>%
-      colorbar(title = "Percent") %>%
+      colorbar(title = "Percent") %>% #name the bar properly 
       layout(
-        title = '2017 Flights To/From Illinois <br>(Hover for breakdown)',
-        geo = g
+        title = '2017 Flights To/From Illinois <br>(Hover for breakdown)', #set the title 
+        geo = g #focus on USA 
       )
     
   })
@@ -707,25 +694,25 @@ server <- function(input, output) {
   )
   
   #render the table for departure/arrival counters
-  output$bartTable1 <- DT::renderDataTable(DT::datatable({
+  output$top15Table1 <- DT::renderDataTable(DT::datatable({
     #show only the top 15
     df <- airportTotals("Chicago O'Hare International")
     head(df,15)
   },
   class = 'cell-border stripe',
   rownames = FALSE,
-  options = list(searching = FALSE, pageLength = 5, lengthChange = TRUE)
+  options = list(searching = FALSE, pageLength = 15, lengthChange = FALSE)
   )
   )
   
-  output$bartTable2 <- DT::renderDataTable(DT::datatable({
+  output$top15Table2 <- DT::renderDataTable(DT::datatable({
     #show only the top 15
     df <- airportTotals("Chicago Midway International")
     head(df,15)
   },
   class = 'cell-border stripe',
   rownames = FALSE,
-  options = list(searching = FALSE, pageLength = 5, lengthChange = TRUE)
+  options = list(searching = FALSE, pageLength = 15, lengthChange = FALSE)
   )
   )
 }

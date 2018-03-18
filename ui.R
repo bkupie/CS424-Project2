@@ -25,12 +25,11 @@ ui <- dashboardPage(
   dashboardSidebar(
     sidebarMenu(
       menuItem("Top Airlines", icon = icon("plane", lib = "font-awesome"), tabName = "topCarriers"),
-      menuItem("Top Airports", tabName = "bart", icon = icon("dashboard")),
-      menuItem("Top Airports 12 mo.", tabName = "bart2", icon = icon("dashboard")),
+      menuItem("Top Airports", tabName = "TopAirport", icon = icon("dashboard")),
       menuItem("Hourly Total", icon = icon("hourglass", lib = "font-awesome"), tabName = "hourlytotal"),
       menuItem("Weekly Total", icon = icon("calendar", lib = "font-awesome"), tabName = "arrivalDepartureDaily"),
       menuItem("Delays", icon = icon("hourglass", lib = "font-awesome"), tabName = "delays"),
-      
+      menuItem("Map", icon = icon("fa fa-map-o", lib = "font-awesome"), tabName = "map"),
       #get month
       selectInput("month-select", label = "Month", list("January" = 1, "February" = 2, "March" = 3, "April" = 4, "May" = 5, "June" = 6, "July" = 7, "August" = 8, "September" = 9, "October" = 10, "November" = 11, "December" = 12),
                   selected = 1),
@@ -52,29 +51,33 @@ ui <- dashboardPage(
   dashboardBody(
     
     tabItems(
-      tabItem(tabName = "bart",
-              fluidRow( box(title = "Flights from/to Chicago O'Hare International", solidHeader = TRUE, status = "primary", width = 10,
-                  dataTableOutput("bartTable1")
+      tabItem(tabName = "TopAirport",
+              fluidRow( box(title = "Flights from/to Chicago O'Hare International", solidHeader = TRUE, status = "primary", width = 6,
+                  dataTableOutput("top15Table1")
               ),
-              box(title = "Flights from/to Chicago O'Hare International", solidHeader = TRUE, width = 10,
-                  div(plotlyOutput("bartChart1"))
+              box(title = "Flights from/to Chicago Midway International", solidHeader = TRUE, status = "primary", width = 6,
+                  dataTableOutput("top15Table2")
               )),
-              box(title = "Flights from/to Chicago Midway International", solidHeader = TRUE, status = "primary", width = 10,
-                  dataTableOutput("bartTable2")
-              ),
-              box(title = "Flights from/to Chicago Midway International", solidHeader = TRUE, width = 10,
-                  div(plotlyOutput("bartChart2"))
-              )
-              
-      ),
-      tabItem(tabName = "bart2",
               fluidRow(
-              box(title = "Heatmap", solidHeader = TRUE, width = 10,
-                  div(plotlyOutput("top15Airports12months"))
-              )
-              )
+              box(title = "Flights from/to Chicago O'Hare International", solidHeader = TRUE, width = 6,
+                  div(plotlyOutput("top15Chart1"))
+              ),
+              box(title = "Flights from/to Chicago Midway International", solidHeader = TRUE, width = 6,
+                  div(plotlyOutput("top15Chart2"))
+              )),
+              fluidRow(
+                
+                box(title = "Top airports for 12 months", solidHeader = TRUE, width = 12,
+                    div(plotlyOutput("top15Airports12months"))
+                ))
               
       ),
+      tabItem(tabName = "map",
+              tags$style(type = "text/css", "#FLightMap {height: calc(100vh - 80px) !important;}"),
+              fluidRow(
+                box(title = "Heatmap", solidHeader = TRUE, height = 400,width = 400,
+                    plotlyOutput("FLightMap")
+              ))),
       
       
       tabItem(tabName = "delays",
