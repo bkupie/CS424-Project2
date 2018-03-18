@@ -602,7 +602,22 @@ server <- function(input, output) {
              barmode = 'group')
   })
   
-  
+  output$popularGraphOHARE <- renderPlotly({
+    popularCarriers <- pcData()
+    
+    plot_ly(popularCarriers, x = ~popularCarriers$CARRIER, y = ~popularCarriers$OHARE_DEPARTURES, type = 'bar', name = 'Departures Ohare', hoverinfo = 'text',
+                text = ~paste('</br>', popularCarriers$OHARE_DEPARTURES, ' Departures Ohare </br>'),
+                marker = list(color = 'rgb(31,120,180)')) %>%
+      
+      add_trace(x = ~popularCarriers$CARRIER, y = ~popularCarriers$OHARE_ARRIVALS, name = 'Arrivals Ohare', hoverinfo = 'text',
+                text = ~paste('</br>', popularCarriers$OHARE_ARRIVALS, 'Arrivals Ohare </br>'),
+                marker = list(color = 'rgb(166,206,227)')) %>%
+      
+      layout(xaxis = list(title = "Carriers", tickangle = -45, categoryorder = "array", categoryarray = popularCarriers$CARRIER),
+             yaxis = list(title = "# of Flights"),
+             margin = list(b = 130),
+             barmode = 'group')
+  })
   
   # bar chart of departure and arrival PER weekday in ohare and midway FOR CHOSEN MONTH
   output$weekdayGraph <- renderPlotly({
