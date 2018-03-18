@@ -82,14 +82,14 @@ ui <- dashboardPage(
                   justified = TRUE, status = "primary",
                   checkIcon = list(yes = icon("ok", lib = "glyphicon"), no = icon("remove", lib = "glyphicon"))
                 ),
-                box(status = "warning", solidHeader = TRUE, width = 12, height = NULL,
-                    div(plotlyOutput("delayGraph"))
+                box(status = "warning", solidHeader = TRUE, width = 12, 
+                    div(plotlyOutput("delayGraph", height= 650))
                 ),
-                box(status = "primary", solidHeader = TRUE, width = 12, height = NULL,
-                    DT::dataTableOutput("totalselectedDataPercentageTable")
+                box(status = "primary", solidHeader = TRUE, width = 12,
+                    div(DT::dataTableOutput("totalselectedDataPercentageTable", height= 650))
                 ),
-                box(status = "warning", solidHeader = TRUE, width = 12, height = NULL,
-                    div(plotlyOutput("yearlyDelaysGraph"))
+                box(status = "warning", solidHeader = TRUE, width = 12,
+                    div(plotlyOutput("yearlyDelaysGraph", height= 650))
                 )
                 
                 
