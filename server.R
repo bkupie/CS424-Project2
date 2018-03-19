@@ -1157,7 +1157,7 @@ server <- function(input, output) {
         add_trace(y = ~Weather, name = 'Weather Delay') %>% add_trace(y = ~Security, name = 'Security Delay') %>% 
         add_trace(y = ~`National Air System`, name = 'National Air System Delay') %>% 
         add_trace(y = ~`Late Aircraft`, name = 'Late Aircraft Delay') %>%
-        layout(title = "Total Delays in 2017", xaxis = list(title = "Month", autotick = F, dtick = 1, titlefont=list(size=30), tickfont=list(size=20))) %>%
+        layout(font = list(size=30), title = "Total Delays in 2017", xaxis = list(title = "Month", autotick = F, dtick = 1, titlefont=list(size=30), tickfont=list(size=20))) %>%
         layout(yaxis = list(title = 'Count', titlefont=list(size=30), tickfont=list(size=20)), barmode = 'stack',
                margin=list(l=100, t=100, b=100))
     })
@@ -1175,8 +1175,8 @@ server <- function(input, output) {
             text = ~paste('</br>', get(input$delayButtons), ' Delays </br>', Percentage, '% of Flights</br>'), 
             marker=list(color=~totalselectedDataPercentage$Percentage, showscale=TRUE)) %>%
       
-      layout(title = paste("Hourly", userInput, "Delays in", monthChoice, sep=" "), xaxis = list(title = "Time Period", tickangle = -45,categoryorder = "array",categoryarray = timeFrame$time),yaxis = list(title = "# of Flights"),
-             margin = list(b = 100), barmode = 'group')
+      layout(font = list(size=30), title = paste("Hourly", userInput, "Delays in", monthChoice, sep=" "), xaxis = list(title = "Time Period",categoryorder = "array",categoryarray = timeFrame$time, titlefont=list(size=30), tickfont=list(size=20)),yaxis = list(title = "# of Flights", titlefont=list(size=30), tickfont=list(size=20)),
+             margin = list(l= 100,t= 100, b = 100), barmode = 'group')
   })
   
   output$delayGraph2 <- renderPlotly({
