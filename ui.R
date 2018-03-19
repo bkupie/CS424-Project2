@@ -109,14 +109,14 @@ ui <- dashboardPage(
                                div(plotlyOutput("delayGraph", height = 900))
                            ),
                            box(status = "primary", solidHeader = TRUE, width = 6,
-                               div(DT::dataTableOutput("totalselectedDataPercentageTable", height= 900))
+                               div(DT::dataTableOutput("totalselectedDataPercentageTable", height= 900), style = "font-size: 200%")
                            )),
                   tabPanel("O'Hare", 
                            box(status = "primary", solidHeader = TRUE, width = 6,
                                div(plotlyOutput("delayGraphORD", height = 900))
                            ),
                            box(status = "primary", solidHeader = TRUE, width = 6,
-                               div(DT::dataTableOutput("totalselectedDataPercentageTableORD", height= 900))
+                               div(DT::dataTableOutput("totalselectedDataPercentageTableORD", height= 900), style = "font-size: 200%")
                            )),
                   tabPanel("Midway", 
                            box(status = "primary", solidHeader = TRUE, width = 6,
