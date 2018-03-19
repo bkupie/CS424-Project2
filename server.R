@@ -58,10 +58,10 @@ server <- function(input, output) {
   })
   
   pickCorrectDate <- reactive({
-    if(input$timeChoice)
+    if(!input$timeChoice)
     {
       selectedTime <- month_data[[chosenMonth()]]}
-    else if(!input$timeChoice)
+    else if(input$timeChoice)
     {
       chosen <- chosenDate()
       selectedTime <- ILData2017
@@ -72,10 +72,10 @@ server <- function(input, output) {
   })
   
   correctTitleHourly <- reactive({
-    if(input$timeChoice)
+    if(!input$timeChoice)
     {
       selectedTitle <- paste(month.abb[chosenMonth()],2017,sep=" ")}
-    else if(!input$timeChoice)
+    else if(input$timeChoice)
     {
       selectedTitle <- chosenDate()
       
@@ -87,10 +87,10 @@ server <- function(input, output) {
   })
   
   correctTitleDelay <- reactive({
-    if(input$timeChoiceDelays)
+    if(!input$checkbox)
     {
       selectedTitle <- paste(month.abb[chosenMonth()],2017,sep=" ")}
-    else if(!input$timeChoiceDelays)
+    else if(input$checkbox)
     {
       selectedTitle <- chosenDateDelays()
       
@@ -101,12 +101,34 @@ server <- function(input, output) {
     selectedTitle
   })
   
+  observe({
+    if(input$checkbox == TRUE){
+      show(id = "dateHourlyDelays")
+    }
+    else{
+      hide(id = "dateHourlyDelays")
+    }
+    
+  })
+  
+  observe({
+    if(input$timeChoice == TRUE){
+      show(id = "dateHourly")
+    }
+    else{
+      hide(id = "dateHourly")
+    }
+    
+  })
+  
   pickCorrectDateDelays <- reactive({
-    if(input$timeChoiceDelays)
+    if(!input$checkbox)
     {
+      
       selectedTime <- month_data[[chosenMonth()]]}
-    else if(!input$timeChoiceDelays)
+    else if(input$checkbox)
     {
+      #hide(id = "greetbox-outer", anim = TRUE)
       chosen <- chosenDate()
       selectedTime <- ILData2017
       selectedTime <- subset(selectedTime, FL_DATE == chosenDateDelays())
@@ -129,6 +151,7 @@ server <- function(input, output) {
      as.character(input$"dateHourlyDelays")
    })
   
+   
   # selectedData based on chosen Month
   sData <- reactive({
     #selectedData <- month_data[[chosenMonth()]]

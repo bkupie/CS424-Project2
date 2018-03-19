@@ -1,6 +1,7 @@
 
 #libraries to include
 library(shiny)
+library(shinyjs)
 library(shinydashboard)
 library(data.table)
 library(ggplot2)
@@ -84,16 +85,15 @@ ui <- dashboardPage(
       
       tabItem(tabName = "delays",
               fluidRow(
+                useShinyjs(),
+                checkboxInput("checkbox", "Pick a specific Date", FALSE),
+                div(dateInput("dateHourlyDelays", label = h3("Specific Date"), value = "2017-01-01")),
                 radioGroupButtons(
                   inputId = "delayButtons", label = "Types of Delay :",
                   choices = c("Carrier", "Weather", "National Air System", "Security", "Late Aircraft"),
                   justified = TRUE, status = "primary",
                   checkIcon = list(yes = icon("ok", lib = "glyphicon"), no = icon("remove", lib = "glyphicon"))
                 ),
-                materialSwitch(inputId = "timeChoiceDelays", label = "Month", status = "primary", right = TRUE, value = TRUE),
-                
-                dateInput("dateHourlyDelays", label = h3("Date input"), value = "2017-01-01"),
-                
                 tabBox(
                   title = "Hourly Delays",
                   width = 12,
@@ -133,9 +133,9 @@ ui <- dashboardPage(
       
       tabItem(tabName = "hourlytotal",
               fluidRow(
-                materialSwitch(inputId = "timeChoice", label = "Month", status = "primary", right = TRUE, value = TRUE),
-                dateInput("dateHourly", label = h3("Date input"), value = "2017-01-01"),
-                verbatimTextOutput("dateText"),
+                useShinyjs(),
+                checkboxInput("timeChoice", "Pick a specific Date", FALSE),
+                div(dateInput("dateHourly", label = h3("Specific Date"), value = "2017-01-01")),
                 
                 tabBox(
                   width = 12,
@@ -182,7 +182,6 @@ ui <- dashboardPage(
               ),
               
               # User selects CARRIER from list of available airlines
-              # TODO: instead of having dropdown sorted by popularity have it sorted alphabetically
               fluidRow(
                 box(title = "Departures/Arrivals for Selected Airline", solidHeader = TRUE, status = "primary", width = 12,
                     selectInput("airline-dropdown", "Airline:", choices = as.character(allPopularCarriers$CARRIER)),
