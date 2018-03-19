@@ -1339,8 +1339,8 @@ server <- function(input, output) {
             text = ~paste('</br>', get(input$delayButtons), ' Delays </br>', Percentage, '% of Flights</br>'), 
             marker=list(color=~totalselectedDataPercentage$Percentage, showscale=TRUE)) %>%
       
-      layout(title = paste("Hourly", userInput, "Delays in", monthChoice, sep=" "), xaxis = list(title = "Time Period", tickangle = -45,categoryorder = "array",categoryarray = timeFrame$time),yaxis = list(title = "# of Flights"),
-             margin = list(b = 100), barmode = 'group')
+      layout(text= list(size=30), title = paste("Hourly", userInput, "Delays in", monthChoice, sep=" "), xaxis = list(title = "Time Period", categoryorder = "array",categoryarray = timeFrame$time, titlefont=list(size=30), tickfont=list(size=20)),yaxis = list(title = "# of Flights", titlefont=list(size=30), tickfont=list(size=20)),
+             margin = list(l=100, t=100, b = 100), barmode = 'group')
   })
   
   output$delayGraphMID <- renderPlotly({
@@ -1357,8 +1357,8 @@ server <- function(input, output) {
             text = ~paste('</br>', get(input$delayButtons), ' Delays </br>', Percentage, '% of Flights</br>'), 
             marker=list(color=~totalselectedDataPercentage$Percentage, showscale=TRUE)) %>%
       
-      layout(title = paste("Hourly", userInput, "Delays in", monthChoice, sep=" "), xaxis = list(title = "Time Period", tickangle = -45,categoryorder = "array",categoryarray = timeFrame$time),yaxis = list(title = "# of Flights"),
-             margin = list(b = 100), barmode = 'group')
+      layout(text = list(sie=30), title = paste("Hourly", userInput, "Delays in", monthChoice, sep=" "), xaxis = list(title = "Time Period",categoryorder = "array",categoryarray = timeFrame$time, titlefont=list(size=30), tickfont=list(size=20)),yaxis = list(title = "# of Flights", titlefont=list(size=30), tickfont=list(size=20)),
+             margin = list(t=100, l=100, b = 100), barmode = 'group')
   })
   
   # bar chart of top carriers total departure and arrival in ohare and midway FOR CHOSEN MONTH
