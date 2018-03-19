@@ -1441,9 +1441,9 @@ server <- function(input, output) {
                 text = ~paste('</br>', hourlyArrivals$Count, ' Arrivals </br>'),
                 marker = list(color = '#ff7f0e')) %>%
 
-      layout(xaxis = list(title = "Time Period", tickangle = -45, categoryorder = "array", categoryarray = timeFrame$Hour),
-             yaxis = list(title = "# of Flights"),
-             margin = list(b = 100),
+      layout(font = list(size=30), xaxis = list(title = "Time Period", tickangle = -45, categoryorder = "array", categoryarray = timeFrame$Hour, titlefont=list(size=30), tickfont=list(size=20)),
+             yaxis = list(title = "# of Flights", titlefont=list(size=30), tickfont=list(size=20)),
+             margin = list(t = 100, l =100, b = 100),
              barmode = 'group')
   })
   
@@ -1472,9 +1472,9 @@ server <- function(input, output) {
                 text = ~paste('</br>', arrivals$Count, ' Arrivals </br>'),
                 marker = list(color = '#ff7f0e')) %>%
       
-      layout(xaxis = list(title = "Time Period", tickangle = -45),
-             yaxis = list(title = "# of Flights"),
-             margin = list(b = 100),
+      layout(font = list(test=30), xaxis = list(title = "Time Period", tickangle = -45, titlefont=list(size=30), tickfont=list(size=20)),
+             yaxis = list(title = "# of Flights", titlefont=list(size=30), tickfont=list(size=20)),
+             margin = list(t = 100, l =100, b = 150),
              barmode = 'group')
   })
   
