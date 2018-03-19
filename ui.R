@@ -1,6 +1,7 @@
 
 #libraries to include
 library(shiny)
+library(shinyjs)
 library(shinydashboard)
 library(data.table)
 library(ggplot2)
@@ -89,7 +90,7 @@ ui <- dashboardPage(
                 ),
                 materialSwitch(inputId = "timeChoiceDelays", label = "Month", status = "primary", right = TRUE, value = TRUE),
                 
-                dateInput("dateHourlyDelays", label = h3("Date input"), value = "2017-01-01"),
+                dateInput("dateHourlyDelays", label = h3("Specific Date"), value = "2017-01-01"),
                 
                 tabBox(
                   title = "Hourly Delays",
@@ -131,7 +132,7 @@ ui <- dashboardPage(
       tabItem(tabName = "hourlytotal",
               fluidRow(
                 materialSwitch(inputId = "timeChoice", label = "Month", status = "primary", right = TRUE, value = TRUE),
-                dateInput("dateHourly", label = h3("Date input"), value = "2017-01-01"),
+                dateInput("dateHourly", label = h3("Specific Date"), value = "2017-01-01"),
                 verbatimTextOutput("dateText"),
                 
                 tabBox(
