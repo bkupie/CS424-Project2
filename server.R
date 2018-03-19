@@ -1056,11 +1056,8 @@ server <- function(input, output) {
   
   # set up the margins for graphs
   graphMargins <- list(
-    l = 50,
-    r = 200,
-    b = 220,
-    t = 10,
-    pad = 2
+    l = 100,
+    b= 300
   )
   
   heatMargins <- list(
@@ -1311,9 +1308,9 @@ server <- function(input, output) {
                 text = ~paste('</br>', flightsByWeekday$OhareArrivalsTotal, 'Arrivals Ohare </br>'),
                 marker = list(color = 'rgb(166,206,227)')) %>%
       
-      layout(xaxis = list(title = "Weekday", tickangle = -45, categoryorder = "array", categoryarray = popularCarriers$CARRIER),
-             yaxis = list(title = "# of Flights"),
-             margin = list(b = 130),
+      layout(font = list(size=30), xaxis = list(title = "Weekday", categoryorder = "array", categoryarray = popularCarriers$CARRIER, titlefont=list(size=30), tickfont=list(size=20)),
+             yaxis = list(title = "# of Flights", titlefont=list(size=30), tickfont=list(size=20)),
+             margin = list(l = 100, t =100, b = 130),
              barmode = 'group')
   })
   
@@ -1329,9 +1326,9 @@ server <- function(input, output) {
                 text = ~paste('</br>', flightsByWeekday$MidwayArrivalsTota, 'Arrivals Midway </br>'),
                 marker = list(color = 'rgb(178,223,138)')) %>%
       
-      layout(xaxis = list(title = "Weekday", tickangle = -45, categoryorder = "array", categoryarray = popularCarriers$CARRIER),
-             yaxis = list(title = "# of Flights"),
-             margin = list(b = 130),
+      layout(font = list(size=30), xaxis = list(title = "Weekday", categoryorder = "array", categoryarray = popularCarriers$CARRIER, titlefont=list(size=30), tickfont=list(size=20)),
+             yaxis = list(title = "# of Flights", titlefont=list(size=30), tickfont=list(size=20)),
+             margin = list(l = 100, t = 100, b = 130),
              barmode = 'group')
   })
   
@@ -1347,9 +1344,9 @@ server <- function(input, output) {
                 text = ~paste('</br>', flightsByWeekday$OhareArrivalsTotal, 'Arrivals Ohare </br>'),
                 marker = list(color = 'rgb(166,206,227)')) %>%
       
-      layout(xaxis = list(title = "Weekday", tickangle = -45, categoryorder = "array", categoryarray = popularCarriers$CARRIER),
-             yaxis = list(title = "# of Flights"),
-             margin = list(b = 130),
+      layout(font = list(text=30), xaxis = list(title = "Weekday", categoryorder = "array", categoryarray = popularCarriers$CARRIER, titlefont=list(size=30), tickfont=list(size=20)),
+             yaxis = list(title = "# of Flights", titlefont=list(size=30), tickfont=list(size=20)),
+             margin = list(l =100, t =100, b = 130),
              barmode = 'group')
   })
   
@@ -1391,9 +1388,9 @@ server <- function(input, output) {
                 text = ~paste('</br>', hourlyArrivals$Count, ' Arrivals </br>'),
                 marker = list(color = '#ff7f0e')) %>%
       
-      layout(xaxis = list(title = "Time Period", tickangle = -45, categoryorder = "array", categoryarray = chosen$Hour),
-             yaxis = list(title = "# of Flights"),
-             margin = list(b = 100),
+      layout(font = list(size=30), xaxis = list(title = "Time Period", categoryorder = "array", categoryarray = chosen$Hour, titlefont=list(size=30), tickfont=list(size=20)),
+             yaxis = list(title = "# of Flights", titlefont=list(size=30), tickfont=list(size=20)),
+             margin = list(l = 100, t =100, b = 100),
              barmode = 'group')
   })
   
@@ -1409,8 +1406,8 @@ server <- function(input, output) {
             text = ~paste('</br>', Weather, ' Delays </br>', Percentage, '% of Flights</br>'), 
             marker=list(color=~totalselectedDataPercentage$Percentage, showscale=TRUE)) %>%
       
-      layout(xaxis = list(title = "Time Period", tickangle = -45,categoryorder = "array",categoryarray = timeFrame$time),yaxis = list(title = "# of Flights"),
-             margin = list(b = 100), barmode = 'group')
+      layout(font = list(size=30), xaxis = list(title = "Time Period",categoryorder = "array",categoryarray = timeFrame$time, titlefont=list(size=30), tickfont=list(size=20)),yaxis = list(title = "# of Flights", titlefont=list(size=30), tickfont=list(size=20)),
+             margin = list(l= 100, t = 100, b = 100), barmode = 'group')
   })
   
   # This is for 'B' part of project. User is top carriers total dep/arr in ohare and midway FOR YEAR
@@ -1525,8 +1522,8 @@ server <- function(input, output) {
       
       plot_ly(df, x = ~df$"Airport Name", y = ~df$"Departures", type = 'bar',name = 'Departures', text = paste("Total airport flights:" ,  (df$"Total Flights"))) %>%
         add_trace(y =  ~df$"Arrivals", name = 'Arrivals') %>%
-        layout(xaxis = list(categoryorder = "array",categoryarray = df$"Airport Name", title = "Airport Name", tickangle = -45),
-               yaxis = list(title = "Airport Flights",range=c(0,2000)),
+        layout(font = list(size=30), xaxis = list(categoryorder = "array",categoryarray = df$"Airport Name", title = "Airport Name", tickangle = -45, titlefont=list(size=30), tickfont=list(size=20)),
+               yaxis = list(title = "Airport Flights",range=c(0,2000), titlefont=list(size=30), tickfont=list(size=20)),
                barmode = 'stack',
                margin = graphMargins
         )
@@ -1627,6 +1624,15 @@ server <- function(input, output) {
              margin = list(b = 100),
              barmode = 'group')
   })
+  
+  load("rdata/interesting.RData")
+  
+  getInterestingDay <- reactive({
+    name <- output$interestingDate 
+    result <- interesting %>% filter(name == interesting$Event )
+    result
+  })
+  
 
   output$monthText <- renderText({ mData() })
   
