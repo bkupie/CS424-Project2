@@ -1628,6 +1628,16 @@ server <- function(input, output) {
              margin = list(b = 100),
              barmode = 'group')
   })
+  
+  load("rdata/interesting.RData")
+  
+  getInterestingDay <- reactive({
+  
+    output$interestingDate 
+    
+    
+  })
+  
 
   output$monthText <- renderText({ mData() })
   
