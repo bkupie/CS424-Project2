@@ -1058,11 +1058,8 @@ server <- function(input, output) {
   
   # set up the margins for graphs
   graphMargins <- list(
-    l = 50,
-    r = 200,
-    b = 220,
-    t = 10,
-    pad = 2
+    l = 100,
+    b= 300
   )
   
   heatMargins <- list(
@@ -1514,8 +1511,8 @@ server <- function(input, output) {
       
       plot_ly(df, x = ~df$"Airport Name", y = ~df$"Departures", type = 'bar',name = 'Departures', text = paste("Total airport flights:" ,  (df$"Total Flights"))) %>%
         add_trace(y =  ~df$"Arrivals", name = 'Arrivals') %>%
-        layout(xaxis = list(categoryorder = "array",categoryarray = df$"Airport Name", title = "Airport Name", tickangle = -45),
-               yaxis = list(title = "Airport Flights",range=c(0,2000)),
+        layout(font = list(size=30), xaxis = list(categoryorder = "array",categoryarray = df$"Airport Name", title = "Airport Name", tickangle = -45, titlefont=list(size=30), tickfont=list(size=20)),
+               yaxis = list(title = "Airport Flights",range=c(0,2000), titlefont=list(size=30), tickfont=list(size=20)),
                barmode = 'stack',
                margin = graphMargins
         )
