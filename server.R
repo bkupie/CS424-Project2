@@ -132,8 +132,6 @@ server <- function(input, output) {
       chosen <- chosenDate()
       selectedTime <- ILData2017
       selectedTime <- subset(selectedTime, FL_DATE == chosenDateDelays())
-      
-      
     }  
     selectedTime
   })
@@ -1727,7 +1725,7 @@ server <- function(input, output) {
   },
   class = 'cell-border stripe',
   rownames = FALSE,
-  options = list(searching = FALSE, pageLength = 15,dom = 't', lengthChange = FALSE)
+  options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE)
   )
   )
   
@@ -1738,7 +1736,7 @@ server <- function(input, output) {
   },
   class = 'cell-border stripe',
   rownames = FALSE,
-  options = list(searching = FALSE, pageLength = 15, dom = 't',lengthChange = FALSE)
+  options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE)
   )
   )
 }
