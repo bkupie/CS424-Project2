@@ -247,9 +247,31 @@ ui <- dashboardPage(
                 )
               )
       ),
-      tabItem(tabName = "int-tab"
-              
-              ),
+      tabItem(tabName = "int-days",
+              box(selectInput("", "Interesting days:", choices = as.character(interesting$Event)),
+                  tabBox(
+                    title = "Hourly Delays",
+                    width = 12,
+                    id = "tabset3", height = "1000px",
+                    tabPanel("O'Hare and Midway",
+                             radioGroupButtons(
+                               inputId = "delayButtons2", label = "Types of Delay :",
+                               choices = c("Carrier", "Weather", "National Air System", "Security", "Late Aircraft"),
+                               justified = TRUE, status = "primary",
+                               checkIcon = list(yes = icon("ok", lib = "glyphicon"), no = icon("remove", lib = "glyphicon"))
+                             ),
+                             
+                             box(status = "primary", solidHeader = TRUE, width = 6,
+                                 div(plotlyOutput("delayGraph2", height = 900))
+                             )
+                             ,
+                             box(status = "primary", solidHeader = TRUE, width = 6,
+                                div(DT::dataTableOutput("totalselectedDataPercentageTable2", height= 900))
+                             )
+                  
+                  ))
+                  ,width = 12
+              )),
       tabItem(tabName = "info",
               h1("Aeroplane Visualization"),
               h2("Authors: Vijayraj Mahida, Bartosz Kupiec, and Isabel Lindmae"),
