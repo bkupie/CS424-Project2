@@ -1168,7 +1168,6 @@ server <- function(input, output) {
     userInput <- input$delayButtons
     monthChoice <- correctTitleDelay()
     
-    
     #newTitle <- userInput + " Delays in Month"
     
     plot_ly(data =  totalselectedDataPercentage, x = ~timeFrame$time, y = ~get(input$delayButtons), 
@@ -1186,12 +1185,12 @@ server <- function(input, output) {
     userInput <- input$delayButtons3
     monthChoice <- correctTitleDelay()
 
-        plot_ly(data =  totalselectedDataPercentage, x = ~timeFrame$time, y = ~get(input$delayButtons3), 
-            type = "bar", showlegend=TRUE, hoverinfo = 'text', 
-            text = ~paste('</br>', get(input$delayButtons3), ' Delays </br>', Percentage, '% of Flights</br>'), 
-            marker=list(color=~totalselectedDataPercentage$Percentage, showscale=TRUE)) %>%
+    plot_ly(data =  totalselectedDataPercentage, x = ~timeFrame$time, y = ~get(input$delayButtons3), 
+        type = "bar", showlegend=TRUE, hoverinfo = 'text', 
+        text = ~paste('</br>', get(input$delayButtons3), ' Delays </br>', Percentage, '% of Flights</br>'), 
+        marker=list(color=~totalselectedDataPercentage$Percentage, showscale=TRUE)) %>%
       
-      layout(title = paste("Hourly", userInput, "Delays in", monthChoice, sep=" "), xaxis = list(title = "Time Period", tickangle = -45,categoryorder = "array",categoryarray = timeFrame$time),yaxis = list(title = "# of Flights"),
+    layout(title = paste("Hourly", userInput, "Delays in", monthChoice, sep=" "), xaxis = list(title = "Time Period", tickangle = -45,categoryorder = "array",categoryarray = timeFrame$time),yaxis = list(title = "# of Flights"),
              margin = list(b = 100), barmode = 'group')
   })
   
@@ -1688,12 +1687,13 @@ server <- function(input, output) {
   )
   
   # associated data table for user is shown 12 months of data.
-  output$allMonthsTopCarriersTable <- DT::renderDataTable(
-    DT::datatable({
-      allPopularCarriers
-    },
-    options = list(searching = FALSE, pageLength = 5, lengthChange = FALSE)
-    )
+  output$allMonthsTopCarriersTable <- renderDataTable(allPopularCarriers, extensions = 'Scroller',
+    rownames = FALSE, options = list(
+    deferRender = TRUE,
+    scrollY = 200,
+    scroller = TRUE,
+    bFilter=0), 
+    colnames = c('TOTALS_FLIGHTS' = 2)
   )
   
   # obtained from the following example: https://plot.ly/r/range-slider/
@@ -1704,7 +1704,7 @@ server <- function(input, output) {
       scrollY = 200,
       scroller = TRUE,
       bFilter=0
-    ), colnames = c('TOTAL_FLIGHTS' = 3)
+    ), colnames = c('TOTAL_FLIGHTS' = 2)
   )
   
   # table of total departure and arrival PER weekday in ohare and midway
