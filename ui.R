@@ -214,10 +214,10 @@ ui <- dashboardPage(
                 box(title = "Month View - Total Departures/Arrivals per Weekday", solidHeader = TRUE, status = "primary", width = 12,
                   tabBox(
                     title = textOutput('mWeekdayText', inline = TRUE),
-                    id = "weekdayTab", height = "100%", width = "100%",
-                    tabPanel("Common Scale", plotlyOutput("weekdayGraph") %>% withSpinner(color="#0dc5c1")),
-                    tabPanel("Midway", plotlyOutput("weekdayGraphMIDWAY") %>% withSpinner(color="#0dc5c1")),
-                    tabPanel("Ohare", plotlyOutput("weekdayGraphOHARE") %>% withSpinner(color="#0dc5c1")),
+                    id = "weekdayTab", height = "700px", width = "100%",
+                    tabPanel("Common Scale", plotlyOutput("weekdayGraph", height = 650) %>% withSpinner(color="#0dc5c1")),
+                    tabPanel("Midway", plotlyOutput("weekdayGraphMIDWAY", height = 650) %>% withSpinner(color="#0dc5c1")),
+                    tabPanel("Ohare", plotlyOutput("weekdayGraphOHARE", height = 650) %>% withSpinner(color="#0dc5c1")),
                     tabPanel("Table", DT::dataTableOutput("weekdayTable"))
                   )
                 )
@@ -225,15 +225,16 @@ ui <- dashboardPage(
               # User selects WEEKDAY (i.e. Sunday, Monday, etc.)
               fluidRow(
                 box(title = "Departures/Arrivals per Selected Weekday", solidHeader = TRUE, status = "primary", width = 12,
+                    height = "700px",
                     selectInput("weekday-select", label = "Day of Week", list("Monday" = 1, "Tuesday" = 2, "Wednesday" = 3, "Thursday" = 4, "Friday" = 5, "Saturday" = 6, "Sunday" = 7), selected = 7),
                     tabBox(
                       title = textOutput('weekdayText', inline = TRUE),
-                      height = "100%", width = "100%",
-                      tabPanel("Graph", plotlyOutput("specificWeekdayYearPlot") %>% withSpinner(color="#0dc5c1"))
+                       width = "100%",
+                      tabPanel("Graph", plotlyOutput("specificWeekdayYearPlot", height = 650) %>% withSpinner(color="#0dc5c1"))
                     ),
                     tabBox(
                       title = textOutput('weekdayText2', inline = TRUE),
-                      height = "100%", width = "100%",
+                      height = "700px", width = "100%",
                       tabPanel("Graph", 
                                radioGroupButtons(
                                  inputId = "delayButtons2", label = "Types of Delay :",
@@ -241,7 +242,7 @@ ui <- dashboardPage(
                                  justified = TRUE, status = "primary",
                                  checkIcon = list(yes = icon("ok", lib = "glyphicon"), no = icon("remove", lib = "glyphicon"))
                                ),
-                               plotlyOutput("specificWeekdayDelayPlot") %>% withSpinner(color="#0dc5c1"))
+                               plotlyOutput("specificWeekdayDelayPlot", height = 650) %>% withSpinner(color="#0dc5c1"))
                     )
                     
                 )
