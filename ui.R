@@ -123,7 +123,7 @@ ui <- dashboardPage(
                                div(plotlyOutput("delayGraphMID", height = 900))
                            ),
                            box(status = "primary", solidHeader = TRUE, width = 6,
-                               div(DT::dataTableOutput("totalselectedDataPercentageTableMID", height= 900))
+                               div(DT::dataTableOutput("totalselectedDataPercentageTableMID", height= 900), style = "font-size: 200%")
                            )
                            )
                 ),
@@ -152,14 +152,14 @@ ui <- dashboardPage(
                   tabPanel("Midway", div(plotlyOutput("hourlyGraphMID", height = 900)))
                 ),
                 box(status = "primary", solidHeader = TRUE, width = 6,
-                    DT::dataTableOutput("totalselectedDataTable", height = 800)
+                    div(DT::dataTableOutput("totalselectedDataTable", height = 800), style = "font-size: 200%")
                 ),
                 tabBox(
                   title = "Yearly",
                   width = 6,
                   id = "tabset1",
-                  tabPanel("Arrivals", div(plotlyOutput("hourlyYearGraphArr", height = 800))),
-                  tabPanel("Departures", div(plotlyOutput("hourlyYearGraphDep", height = 800)))
+                  tabPanel("Arrivals", div(plotlyOutput("hourlyYearGraphArr", height = 878))),
+                  tabPanel("Departures", div(plotlyOutput("hourlyYearGraphDep", height = 878)))
                 )
               )
       ),
