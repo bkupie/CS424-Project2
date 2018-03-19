@@ -1032,16 +1032,16 @@ server <- function(input, output) {
     timeFrame <- getTimeFrame()
     monthChoice <- correctTitleHourly()
     
-    plot_ly(selectedData, x = ~timeFrame$time, y = ~selectedData$"Departures ORD", type = 'scatter', mode = 'lines', name = 'ORD Departures', 
-            hoverinfo = 'text', text = ~paste('</br>', selectedData$"Departures ORD", ' ORD Departures </br>')) %>%
+    plot_ly(selectedData, x = ~timeFrame$time, y = ~selectedData$"Departures ORD", type = 'scatter', mode = 'lines+markers', name = 'ORD Departures', 
+            hoverinfo = 'text', text = ~paste('</br>', selectedData$"Departures ORD", ' ORD Departures </br>'), line = list(color = 'rgb(31,120,180)')) %>%
       
-      add_trace(selectedData, x = ~timeFrame$time, y = ~selectedData$"Arrivals ORD", name = 'ORD Arrivals', type = 'scatter', mode = 'lines', hoverinfo = 'text',
-                text = ~paste('</br>', selectedData$"Arrivals ORD", ' ORD Arrivals </br>')) %>%
-      add_trace(selectedData, x = ~timeFrame$time, y = ~selectedData$"Arrivals MID", name = 'MID Arrivals', type = 'scatter', mode = 'lines', hoverinfo = 'text',
-                text = ~paste('</br>', selectedData$"Arrivals MID", ' MID Arrivals </br>')) %>%
+      add_trace(selectedData, x = ~timeFrame$time, y = ~selectedData$"Arrivals ORD", name = 'ORD Arrivals', type = 'scatter', mode = 'lines+markers', hoverinfo = 'text',
+                text = ~paste('</br>', selectedData$"Arrivals ORD", ' ORD Arrivals </br>'), line = list(color = 'rgb(166,206,227)')) %>%
+      add_trace(selectedData, x = ~timeFrame$time, y = ~selectedData$"Arrivals MID", name = 'MID Arrivals', type = 'scatter', mode = 'lines+markers', hoverinfo = 'text',
+                text = ~paste('</br>', selectedData$"Arrivals MID", ' MID Arrivals </br>'), line = list(color = 'rgb(178,223,138)')) %>%
       
-      add_trace(selectedData, x = ~timeFrame$time, y = ~selectedData$"Departures MID", name = 'MID Departures', type = 'scatter', mode = 'lines', hoverinfo = 'text',
-                text = ~paste('</br>', selectedData$"Departures MID", ' MID Departures </br>')) %>%
+      add_trace(selectedData, x = ~timeFrame$time, y = ~selectedData$"Departures MID", name = 'MID Departures', type = 'scatter', mode = 'lines+markers', hoverinfo = 'text',
+                text = ~paste('</br>', selectedData$"Departures MID", ' MID Departures </br>'), line = list(color = 'rgb(51,160,44)')) %>%
       
 
       layout(title=paste("Total Hourly flights",monthChoice, sep=" "), xaxis = list(title = "Time Period", tickangle = -45,categoryorder = "array",categoryarray = timeFrame$time),
@@ -1056,11 +1056,11 @@ server <- function(input, output) {
     timeFrame <- getTimeFrame()
     monthChoice <- correctTitleHourly()
     
-    plot_ly(selectedData, x = ~timeFrame$time, y = ~selectedData$"Departures ORD", type = 'scatter', mode = 'lines', name = 'ORD Departures', 
-            hoverinfo = 'text', text = ~paste('</br>', selectedData$"Departures ORD", ' ORD Departures </br>')) %>%
+    plot_ly(selectedData, x = ~timeFrame$time, y = ~selectedData$"Departures ORD", type = 'scatter', mode = 'lines+markers', name = 'ORD Departures', 
+            hoverinfo = 'text', text = ~paste('</br>', selectedData$"Departures ORD", ' ORD Departures </br>'), line = list(color = 'rgb(31,120,180)')) %>%
       
-      add_trace(selectedData, x = ~timeFrame$time, y = ~selectedData$"Arrivals ORD", name = 'ORD Arrivals', type = 'scatter', mode = 'lines', hoverinfo = 'text',
-                text = ~paste('</br>', selectedData$"Arrivals ORD", ' ORD Arrivals </br>')) %>%
+      add_trace(selectedData, x = ~timeFrame$time, y = ~selectedData$"Arrivals ORD", name = 'ORD Arrivals', type = 'scatter', mode = 'lines+markers', hoverinfo = 'text',
+                text = ~paste('</br>', selectedData$"Arrivals ORD", ' ORD Arrivals </br>'), line = list(color = 'rgb(166,206,227)')) %>%
   
       layout(title=paste("Total Hourly flights",monthChoice, sep=" "), xaxis = list(title = "Time Period", tickangle = -45,categoryorder = "array",categoryarray = timeFrame$time),
              yaxis = list(title = "# of Flights"),
@@ -1074,11 +1074,11 @@ server <- function(input, output) {
     timeFrame <- getTimeFrame()
     monthChoice <- correctTitleHourly()
     
-    plot_ly(selectedData, x = ~timeFrame$time, y = ~selectedData$"Departures MID", type = 'scatter', mode = 'lines', name = 'MID Departures', 
-            hoverinfo = 'text', text = ~paste('</br>', selectedData$"Departures MID", ' MID Departures </br>')) %>%
+    plot_ly(selectedData, x = ~timeFrame$time, y = ~selectedData$"Departures MID", type = 'scatter', mode = 'lines+markers', name = 'MID Departures', 
+            hoverinfo = 'text', text = ~paste('</br>', selectedData$"Departures MID", ' MID Departures </br>'), line = list(color = 'rgb(51,160,44)')) %>%
       
-      add_trace(selectedData, x = ~timeFrame$time, y = ~selectedData$"Arrivals MID", name = 'MID Arrivals', type = 'scatter', mode = 'lines', hoverinfo = 'text',
-                text = ~paste('</br>', selectedData$"Arrivals MID", ' MID Arrivals </br>')) %>%
+      add_trace(selectedData, x = ~timeFrame$time, y = ~selectedData$"Arrivals MID", name = 'MID Arrivals', type = 'scatter', mode = 'lines+markers', hoverinfo = 'text',
+                text = ~paste('</br>', selectedData$"Arrivals MID", ' MID Arrivals </br>'), line = list(color = 'rgb(178,223,138)')) %>%
       
       layout(title=paste("Total Hourly flights",monthChoice, sep=" "), xaxis = list(title = "Time Period", tickangle = -45,categoryorder = "array",categoryarray = timeFrame$time),
              yaxis = list(title = "# of Flights"),
@@ -1092,7 +1092,7 @@ server <- function(input, output) {
       plot_ly(x= data$Month,y= timeFrame$time, z = data$Arrivals, type = "heatmap",hoverinfo = 'text',
               text = ~paste('</br> Departures: ', data$Departures, '</br> Month: ', data$Month, '</br> Time: ', timeFrame$time ))%>%
         layout(xaxis = list(title = "Month", autotick = F, dtick = 1),
-               yaxis = list(categoryorder = "array",categoryarray = timeFrame$time))
+               yaxis = list(title = "Time", categoryorder = "array",categoryarray = timeFrame$time))
     })
   
   output$hourlyYearGraphDep <- renderPlotly({
@@ -1557,7 +1557,7 @@ server <- function(input, output) {
   output$totalselectedDataTable <- renderDataTable(tsData(), extensions = 'Scroller', 
     rownames = FALSE, options = list(
       deferRender = TRUE,
-      scrollY = 1000,
+      scrollY = 800,
       scroller = TRUE,
       bFilter=0
     )
