@@ -34,7 +34,7 @@ ui <- dashboardPage(
       menuItem("Weekly Total", icon = icon("calendar", lib = "font-awesome"), tabName = "weeklyTotal"),
       menuItem("Delays", icon = icon("hourglass", lib = "font-awesome"), tabName = "delays"),
       menuItem("Map", icon = icon("fa fa-map-o", lib = "font-awesome"), tabName = "map"),
-      menuItem("Intrrrsesting days", icon = icon("calendar", lib = "font-awesome"), tabName = "int-days"),
+      menuItem("Interesting days", icon = icon("calendar", lib = "font-awesome"), tabName = "int-days"),
       
       #get month
       selectInput("month-select", label = "Month", list("January" = 1, "February" = 2, "March" = 3, "April" = 4, "May" = 5, "June" = 6, "July" = 7, "August" = 8, "September" = 9, "October" = 10, "November" = 11, "December" = 12),
@@ -255,20 +255,15 @@ ui <- dashboardPage(
                     id = "tabset3", height = "1000px",
                     tabPanel("O'Hare and Midway",
                              radioGroupButtons(
-                               inputId = "delayButtons2", label = "Types of Delay :",
+                               inputId = "delayButtons3", label = "Types of Delay :",
                                choices = c("Carrier", "Weather", "National Air System", "Security", "Late Aircraft"),
                                justified = TRUE, status = "primary",
                                checkIcon = list(yes = icon("ok", lib = "glyphicon"), no = icon("remove", lib = "glyphicon"))
                              ),
                              
-                             box(status = "primary", solidHeader = TRUE, width = 6,
+                             box(status = "primary", solidHeader = TRUE, width = 12,
                                  div(plotlyOutput("delayGraph2", height = 900))
                              )
-                             ,
-                             box(status = "primary", solidHeader = TRUE, width = 6,
-                                div(DT::dataTableOutput("totalselectedDataPercentageTable2", height= 900))
-                             )
-                  
                   ))
                   ,width = 12
               )),
