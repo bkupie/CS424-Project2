@@ -1443,13 +1443,31 @@ server <- function(input, output) {
     )
   )
   
-  output$totalselectedDataPercentageTable <- renderDataTable(tsdpData(), extensions = 'Scroller', 
+  output$totalselectedDataPercentageTable <- renderDataTable(tsdpDataBoth(), extensions = 'Scroller', 
     rownames = FALSE, options = list(
       deferRender = TRUE,
-      scrollY = 650,
+      scrollY = 750,
       scroller = TRUE,
       bFilter=0
     )
+  )
+  
+  output$totalselectedDataPercentageTableMID <- renderDataTable(tsdpDataMID(), extensions = 'Scroller', 
+                                                             rownames = FALSE, options = list(
+                                                               deferRender = TRUE,
+                                                               scrollY = 650,
+                                                               scroller = TRUE,
+                                                               bFilter=0
+                                                             )
+  )
+  
+  output$totalselectedDataPercentageTableORD <- renderDataTable(tsdpDataORD(), extensions = 'Scroller', 
+                                                             rownames = FALSE, options = list(
+                                                               deferRender = TRUE,
+                                                               scrollY = 650,
+                                                               scroller = TRUE,
+                                                               bFilter=0
+                                                             )
   )
   
   # associated data table for user is shown 12 months of data.

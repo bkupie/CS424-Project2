@@ -90,14 +90,31 @@ ui <- dashboardPage(
                 tabBox(
                   title = "Hourly Delays",
                   width = 12,
-                  id = "tabset2", height = "1000px",
-                  tabPanel("O'Hare and Midway", div(plotlyOutput("delayGraph", height = 650))),
-                  tabPanel("O'Hare", div(plotlyOutput("delayGraphORD", height = 650))),
-                  tabPanel("Midway", div(plotlyOutput("delayGraphMID", height = 650)))
+                  id = "tabset3", height = "1000px",
+                  tabPanel("O'Hare and Midway",
+                           box(status = "primary", solidHeader = TRUE, width = 6,
+                               div(plotlyOutput("delayGraph", height = 900))
+                           ),
+                           box(status = "primary", solidHeader = TRUE, width = 6,
+                               div(DT::dataTableOutput("totalselectedDataPercentageTable", height= 900))
+                           )),
+                  tabPanel("O'Hare", 
+                           box(status = "primary", solidHeader = TRUE, width = 6,
+                               div(plotlyOutput("delayGraphORD", height = 900))
+                           ),
+                           box(status = "primary", solidHeader = TRUE, width = 6,
+                               div(DT::dataTableOutput("totalselectedDataPercentageTableORD", height= 900))
+                           )),
+                  tabPanel("Midway", 
+                           box(status = "primary", solidHeader = TRUE, width = 6,
+                               div(plotlyOutput("delayGraphMID", height = 900))
+                           ),
+                           box(status = "primary", solidHeader = TRUE, width = 6,
+                               div(DT::dataTableOutput("totalselectedDataPercentageTableMID", height= 900))
+                           )
+                           )
                 ),
-                box(status = "primary", solidHeader = TRUE, width = 12,
-                    div(DT::dataTableOutput("totalselectedDataPercentageTable", height= 650))
-                ),
+                
                 box(status = "warning", solidHeader = TRUE, width = 12,
                     div(plotlyOutput("yearlyDelaysGraph", height= 650))
                 )
