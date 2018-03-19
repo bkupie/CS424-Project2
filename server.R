@@ -71,6 +71,23 @@ server <- function(input, output) {
     selectedTime
   })
   
+  load("rdata/interesting.RData")
+  
+  getInterestingDay <- reactive({
+    name <- input$interestingDate 
+    result <- interesting %>% filter(name == interesting$Event )
+    print(result)
+    result
+  })
+  
+  pickCorrectDateInt <- reactive({
+      chosen <- getInterestingDay()
+      selectedTime <- ILData2017
+      selectedTime <- subset(selectedTime, FL_DATE == getInterestingDay())
+      selectedTime
+  })
+  
+  
   correctTitleHourly <- reactive({
     if(!input$timeChoice)
     {
@@ -286,6 +303,120 @@ server <- function(input, output) {
     
     totalselectedData
   })
+  
+  
+  # selectedData based on chosen Month
+  sData10 <- reactive({
+    #selectedData <- month_data[[chosenMonth()]]
+    
+    selectedData <- getInterestingDay()
+    selectedData <- selectedData %>% filter(ORIGIN_AIRPORT_ID == "Chicago O'Hare International" ||ORIGIN_AIRPORT_ID == "Chicago Midway International" || DEST_AIRPORT_ID == "Chicago O'Hare International" ||DEST_AIRPORT_ID == "Chicago Midway International")
+    
+    #create new column that converts minutes to hour:minute
+    selectedData$DEP_TIMEaggregated <- as.POSIXct(sprintf("%04.0f", selectedData$DEP_TIME), format='%H%M')
+    selectedData$DEP_TIMEaggregated <- cut(selectedData$DEP_TIMEaggregated, breaks = "hour")
+    selectedData$DEP_TIMEaggregated <- substr(selectedData$DEP_TIMEaggregated, 12, 16)
+    
+    selectedData$ARR_TIMEaggregated <- as.POSIXct(sprintf("%04.0f", selectedData$ARR_TIME), format='%H%M')
+    selectedData$ARR_TIMEaggregated <- cut(selectedData$ARR_TIMEaggregated, breaks = "hour")
+    selectedData$ARR_TIMEaggregated <- substr(selectedData$ARR_TIMEaggregated, 12, 16)
+    
+    #add int boolean for if delay exists or not
+    selectedData$delayTrue<-ifelse(selectedData$ARR_DELAY_NEW>0 | selectedData$DEP_DELAY_NEW > 0,1,0)
+    selectedData$WEATHER_DELAY<-ifelse(selectedData$WEATHER_DELAY>0,1,0)
+    selectedData$CARRIER_DELAY<-ifelse(selectedData$CARRIER_DELAY>0,1,0)
+    selectedData$NAS_DELAY<-ifelse(selectedData$NAS_DELAY>0,1,0)
+    selectedData$SECURITY_DELAY<-ifelse(selectedData$SECURITY_DELAY>0,1,0)
+    selectedData$LATE_AIRCRAFT_DELAY<-ifelse(selectedData$LATE_AIRCRAFT_DELAY>0,1,0)
+    
+    selectedData
+  })
+  
+  sDataDelays <- reactive({
+    #selectedData <- month_data[[chosenMonth()]]
+    
+    selectedData <- pickCorrectDateDelays()
+    selectedData <- selectedData %>% filter(ORIGIN_AIRPORT_ID == "Chicago O'Hare International" ||ORIGIN_AIRPORT_ID == "Chicago Midway International" || DEST_AIRPORT_ID == "Chicago O'Hare International" ||DEST_AIRPORT_ID == "Chicago Midway International")
+    
+    #create new column that converts minutes to hour:minute
+    selectedData$DEP_TIMEaggregated <- as.POSIXct(sprintf("%04.0f", selectedData$DEP_TIME), format='%H%M')
+    selectedData$DEP_TIMEaggregated <- cut(selectedData$DEP_TIMEaggregated, breaks = "hour")
+    selectedData$DEP_TIMEaggregated <- substr(selectedData$DEP_TIMEaggregated, 12, 16)
+    
+    selectedData$ARR_TIMEaggregated <- as.POSIXct(sprintf("%04.0f", selectedData$ARR_TIME), format='%H%M')
+    selectedData$ARR_TIMEaggregated <- cut(selectedData$ARR_TIMEaggregated, breaks = "hour")
+    selectedData$ARR_TIMEaggregated <- substr(selectedData$ARR_TIMEaggregated, 12, 16)
+    
+    #add int boolean for if delay exists or not
+    selectedData$delayTrue<-ifelse(selectedData$ARR_DELAY_NEW>0 | selectedData$DEP_DELAY_NEW > 0,1,0)
+    selectedData$WEATHER_DELAY<-ifelse(selectedData$WEATHER_DELAY>0,1,0)
+    selectedData$CARRIER_DELAY<-ifelse(selectedData$CARRIER_DELAY>0,1,0)
+    selectedData$NAS_DELAY<-ifelse(selectedData$NAS_DELAY>0,1,0)
+    selectedData$SECURITY_DELAY<-ifelse(selectedData$SECURITY_DELAY>0,1,0)
+    selectedData$LATE_AIRCRAFT_DELAY<-ifelse(selectedData$LATE_AIRCRAFT_DELAY>0,1,0)
+    
+    selectedData
+  })
+  # totalSelectedData based on chosen Month
+  tsData10<- reactive({
+    selectedData <- sData10()
+    
+    selectedDataMIDori <- selectedData %>% filter(ORIGIN_AIRPORT_ID == "Chicago Midway International")
+    selectedDataMIDdest <- selectedData %>% filter(DEST_AIRPORT_ID == "Chicago Midway International")
+    selectedDataORD <- selectedData %>% filter(ORIGIN_AIRPORT_ID == "Chicago O'Hare International" ||DEST_AIRPORT_ID == "Chicago O'Hare International")
+    #selectedDataMID <- sDataMID()
+    
+    selectedDataMID <- merge(selectedDataMIDdest, selectedDataMIDori, all = TRUE)
+    
+    #count based on hour
+    hourlyDeparturesORD <- aggregate(cbind(count = CARRIER) ~ DEP_TIMEaggregated,
+                                     data = selectedDataORD,
+                                     FUN = function(x){NROW(x)})
+    
+    hourlyArrivalsORD <- aggregate(cbind(count = CARRIER) ~ ARR_TIMEaggregated,
+                                   data = selectedDataORD,
+                                   FUN = function(x){NROW(x)})
+    
+    hourlyDeparturesMID <- aggregate(cbind(count = CARRIER) ~ DEP_TIMEaggregated,
+                                     data = selectedDataMID,
+                                     FUN = function(x){NROW(x)})
+    
+    hourlyArrivalsMID <- aggregate(cbind(count = CARRIER) ~ ARR_TIMEaggregated,
+                                   data = selectedDataMID,
+                                   FUN = function(x){NROW(x)})
+    
+    
+    
+    
+    #add nicer names to columns
+    names(hourlyDeparturesORD) <- c("Hour", "Count")
+    names(hourlyArrivalsORD) <- c("Hour", "Count")
+    names(hourlyArrivalsMID) <- c("Hour", "Count")
+    names(hourlyDeparturesMID) <- c("Hour", "Count")
+    
+    #fill in any missing data
+    hourlyDeparturesMID <- merge(emptyHourData, hourlyDeparturesMID, all = TRUE)
+    hourlyArrivalsMID <- merge(emptyHourData, hourlyArrivalsMID, all = TRUE)
+    hourlyDeparturesORD <- merge(emptyHourData, hourlyDeparturesORD, all = TRUE)
+    hourlyArrivalsORD <- merge(emptyHourData, hourlyArrivalsORD, all = TRUE)
+    
+    # merge into total selectedData for both departure and arrival
+    totalselectedData <- merge(hourlyDeparturesORD,hourlyArrivalsORD, by="Hour")
+    names(totalselectedData) <- c("Hour", "Departures ORD", "Arrivals ORD")
+    totalselectedData <- merge(totalselectedData,hourlyArrivalsMID, by="Hour")
+    names(totalselectedData) <- c("Hour", "Departures ORD", "Arrivals ORD", "Arrivals MID")
+    totalselectedData <- merge(totalselectedData,hourlyDeparturesMID, by="Hour")
+    names(totalselectedData) <- c("Hour", "Departures ORD", "Arrivals ORD", "Arrivals MID", "Departures MID")
+    
+    totalselectedData[is.na(totalselectedData)] <- 0
+    
+    #give nicer column names
+    #names(totalselectedData) <- c("Hour", "Departures", "Arrivals")
+    
+    totalselectedData
+  })
+  
+  
   
   tsDataBoth <- reactive({
     selectedData <- sData()
@@ -1626,12 +1757,29 @@ server <- function(input, output) {
              barmode = 'group')
   })
   
-  load("rdata/interesting.RData")
   
-  getInterestingDay <- reactive({
-    name <- output$interestingDate 
-    result <- interesting %>% filter(name == interesting$Event )
-    result
+  
+  output$hourlyGraphInt <- renderPlotly({
+    selectedData <- tsData10()
+    timeFrame <- getTimeFrame()
+    monthChoice <- correctTitleHourly()
+    
+    plot_ly(selectedData, x = ~timeFrame$time, y = ~selectedData$"Departures ORD", type = 'scatter', mode = 'lines+markers', name = 'ORD Departures', 
+            hoverinfo = 'text', text = ~paste('</br>', selectedData$"Departures ORD", ' ORD Departures </br>'), line = list(color = 'rgb(31,120,180)')) %>%
+      
+      add_trace(selectedData, x = ~timeFrame$time, y = ~selectedData$"Arrivals ORD", name = 'ORD Arrivals', type = 'scatter', mode = 'lines+markers', hoverinfo = 'text',
+                text = ~paste('</br>', selectedData$"Arrivals ORD", ' ORD Arrivals </br>'), line = list(color = 'rgb(166,206,227)')) %>%
+      add_trace(selectedData, x = ~timeFrame$time, y = ~selectedData$"Arrivals MID", name = 'MID Arrivals', type = 'scatter', mode = 'lines+markers', hoverinfo = 'text',
+                text = ~paste('</br>', selectedData$"Arrivals MID", ' MID Arrivals </br>'), line = list(color = 'rgb(178,223,138)')) %>%
+      
+      add_trace(selectedData, x = ~timeFrame$time, y = ~selectedData$"Departures MID", name = 'MID Departures', type = 'scatter', mode = 'lines+markers', hoverinfo = 'text',
+                text = ~paste('</br>', selectedData$"Departures MID", ' MID Departures </br>'), line = list(color = 'rgb(51,160,44)')) %>%
+      
+      
+      layout(title=paste("Total Hourly flights",monthChoice, sep=" "), xaxis = list(title = "Time Period", tickangle = -45,categoryorder = "array",categoryarray = timeFrame$time),
+             yaxis = list(title = "# of Flights"),
+             margin = list(b = 100),
+             barmode = 'group')
   })
   
 

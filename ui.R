@@ -264,7 +264,8 @@ ui <- dashboardPage(
                              
                              box(status = "primary", solidHeader = TRUE, width = 12,
                                  div(plotlyOutput("delayGraph2", height = 900))
-                             )
+                             ),
+                             box("O'Hare and Midway", div(plotlyOutput("hourlyGraphInt", height = 900)))
                   ))
                   ,width = 12
               )),
