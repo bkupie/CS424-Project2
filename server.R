@@ -1531,11 +1531,10 @@ server <- function(input, output) {
   output$top15Airports12months <- renderPlotly({
     
     # create the graph now 
-    plot_ly(topForMonths, x = ~Month, y = topForMonths$Airport, z= ~topForMonths$Frequency,colors = colorRamp(c("white","blue","black")), type = "heatmap")%>%
+    plot_ly(topForMonths, x = ~Month, y = topForMonths$Airport, z= ~topForMonths$Frequency, type = "heatmap")%>%
       colorbar(title = "Departures+Arrivals per month") %>%
       layout(yaxis = list(categoryorder = "array",categoryarray = top15Airports$Airport), 
-             xaxis = list( dtick = 1), margin = heatMargins,
-             zaxis = list(type = "log"))
+             xaxis = list( dtick = 1), margin = heatMargins)
     
   })
   
