@@ -109,7 +109,8 @@ server <- function(input, output) {
     {
       chosen <- chosenDate()
       selectedTime <- ILData2017
-      selectedTime <- subset(selectedTime, FL_DATE == chosenDate())
+      selectedTime <- subset(selectedTime, FL_DATE == chosenDateDelays())
+      
       
     }  
     selectedTime
