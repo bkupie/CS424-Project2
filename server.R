@@ -1239,9 +1239,9 @@ server <- function(input, output) {
                 text = ~paste('</br>', popularCarriers$OHARE_ARRIVALS, 'Arrivals Ohare </br>'),
                 marker = list(color = '#6fb5e7')) %>%
       
-      layout(xaxis = list(title = "Carriers", tickangle = -45, categoryorder = "array", categoryarray = popularCarriers$CARRIER),
-             yaxis = list(title = "# of Flights"),
-             margin = list(b = 130),
+      layout(font = list(size=30), xaxis = list(title = "Carriers", tickangle = -45, categoryorder = "array", categoryarray = popularCarriers$CARRIER, titlefont=list(size=30), tickfont=list(size=20)),
+             yaxis = list(title = "# of Flights", titlefont=list(size=30), tickfont=list(size=20)),
+             margin = list(l = 100, t=100, b = 250),
              barmode = 'group')
   })
   
@@ -1256,9 +1256,9 @@ server <- function(input, output) {
                 text = ~paste('</br>', popularCarriers$MIDWAY_ARRIVALS, 'Arrivals Midway </br>'),
                 marker = list(color = '#ffad66')) %>%
       
-      layout(xaxis = list(title = "Carriers", tickangle = -45, categoryorder = "array", categoryarray = popularCarriers$CARRIER),
-             yaxis = list(title = "# of Flights"),
-             margin = list(b = 130),
+      layout(font=list(size=30), xaxis = list(title = "Carriers", tickangle = -45, categoryorder = "array", categoryarray = popularCarriers$CARRIER, titlefont=list(size=30), tickfont=list(size=20)),
+             yaxis = list(title = "# of Flights", titlefont=list(size=30), tickfont=list(size=20)),
+             margin = list(l = 100, t= 100, b = 250),
              barmode = 'group')
   })
   
@@ -1273,9 +1273,9 @@ server <- function(input, output) {
                 text = ~paste('</br>', popularCarriers$OHARE_ARRIVALS, 'Arrivals Ohare </br>'),
                 marker = list(color = '#0b9dfe')) %>%
       
-      layout(xaxis = list(title = "Carriers", tickangle = -45, categoryorder = "array", categoryarray = popularCarriers$CARRIER),
-             yaxis = list(title = "# of Flights"),
-             margin = list(b = 130),
+      layout(font=list(size=30), xaxis = list(title = "Carriers", tickangle = -45, categoryorder = "array", categoryarray = popularCarriers$CARRIER, titlefont=list(size=30), tickfont=list(size=20)),
+             yaxis = list(title = "# of Flights", titlefont=list(size=30), tickfont=list(size=20)),
+             margin = list(b = 250, l =100, t = 100),
              barmode = 'group')
   })
   
@@ -1420,9 +1420,9 @@ server <- function(input, output) {
                 text = ~paste('</br>', allPopularCarriers$OHARE_ARRIVALS, 'Arrivals Ohare </br>'),
                 marker = list(color = '#6fb5e7')) %>%
       
-      layout(xaxis = list(title = "Carriers", tickangle = -45, categoryorder = "array", categoryarray = allPopularCarriers$CARRIER),
-             yaxis = list(title = "# of Flights"),
-             margin = list(b = 130),
+      layout(font= list(size=30), xaxis = list(title = "Carriers", tickangle = -45, categoryorder = "array", categoryarray = allPopularCarriers$CARRIER, titlefont=list(size=30), tickfont=list(size=20)),
+             yaxis = list(title = "# of Flights", titlefont=list(size=30), tickfont=list(size=20)),
+             margin = list(t=100, l=100, b = 250),
              barmode = 'group')
   })
   

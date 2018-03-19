@@ -169,18 +169,18 @@ ui <- dashboardPage(
                   tabBox(
                     # The id lets us use input$monthText on the server to find the current tab
                     title = textOutput('monthText', inline = TRUE),
-                    id = "monthTopCarriers", height = "100%", width = "100%",
-                    tabPanel("Common Scale", div(plotlyOutput("popularGraph") %>% withSpinner(color="#0dc5c1"))),
-                    tabPanel("Midway", div(plotlyOutput("popularGraphMIDWAY") %>% withSpinner(color="#0dc5c1"))),
-                    tabPanel("O'Hare", div(plotlyOutput("popularGraphOHARE") %>% withSpinner(color="#0dc5c1"))),
+                    id = "monthTopCarriers", width = "100%", height = "900px",
+                    tabPanel("Common Scale", div(plotlyOutput("popularGraph", height = 800) %>% withSpinner(color="#0dc5c1"))),
+                    tabPanel("Midway", div(plotlyOutput("popularGraphMIDWAY", height = 800) %>% withSpinner(color="#0dc5c1"))),
+                    tabPanel("O'Hare", div(plotlyOutput("popularGraphOHARE", height = 800) %>% withSpinner(color="#0dc5c1"))),
                     tabPanel("Table", div(DT::dataTableOutput("topCarriersTable") %>% withSpinner(color="#0dc5c1")))
                   )
                 ),
                 box(title = "Year View - Top Airlines Total Departures/Arrivals", solidHeader = TRUE, status = "primary", width = 6,
                     tabBox(
                       title = "January - December 2017",
-                      id = "yearTopCarriers", height = "100%", width = "100%",
-                      tabPanel("Common Scale", div(plotlyOutput("allMonthsPopularGraph")  %>% withSpinner(color="#0dc5c1"))),
+                      id = "yearTopCarriers", height = "900px", width = "100%",
+                      tabPanel("Common Scale", div(plotlyOutput("allMonthsPopularGraph", height = 800)  %>% withSpinner(color="#0dc5c1"))),
                       tabPanel("Table", div(DT::dataTableOutput("allMonthsTopCarriersTable")  %>% withSpinner(color="#0dc5c1")))
                     )
                 )
@@ -193,14 +193,14 @@ ui <- dashboardPage(
                     dateInput("date-selectCarrier", label = "Select Date", format = "yyyy-mm-dd", value = "2017-01-01"),
                     tabBox(
                       title = textOutput('carrierText', inline = TRUE),
-                      id = "twentyFourTopCarriers", height = "100%", width = "100%",
-                      tabPanel("Graph", div(plotlyOutput("specificCarrier24Plot")  %>% withSpinner(color="#0dc5c1")))#,
+                      id = "twentyFourTopCarriers", height = "500px", width = "100%",
+                      tabPanel("Graph", div(plotlyOutput("specificCarrier24Plot", height = 400)  %>% withSpinner(color="#0dc5c1")))#,
                       #tabPanel("Table", div(DT::dataTableOutput("allMonthsTopCarriersTable")))
                     ),
                     tabBox(
                       title = textOutput('carrierText2', inline = TRUE),
-                      id = "yearChosenTopCarrier", height = "100%", width = "100%",
-                      tabPanel("Graph", div(plotlyOutput("specificCarrierYearPlot")  %>% withSpinner(color="#0dc5c1")))#,
+                      id = "yearChosenTopCarrier", height = "500px", width = "100%",
+                      tabPanel("Graph", div(plotlyOutput("specificCarrierYearPlot", height = 400)  %>% withSpinner(color="#0dc5c1")))#,
                       #tabPanel("Table", div(DT::dataTableOutput("allMonthsTopCarriersTable")))
                     )
                 )
