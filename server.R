@@ -479,7 +479,6 @@ server <- function(input, output) {
     
     if(!input$time){
       hourlyDepartures$Hour <- format(strptime(hourlyDepartures$Hour, format='%H:%M'), '%r')
-      print(hourlyDepartures)
     }
     
     hourlyDepartures
@@ -510,7 +509,6 @@ server <- function(input, output) {
     
     if(!input$time){
       hourlyArrivals$Hour <- format(strptime(hourlyArrivals$Hour, format='%H:%M'), '%r')
-      print(hourlyArrivals)
     }
     
     hourlyArrivals
@@ -639,7 +637,6 @@ server <- function(input, output) {
              margin = list(b = 100), barmode = 'group')
   })
   
-  
   # bar chart of top carriers total departure and arrival in ohare and midway FOR CHOSEN MONTH
   output$popularGraph <- renderPlotly({
     popularCarriers <- pcData()
@@ -766,8 +763,7 @@ server <- function(input, output) {
   # chart of dep/arr in ohare and midway FOR CHOSEN WEEKDAY ACROSS THE YEAR
   output$specificWeekdayYearPlot <- renderPlotly({
     selectedData <- sWeekday()
-    timeFrame <- getTimeFrame()
-    #BARTT
+    
     #count based on hour
     hourlyDepartures <- aggregate(cbind(count = CARRIER) ~ DEP_TIMEaggregated,
                                   data = selectedData,
@@ -781,15 +777,28 @@ server <- function(input, output) {
     names(hourlyDepartures) <- c("Hour", "Count")
     names(hourlyArrivals) <- c("Hour", "Count")
     
-    plot_ly(hourlyDepartures, x = ~timeFrame$time, y = ~hourlyDepartures$Count, type = 'scatter', mode = 'lines', name = 'Departures', 
+    totalALL <- rbind(hourlyDepartures, hourlyArrivals)
+    
+    totalALL$Hour <- totalALL$Hour[order(totalALL$Hour)]
+    
+    if(!input$time){
+      totalALL$Hour <- format(strptime(totalALL$Hour, format='%H:%M'), '%r')
+      hourlyDepartures$Hour <- format(strptime(hourlyDepartures$Hour, format='%H:%M'), '%r')
+      hourlyArrivals$Hour <- format(strptime(hourlyArrivals$Hour, format='%H:%M'), '%r')
+    }
+    
+    chosen <- NA
+    chosen$Hour <- unique(totalALL$Hour)
+    
+    plot_ly(hourlyDepartures, x = ~hourlyDepartures$Hour, y = ~hourlyDepartures$Count, type = 'scatter', mode = 'lines', name = 'Departures', 
             hoverinfo = 'text', text = ~paste('</br>', hourlyDepartures$Count, ' Departures </br>'), 
             marker = list(color = 'rgb(49,130,189)')) %>%
       
-      add_trace(x = ~timeFrame$time, y = ~hourlyArrivals$Count, name = 'Arrivals', type = 'scatter', mode = 'lines', hoverinfo = 'text',
+      add_trace(x = ~hourlyArrivals$Hour, y = ~hourlyArrivals$Count, name = 'Arrivals', type = 'scatter', mode = 'lines', hoverinfo = 'text',
                 text = ~paste('</br>', hourlyArrivals$Count, ' Arrivals </br>'),
                 marker = list(color = '#ff7f0e')) %>%
       
-      layout(xaxis = list(title = "Time Period", tickangle = -45,categoryorder = "array",categoryarray = timeFrame$time),
+      layout(xaxis = list(title = "Time Period", tickangle = -45, categoryorder = "array", categoryarray = chosen$Hour),
              yaxis = list(title = "# of Flights"),
              margin = list(b = 100),
              barmode = 'group')
