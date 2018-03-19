@@ -25,6 +25,9 @@ server <- function(input, output) {
   #load data for yearly arrivals and departures heatmap
   load("rdata/hourlyYearlyData.RData")
   
+  #load empty time data
+  load("rdata/emptyHourData.RData")
+  
   #create a list for the AM/PM time 
   time <- c("12:00 AM","1:00 AM","2:00 AM","3:00 AM","4:00 AM","5:00 AM","6:00 AM","7:00 AM","8:00 AM","9:00 AM","10:00 AM","11:00 AM",
             "12:00 PM","1:00 PM","2:00 PM","3:00 PM","4:00 PM","5:00 PM","6:00 PM","7:00 PM","8:00 PM","9:00 PM","10:00 PM","11:00 PM")
@@ -88,24 +91,57 @@ server <- function(input, output) {
   tsData <- reactive({
     selectedData <- sData()
     
-    #count based on hour
-    hourlyDepartures <- aggregate(cbind(count = CARRIER) ~ DEP_TIMEaggregated,
-                                  data = selectedData,
-                                  FUN = function(x){NROW(x)})
+    selectedDataMIDori <- selectedData %>% filter(ORIGIN_AIRPORT_ID == "Chicago Midway International")
+    selectedDataMIDdest <- selectedData %>% filter(DEST_AIRPORT_ID == "Chicago Midway International")
+    selectedDataORD <- selectedData %>% filter(ORIGIN_AIRPORT_ID == "Chicago O'Hare International" ||DEST_AIRPORT_ID == "Chicago O'Hare International")
+    #selectedDataMID <- sDataMID()
     
-    hourlyArrivals <- aggregate(cbind(count = CARRIER) ~ ARR_TIMEaggregated,
-                                data = selectedData,
-                                FUN = function(x){NROW(x)})
+    selectedDataMID <- merge(selectedDataMIDdest, selectedDataMIDori, all = TRUE)
+
+    #count based on hour
+    hourlyDeparturesORD <- aggregate(cbind(count = CARRIER) ~ DEP_TIMEaggregated,
+                                     data = selectedDataORD,
+                                     FUN = function(x){NROW(x)})
+    
+    hourlyArrivalsORD <- aggregate(cbind(count = CARRIER) ~ ARR_TIMEaggregated,
+                                   data = selectedDataORD,
+                                   FUN = function(x){NROW(x)})
+    
+    hourlyDeparturesMID <- aggregate(cbind(count = CARRIER) ~ DEP_TIMEaggregated,
+                                     data = selectedDataMID,
+                                     FUN = function(x){NROW(x)})
+    
+    hourlyArrivalsMID <- aggregate(cbind(count = CARRIER) ~ ARR_TIMEaggregated,
+                                   data = selectedDataMID,
+                                   FUN = function(x){NROW(x)})
+    
+    
+    
     
     #add nicer names to columns
-    names(hourlyDepartures) <- c("Hour", "Count")
-    names(hourlyArrivals) <- c("Hour", "Count")
+    names(hourlyDeparturesORD) <- c("Hour", "Count")
+    names(hourlyArrivalsORD) <- c("Hour", "Count")
+    names(hourlyArrivalsMID) <- c("Hour", "Count")
+    names(hourlyDeparturesMID) <- c("Hour", "Count")
+    
+    #fill in any missing data
+    hourlyDeparturesMID <- merge(emptyHourData, hourlyDeparturesMID, all = TRUE)
+    hourlyArrivalsMID <- merge(emptyHourData, hourlyArrivalsMID, all = TRUE)
+    hourlyDeparturesORD <- merge(emptyHourData, hourlyDeparturesORD, all = TRUE)
+    hourlyArrivalsORD <- merge(emptyHourData, hourlyArrivalsORD, all = TRUE)
     
     # merge into total selectedData for both departure and arrival
-    totalselectedData <- merge(hourlyDepartures,hourlyArrivals,by="Hour")
+    totalselectedData <- merge(hourlyDeparturesORD,hourlyArrivalsORD, by="Hour")
+    names(totalselectedData) <- c("Hour", "Departures ORD", "Arrivals ORD")
+    totalselectedData <- merge(totalselectedData,hourlyArrivalsMID, by="Hour")
+    names(totalselectedData) <- c("Hour", "Departures ORD", "Arrivals ORD", "Arrivals MID")
+    totalselectedData <- merge(totalselectedData,hourlyDeparturesMID, by="Hour")
+    names(totalselectedData) <- c("Hour", "Departures ORD", "Arrivals ORD", "Arrivals MID", "Departures MID")
+    
+    totalselectedData[is.na(totalselectedData)] <- 0
     
     #give nicer column names
-    names(totalselectedData) <- c("Hour", "Departures", "Arrivals")
+    #names(totalselectedData) <- c("Hour", "Departures", "Arrivals")
     
     totalselectedData
   })
@@ -588,30 +624,58 @@ server <- function(input, output) {
   
   # Graphs ==================================================================================================
   output$hourlyGraph <- renderPlotly({
-    selectedData <- sData()  
+    selectedData <- tsData()
+    
     timeFrame <- getTimeFrame()
     monthChoice <- chosenMonth()
     
-    #count based on hour
-    hourlyDepartures <- aggregate(cbind(count = CARRIER) ~ DEP_TIMEaggregated,
-                                  data = selectedData,
-                                  FUN = function(x){NROW(x)})
-    
-    hourlyArrivals <- aggregate(cbind(count = CARRIER) ~ ARR_TIMEaggregated,
-                                data = selectedData,
-                                FUN = function(x){NROW(x)})
-    
-    #add nicer names to columns
-    names(hourlyDepartures) <- c("Hour", "Count")
-    names(hourlyArrivals) <- c("Hour", "Count")
-    
-    plot_ly(hourlyDepartures, x = ~timeFrame$time, y = ~hourlyDepartures$Count, type = 'scatter', mode = 'lines', name = 'Departures', 
-            hoverinfo = 'text', text = ~paste('</br>', hourlyDepartures$Count, ' Departures </br>'), 
-            marker = list(color = 'rgb(49,130,189)')) %>%
+    plot_ly(selectedData, x = ~timeFrame$time, y = ~selectedData$"Departures ORD", type = 'scatter', mode = 'lines', name = 'ORD Departures', 
+            hoverinfo = 'text', text = ~paste('</br>', hourlyDeparturesORD$Count, ' ORD Departures </br>')) %>%
       
-      add_trace(x = ~timeFrame$time, y = ~hourlyArrivals$Count, name = 'Arrivals', type = 'scatter', mode = 'lines', hoverinfo = 'text',
-                text = ~paste('</br>', hourlyArrivals$Count, ' Arrivals </br>'),
-                marker = list(color = '#ff7f0e')) %>%
+      add_trace(selectedData, x = ~timeFrame$time, y = ~selectedData$"Arrivals ORD", name = 'ORD Arrivals', type = 'scatter', mode = 'lines', hoverinfo = 'text',
+                text = ~paste('</br>', hourlyArrivalsORD$Count, ' ORD Arrivals </br>')) %>%
+      
+      add_trace(selectedData, x = ~timeFrame$time, y = ~selectedData$"Arrivals MID", name = 'MID Arrivals', type = 'scatter', mode = 'lines', hoverinfo = 'text',
+                text = ~paste('</br>', hourlyArrivalsMID$Count, ' MID Arrivals </br>')) %>%
+      
+      add_trace(selectedData, x = ~timeFrame$time, y = ~selectedData$"Departures MID", name = 'MID Departures', type = 'scatter', mode = 'lines', hoverinfo = 'text',
+                text = ~paste('</br>', hourlyDeparturesMID$Count, ' MID Departures </br>')) %>%
+      
+      layout(title=paste("Total Hourly flights",month.abb[monthChoice],"2017", sep=" "), xaxis = list(title = "Time Period", tickangle = -45,categoryorder = "array",categoryarray = timeFrame$time),
+             yaxis = list(title = "# of Flights"),
+             margin = list(b = 100),
+             barmode = 'group')
+  })
+  
+  output$hourlyGraphORD <- renderPlotly({
+    selectedData <- tsData()
+    
+    timeFrame <- getTimeFrame()
+    monthChoice <- chosenMonth()
+    
+    plot_ly(selectedData, x = ~timeFrame$time, y = ~selectedData$"Departures ORD", type = 'scatter', mode = 'lines', name = 'ORD Departures', 
+            hoverinfo = 'text', text = ~paste('</br>', selectedData$"Departures ORD", ' ORD Departures </br>')) %>%
+      
+      add_trace(selectedData, x = ~timeFrame$time, y = ~selectedData$"Arrivals ORD", name = 'ORD Arrivals', type = 'scatter', mode = 'lines', hoverinfo = 'text',
+                text = ~paste('</br>', selectedData$"Arrivals ORD", ' ORD Arrivals </br>')) %>%
+  
+      layout(title=paste("Total Hourly flights",month.abb[monthChoice],"2017", sep=" "), xaxis = list(title = "Time Period", tickangle = -45,categoryorder = "array",categoryarray = timeFrame$time),
+             yaxis = list(title = "# of Flights"),
+             margin = list(b = 100),
+             barmode = 'group')
+  })
+  
+  output$hourlyGraphMID <- renderPlotly({
+    selectedData <- tsData()
+    
+    timeFrame <- getTimeFrame()
+    monthChoice <- chosenMonth()
+    
+    plot_ly(selectedData, x = ~timeFrame$time, y = ~selectedData$"Departures MID", type = 'scatter', mode = 'lines', name = 'MID Departures', 
+            hoverinfo = 'text', text = ~paste('</br>', selectedData$"Departures MID", ' MID Departures </br>')) %>%
+      
+      add_trace(selectedData, x = ~timeFrame$time, y = ~selectedData$"Arrivals MID", name = 'MID Arrivals', type = 'scatter', mode = 'lines', hoverinfo = 'text',
+                text = ~paste('</br>', selectedData$"Arrivals MID", ' MID Arrivals </br>')) %>%
       
       layout(title=paste("Total Hourly flights",month.abb[monthChoice],"2017", sep=" "), xaxis = list(title = "Time Period", tickangle = -45,categoryorder = "array",categoryarray = timeFrame$time),
              yaxis = list(title = "# of Flights"),

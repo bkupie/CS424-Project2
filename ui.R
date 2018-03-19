@@ -104,8 +104,13 @@ ui <- dashboardPage(
       
       tabItem(tabName = "hourlytotal",
               fluidRow(
-                box(status = "warning", solidHeader = TRUE, width = 12, 
-                    div(plotlyOutput("hourlyGraph", height = 1000))
+                tabBox(
+                  title = "Yearly",
+                  width = 12,
+                  id = "tabset2", height = "1000px",
+                  tabPanel("O'Hare and Midway", div(plotlyOutput("hourlyGraph", height = 1000))),
+                  tabPanel("O'Hare", div(plotlyOutput("hourlyGraphORD", height = 1000))),
+                  tabPanel("Midway", div(plotlyOutput("hourlyGraphMID", height = 1000)))
                 ),
                 box(status = "primary", solidHeader = TRUE, width = 6, height = NULL,
                     DT::dataTableOutput("totalselectedDataTable", height = 1000)
