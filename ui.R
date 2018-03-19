@@ -20,6 +20,8 @@ library(shinycssloaders)
 # load any processed data here
 load("rdata/allPopularCarriers.RData")
 load("rdata/top50Airports.RData")
+load("rdata/interesting.RData")
+
 # start up the gui
 ui <- dashboardPage(
   #set title and disable sidebar
@@ -32,6 +34,8 @@ ui <- dashboardPage(
       menuItem("Weekly Total", icon = icon("calendar", lib = "font-awesome"), tabName = "weeklyTotal"),
       menuItem("Delays", icon = icon("hourglass", lib = "font-awesome"), tabName = "delays"),
       menuItem("Map", icon = icon("fa fa-map-o", lib = "font-awesome"), tabName = "map"),
+      menuItem("Intrrrsesting days", icon = icon("calendar", lib = "font-awesome"), tabName = "int-days"),
+      
       #get month
       selectInput("month-select", label = "Month", list("January" = 1, "February" = 2, "March" = 3, "April" = 4, "May" = 5, "June" = 6, "July" = 7, "August" = 8, "September" = 9, "October" = 10, "November" = 11, "December" = 12),
                   selected = 1),
@@ -61,11 +65,11 @@ ui <- dashboardPage(
                   div(plotlyOutput("top15Chart2") %>% withSpinner(color="#0dc5c1"))
               )),
               fluidRow(
-                selectInput("airport-top50-dropdown", "Destination Airport:", choices = as.character(top50Airports$Airport),selected = "Chicago O'Hare International"),
+                box(selectInput("airport-top50-dropdown", "Destination Airport:", choices = as.character(top50Airports$Airport),selected = "Chicago O'Hare International"),
                 box(title = "Flights from/to selected airport per hour", solidHeader = TRUE, width = 6,
                     plotlyOutput("top50") %>% withSpinner(color="#0dc5c1")),
                 box(title = "Flights from/to selected airport per month", solidHeader = TRUE, width = 6,
-                    plotlyOutput("top50year") %>% withSpinner(color="#0dc5c1"))
+                    plotlyOutput("top50year") %>% withSpinner(color="#0dc5c1")),width = 12)
               ),
               fluidRow(
                 box(title = "Top airports for 12 months", solidHeader = TRUE, width = 12,
@@ -77,7 +81,7 @@ ui <- dashboardPage(
       tabItem(tabName = "map",
               tags$style(type = "text/css", "#FLightMap {height: calc(100vh - 80px) !important;}"),
               fluidRow(
-                materialSwitch(inputId = "exclude", label = "Exclude Illinois data", status = "primary", right = TRUE, value = FALSE),
+                materialSwitch(inputId = "exclude", label = "Exclude Illinois data", status = "primary",inline = TRUE, right = TRUE, value = FALSE),
                 box(title = "", solidHeader = TRUE, height = 400,width = 400,
                     plotlyOutput("FLightMap") %>% withSpinner(color="#0dc5c1")
               ))),
@@ -127,9 +131,7 @@ ui <- dashboardPage(
                 box(status = "warning", solidHeader = TRUE, width = 12,
                     div(plotlyOutput("yearlyDelaysGraph", height= 650))
                 )
-                
-                
-                
+            
               )
       ),
       
@@ -245,6 +247,9 @@ ui <- dashboardPage(
                 )
               )
       ),
+      tabItem(tabName = "int-tab"
+              
+              ),
       tabItem(tabName = "info",
               h1("Aeroplane Visualization"),
               h2("Authors: Vijayraj Mahida, Bartosz Kupiec, and Isabel Lindmae"),
