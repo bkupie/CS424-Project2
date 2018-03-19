@@ -47,35 +47,38 @@ ui <- dashboardPage(
     
     tabItems(
       tabItem(tabName = "TopAirport",
-              fluidRow( box(title = "Flights from/to Chicago O'Hare International", solidHeader = TRUE, status = "primary", width = 6,
+              fluidRow( box(title = "Amount of flights from/to Chicago O'Hare International in a month", solidHeader = TRUE, status = "primary", width = 6,
                   dataTableOutput("top15Table1") %>% withSpinner(color="#0dc5c1")
               ),
-              box(title = "Flights from/to Chicago Midway International", solidHeader = TRUE, status = "primary", width = 6,
+              box(title = "Amount of flights from/to Chicago Midway International in a month", solidHeader = TRUE, status = "primary", width = 6,
                   dataTableOutput("top15Table2") %>% withSpinner(color="#0dc5c1")
               )),
               fluidRow(
-              box(title = "Flights from/to Chicago O'Hare International", solidHeader = TRUE, width = 6,
+              box(title = "Amount of flights from/to Chicago O'Hare International in a month", solidHeader = TRUE, width = 6,
                   div(plotlyOutput("top15Chart1") %>% withSpinner(color="#0dc5c1"))
               ),
-              box(title = "Flights from/to Chicago Midway International", solidHeader = TRUE, width = 6,
+              box(title = "Amount of flights from/to Chicago Midway International in a month", solidHeader = TRUE, width = 6,
                   div(plotlyOutput("top15Chart2") %>% withSpinner(color="#0dc5c1"))
               )),
               fluidRow(
-                
+                selectInput("airport-top50-dropdown", "Destination Airport:", choices = as.character(top50Airports$Airport),selected = "Chicago O'Hare International"),
+                box(title = "Flights from/to selected airport per hour", solidHeader = TRUE, width = 6,
+                    plotlyOutput("top50") %>% withSpinner(color="#0dc5c1")),
+                box(title = "Flights from/to selected airport per month", solidHeader = TRUE, width = 6,
+                    plotlyOutput("top50year") %>% withSpinner(color="#0dc5c1"))
+              ),
+              fluidRow(
                 box(title = "Top airports for 12 months", solidHeader = TRUE, width = 12,
                     div(plotlyOutput("top15Airports12months") %>% withSpinner(color="#0dc5c1"))
-                )),
-              fluidRow(
-                selectInput("airport-top50-dropdown", "Destination Airport:", choices = as.character(top50Airports$Airport),selected = "Chicago O'Hare International"),
-                box(title = "Flights ssssss", solidHeader = TRUE, width = 6,
-                    div(plotlyOutput("top50") %>% withSpinner(color="#0dc5c1"))
-                ))
+                )
+             )
               
       ),
       tabItem(tabName = "map",
               tags$style(type = "text/css", "#FLightMap {height: calc(100vh - 80px) !important;}"),
               fluidRow(
-                box(title = "Heatmap", solidHeader = TRUE, height = 400,width = 400,
+                materialSwitch(inputId = "exclude", label = "Exclude Illinois data", status = "primary", right = TRUE, value = FALSE),
+                box(title = "", solidHeader = TRUE, height = 400,width = 400,
                     plotlyOutput("FLightMap") %>% withSpinner(color="#0dc5c1")
               ))),
       

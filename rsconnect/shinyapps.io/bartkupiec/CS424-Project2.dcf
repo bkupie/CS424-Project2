@@ -5,8 +5,8 @@ account: bartkupiec
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 292920
-bundleId: 1252320
+bundleId: 1276664
 url: https://bartkupiec.shinyapps.io/CS424-Project2/
-when: 1520207141.54366
+when: 1521479502.61397
 asMultiple: FALSE
 asStatic: FALSE
