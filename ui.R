@@ -87,6 +87,10 @@ ui <- dashboardPage(
                   justified = TRUE, status = "primary",
                   checkIcon = list(yes = icon("ok", lib = "glyphicon"), no = icon("remove", lib = "glyphicon"))
                 ),
+                materialSwitch(inputId = "timeChoiceDelays", label = "Month", status = "primary", right = TRUE, value = TRUE),
+                
+                dateInput("dateHourlyDelays", label = h3("Date input"), value = "2017-01-01"),
+                
                 tabBox(
                   title = "Hourly Delays",
                   width = 12,
@@ -126,6 +130,11 @@ ui <- dashboardPage(
       
       tabItem(tabName = "hourlytotal",
               fluidRow(
+                #change between 12/24 hours time formats
+                materialSwitch(inputId = "timeChoice", label = "Month", status = "primary", right = TRUE, value = TRUE),
+                dateInput("dateHourly", label = h3("Date input"), value = "2017-01-01"),
+                verbatimTextOutput("dateText"),
+                
                 tabBox(
                   width = 12,
                   id = "tabset2", height = "1000px",

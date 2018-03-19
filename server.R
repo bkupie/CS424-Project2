@@ -57,16 +57,105 @@ server <- function(input, output) {
     selectedTime
   })
   
+  pickCorrectDate <- reactive({
+    if(input$timeChoice)
+    {
+      selectedTime <- month_data[[chosenMonth()]]}
+    else if(!input$timeChoice)
+    {
+      chosen <- chosenDate()
+      selectedTime <- ILData2017
+      selectedTime <- subset(selectedTime, FL_DATE == chosenDate())
+
+    }  
+    selectedTime
+  })
+  
+  pickCorrectDateDelays <- reactive({
+    if(input$timeChoiceDelays)
+    {
+      selectedTime <- month_data[[chosenMonth()]]}
+    else if(!input$timeChoiceDelays)
+    {
+      chosen <- chosenDate()
+      selectedTime <- ILData2017
+      selectedTime <- subset(selectedTime, FL_DATE == chosenDate())
+      
+    }  
+    selectedTime
+  })
+  
    chosenMonth <- reactive({
     as.numeric(input$"month-select")
   })
+   
+   
+   chosenDate <- reactive({
+     as.character(input$"dateHourly")
+   })
+   
+   chosenDateDelays <- reactive({
+     as.character(input$"dateHourlyDelays")
+   })
   
   # selectedData based on chosen Month
   sData <- reactive({
-    selectedData <- month_data[[chosenMonth()]]
+    #selectedData <- month_data[[chosenMonth()]]
     
+    selectedData <- pickCorrectDate()
     selectedData <- selectedData %>% filter(ORIGIN_AIRPORT_ID == "Chicago O'Hare International" ||ORIGIN_AIRPORT_ID == "Chicago Midway International" || DEST_AIRPORT_ID == "Chicago O'Hare International" ||DEST_AIRPORT_ID == "Chicago Midway International")
 
+    #create new column that converts minutes to hour:minute
+    selectedData$DEP_TIMEaggregated <- as.POSIXct(sprintf("%04.0f", selectedData$DEP_TIME), format='%H%M')
+    selectedData$DEP_TIMEaggregated <- cut(selectedData$DEP_TIMEaggregated, breaks = "hour")
+    selectedData$DEP_TIMEaggregated <- substr(selectedData$DEP_TIMEaggregated, 12, 16)
+    
+    selectedData$ARR_TIMEaggregated <- as.POSIXct(sprintf("%04.0f", selectedData$ARR_TIME), format='%H%M')
+    selectedData$ARR_TIMEaggregated <- cut(selectedData$ARR_TIMEaggregated, breaks = "hour")
+    selectedData$ARR_TIMEaggregated <- substr(selectedData$ARR_TIMEaggregated, 12, 16)
+    
+    #add int boolean for if delay exists or not
+    selectedData$delayTrue<-ifelse(selectedData$ARR_DELAY_NEW>0 | selectedData$DEP_DELAY_NEW > 0,1,0)
+    selectedData$WEATHER_DELAY<-ifelse(selectedData$WEATHER_DELAY>0,1,0)
+    selectedData$CARRIER_DELAY<-ifelse(selectedData$CARRIER_DELAY>0,1,0)
+    selectedData$NAS_DELAY<-ifelse(selectedData$NAS_DELAY>0,1,0)
+    selectedData$SECURITY_DELAY<-ifelse(selectedData$SECURITY_DELAY>0,1,0)
+    selectedData$LATE_AIRCRAFT_DELAY<-ifelse(selectedData$LATE_AIRCRAFT_DELAY>0,1,0)
+    
+    selectedData
+  })
+  
+  sDataDelays <- reactive({
+    #selectedData <- month_data[[chosenMonth()]]
+    
+    selectedData <- pickCorrectDateDelays()
+    selectedData <- selectedData %>% filter(ORIGIN_AIRPORT_ID == "Chicago O'Hare International" ||ORIGIN_AIRPORT_ID == "Chicago Midway International" || DEST_AIRPORT_ID == "Chicago O'Hare International" ||DEST_AIRPORT_ID == "Chicago Midway International")
+    
+    #create new column that converts minutes to hour:minute
+    selectedData$DEP_TIMEaggregated <- as.POSIXct(sprintf("%04.0f", selectedData$DEP_TIME), format='%H%M')
+    selectedData$DEP_TIMEaggregated <- cut(selectedData$DEP_TIMEaggregated, breaks = "hour")
+    selectedData$DEP_TIMEaggregated <- substr(selectedData$DEP_TIMEaggregated, 12, 16)
+    
+    selectedData$ARR_TIMEaggregated <- as.POSIXct(sprintf("%04.0f", selectedData$ARR_TIME), format='%H%M')
+    selectedData$ARR_TIMEaggregated <- cut(selectedData$ARR_TIMEaggregated, breaks = "hour")
+    selectedData$ARR_TIMEaggregated <- substr(selectedData$ARR_TIMEaggregated, 12, 16)
+    
+    #add int boolean for if delay exists or not
+    selectedData$delayTrue<-ifelse(selectedData$ARR_DELAY_NEW>0 | selectedData$DEP_DELAY_NEW > 0,1,0)
+    selectedData$WEATHER_DELAY<-ifelse(selectedData$WEATHER_DELAY>0,1,0)
+    selectedData$CARRIER_DELAY<-ifelse(selectedData$CARRIER_DELAY>0,1,0)
+    selectedData$NAS_DELAY<-ifelse(selectedData$NAS_DELAY>0,1,0)
+    selectedData$SECURITY_DELAY<-ifelse(selectedData$SECURITY_DELAY>0,1,0)
+    selectedData$LATE_AIRCRAFT_DELAY<-ifelse(selectedData$LATE_AIRCRAFT_DELAY>0,1,0)
+    
+    selectedData
+  })
+  
+  # selectedData based on chosen Month
+  sDataAirports <- reactive({
+    selectedData <- month_data[[chosenMonth()]]
+    selectedData <- selectedData %>% filter(ORIGIN_AIRPORT_ID == "Chicago O'Hare International" ||ORIGIN_AIRPORT_ID == "Chicago Midway International" || DEST_AIRPORT_ID == "Chicago O'Hare International" ||DEST_AIRPORT_ID == "Chicago Midway International")
+    
     #create new column that converts minutes to hour:minute
     selectedData$DEP_TIMEaggregated <- as.POSIXct(sprintf("%04.0f", selectedData$DEP_TIME), format='%H%M')
     selectedData$DEP_TIMEaggregated <- cut(selectedData$DEP_TIMEaggregated, breaks = "hour")
@@ -296,7 +385,7 @@ server <- function(input, output) {
   })
   
   tsdpDataBoth <- reactive({
-    selectedData <- sData()
+    selectedData <- sDataDelays()
     totalselectedData <- tsDataBoth()
     
     
@@ -359,7 +448,7 @@ server <- function(input, output) {
   })
   
   tsdpDataORD <- reactive({
-    selectedData <- sData()
+    selectedData <- sDataDelays()
     
     selectedDataORDori <- selectedData %>% filter(ORIGIN_AIRPORT_ID == "Chicago O'Hare International")
     selectedDataORDdest <- selectedData %>% filter(DEST_AIRPORT_ID == "Chicago O'Hare International")
@@ -428,7 +517,7 @@ server <- function(input, output) {
   })
   
   tsdpDataMID <- reactive({
-    selectedData <- sData()
+    selectedData <- sDataDelays()
     
     selectedDataORDori <- selectedData %>% filter(ORIGIN_AIRPORT_ID == "Chicago Midway International")
     selectedDataORDdest <- selectedData %>% filter(DEST_AIRPORT_ID == "Chicago Midway International")
@@ -1310,7 +1399,7 @@ server <- function(input, output) {
   })
   
   airportTotals <- function(airport_name) {
-    selectedData <- sData()
+    selectedData <- sDataAirports()
     
     #count locations based on amount of origin
     totalOrigin <- selectedData %>% filter(DEST_AIRPORT_ID == airport_name)
