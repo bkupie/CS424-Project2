@@ -89,9 +89,11 @@ ui <- dashboardPage(
       
       tabItem(tabName = "delays",
               fluidRow(
-                useShinyjs(),
-                checkboxInput("checkbox", "Pick a specific Date", FALSE),
-                div(dateInput("dateHourlyDelays", label = h3("Specific Date"), value = "2017-01-01")),
+                box(width=12,
+                    useShinyjs(),
+                    checkboxInput("checkbox", "Pick a specific Date", FALSE),
+                    div(dateInput("dateHourlyDelays", label = h3("Specific Date"), value = "2017-01-01"))
+                ),
                 radioGroupButtons(
                   inputId = "delayButtons", label = "Types of Delay :",
                   choices = c("Carrier", "Weather", "National Air System", "Security", "Late Aircraft"),
@@ -135,9 +137,12 @@ ui <- dashboardPage(
       
       tabItem(tabName = "hourlytotal",
               fluidRow(
-                useShinyjs(),
-                checkboxInput("timeChoice", "Pick a specific Date", FALSE),
-                div(dateInput("dateHourly", label = h3("Specific Date"), value = "2017-01-01")),
+                box(width = 12,
+                       useShinyjs(),
+                       checkboxInput("timeChoice", "Pick a specific Date", FALSE),
+                       div(dateInput("dateHourly", label = h3("Specific Date"), value = "2017-01-01"))
+                       ),
+                
                 
                 tabBox(
                   width = 12,
