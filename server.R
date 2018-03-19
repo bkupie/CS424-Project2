@@ -452,6 +452,87 @@ server <- function(input, output) {
     totalselectedDataPercentage
   })
   
+  hD_norm <- reactive({
+    selectedData <- sCarrierData()
+    
+    #count based on hour
+    hourlyDepartures <- aggregate(cbind(count = CARRIER) ~ DEP_TIMEaggregated,
+                                  data = selectedData,
+                                  FUN = function(x){NROW(x)})
+    
+    #add nicer names to columns
+    names(hourlyDepartures) <- c("Hour", "Count")
+    
+    hourlyDepartures
+  })
+  
+  hD_time <- reactive({
+    selectedData <- sCarrierData()
+    
+    #count based on hour
+    hourlyDepartures <- aggregate(cbind(count = CARRIER) ~ DEP_TIMEaggregated,
+                                  data = selectedData,
+                                  FUN = function(x){NROW(x)})
+    
+    #add nicer names to columns
+    names(hourlyDepartures) <- c("Hour", "Count")
+    
+    if(!input$time){
+      hourlyDepartures$Hour <- format(strptime(hourlyDepartures$Hour, format='%H:%M'), '%r')
+      print(hourlyDepartures)
+    }
+    
+    hourlyDepartures
+  })
+  
+  hA_norm <- reactive({
+    selectedData <- sCarrierData()
+    
+    hourlyArrivals <- aggregate(cbind(count = CARRIER) ~ ARR_TIMEaggregated,
+                                data = selectedData,
+                                FUN = function(x){NROW(x)})
+    
+    #add nicer names to columns
+    names(hourlyArrivals) <- c("Hour", "Count")
+    
+    hourlyArrivals
+  })
+  
+  hA_time <- reactive({
+    selectedData <- sCarrierData()
+    
+    hourlyArrivals <- aggregate(cbind(count = CARRIER) ~ ARR_TIMEaggregated,
+                                data = selectedData,
+                                FUN = function(x){NROW(x)})
+    
+    #add nicer names to columns
+    names(hourlyArrivals) <- c("Hour", "Count")
+    
+    if(!input$time){
+      hourlyArrivals$Hour <- format(strptime(hourlyArrivals$Hour, format='%H:%M'), '%r')
+      print(hourlyArrivals)
+    }
+    
+    hourlyArrivals
+  })
+  
+  total_of_DA <- reactive({
+    dep <- hD_norm()
+    arr <- hA_norm()
+    totalALL <- rbind(dep, arr)
+    
+    totalALL$Hour <- totalALL$Hour[order(totalALL$Hour)]
+    
+    if(!input$time){
+      totalALL$Hour <- format(strptime(totalALL$Hour, format='%H:%M'), '%r')
+    }
+    
+    chosen <- NA
+    chosen$Hour <- unique(totalALL$Hour)
+    
+    chosen
+  })
+  
   # Output Graphs and Visualizations =========================================================================
   # Actual visualizations of the data is done below. We have many reactive variables which are all defined 
   # above. We used various naming conventions so I tried to centralize it. -Vijay
@@ -752,87 +833,6 @@ server <- function(input, output) {
              yaxis = list(title = "# of Flights"),
              margin = list(b = 130),
              barmode = 'group')
-  })
-  
-  hD_norm <- reactive({
-    selectedData <- sCarrierData()
-    
-    #count based on hour
-    hourlyDepartures <- aggregate(cbind(count = CARRIER) ~ DEP_TIMEaggregated,
-                                  data = selectedData,
-                                  FUN = function(x){NROW(x)})
-    
-    #add nicer names to columns
-    names(hourlyDepartures) <- c("Hour", "Count")
-    
-    hourlyDepartures
-  })
-  
-  hD_time <- reactive({
-    selectedData <- sCarrierData()
-    
-    #count based on hour
-    hourlyDepartures <- aggregate(cbind(count = CARRIER) ~ DEP_TIMEaggregated,
-                                  data = selectedData,
-                                  FUN = function(x){NROW(x)})
-    
-    #add nicer names to columns
-    names(hourlyDepartures) <- c("Hour", "Count")
-    
-    if(!input$time){
-      hourlyDepartures$Hour <- format(strptime(hourlyDepartures$Hour, format='%H:%M'), '%r')
-      print(hourlyDepartures)
-    }
-    
-    hourlyDepartures
-  })
-  
-  hA_norm <- reactive({
-    selectedData <- sCarrierData()
-    
-    hourlyArrivals <- aggregate(cbind(count = CARRIER) ~ ARR_TIMEaggregated,
-                                data = selectedData,
-                                FUN = function(x){NROW(x)})
-    
-    #add nicer names to columns
-    names(hourlyArrivals) <- c("Hour", "Count")
-    
-    hourlyArrivals
-  })
-  
-  hA_time <- reactive({
-    selectedData <- sCarrierData()
-    
-    hourlyArrivals <- aggregate(cbind(count = CARRIER) ~ ARR_TIMEaggregated,
-                                data = selectedData,
-                                FUN = function(x){NROW(x)})
-    
-    #add nicer names to columns
-    names(hourlyArrivals) <- c("Hour", "Count")
-    
-    if(!input$time){
-      hourlyArrivals$Hour <- format(strptime(hourlyArrivals$Hour, format='%H:%M'), '%r')
-      print(hourlyArrivals)
-    }
-    
-    hourlyArrivals
-  })
-  
-  total_of_DA <- reactive({
-    dep <- hD_norm()
-    arr <- hA_norm()
-    totalALL <- rbind(dep, arr)
-    
-    totalALL$Hour <- totalALL$Hour[order(totalALL$Hour)]
-    
-    if(!input$time){
-      totalALL$Hour <- format(strptime(totalALL$Hour, format='%H:%M'), '%r')
-    }
-    
-    chosen <- NA
-    chosen$Hour <- unique(totalALL$Hour)
-    
-    chosen
   })
   
   # This is for 'A' part of project. User selects CARRIER and DATE --> generates total dep/arr per hour graph
