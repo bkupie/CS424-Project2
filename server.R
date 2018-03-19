@@ -913,14 +913,15 @@ server <- function(input, output) {
     monthChoice <- chosenMonth()
     
     plot_ly(selectedData, x = ~timeFrame$time, y = ~selectedData$"Departures ORD", type = 'scatter', mode = 'lines', name = 'ORD Departures', 
-            hoverinfo = 'text', text = ~paste('</br>', hourlyDeparturesORD$Count, ' ORD Departures </br>')) %>%
+            hoverinfo = 'text', text = ~paste('</br>', selectedData$"Departures ORD", ' ORD Departures </br>')) %>%
       
       add_trace(selectedData, x = ~timeFrame$time, y = ~selectedData$"Arrivals ORD", name = 'ORD Arrivals', type = 'scatter', mode = 'lines', hoverinfo = 'text',
-                text = ~paste('</br>', hourlyArrivalsORD$Count, ' ORD Arrivals </br>')) %>%
+                text = ~paste('</br>', selectedData$"Arrivals ORD", ' ORD Arrivals </br>')) %>%
       add_trace(selectedData, x = ~timeFrame$time, y = ~selectedData$"Arrivals MID", name = 'MID Arrivals', type = 'scatter', mode = 'lines', hoverinfo = 'text',
-                text = ~paste('</br>', hourlyArrivalsMID$Count, ' MID Arrivals </br>')) %>%
+                text = ~paste('</br>', selectedData$"Arrivals MID", ' MID Arrivals </br>')) %>%
       
-      add_trace(selectedData, x = ~timeFrame$time, y = ~selectedData$"Departures MID", name = 'MID Departures', type = 'scatter', mode = 'lines') %>%
+      add_trace(selectedData, x = ~timeFrame$time, y = ~selectedData$"Departures MID", name = 'MID Departures', type = 'scatter', mode = 'lines', hoverinfo = 'text',
+                text = ~paste('</br>', selectedData$"Departures MID", ' MID Departures </br>')) %>%
       
 
       layout(title=paste("Total Hourly flights",month.abb[monthChoice],"2017", sep=" "), xaxis = list(title = "Time Period", tickangle = -45,categoryorder = "array",categoryarray = timeFrame$time),
