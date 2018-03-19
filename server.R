@@ -163,7 +163,7 @@ server <- function(input, output) {
     userInput <- input$delayButtons
     print(userInput)
     
-  #~get(input$delayButtons)
+    #~get(input$delayButtons)
     totalselectedDataPercentage$Percentage <- (totalselectedDataPercentage[[userInput]] / (totalselectedDataPercentage$Departures + totalselectedDataPercentage$Arrivals)) * 100
     
     #drop arrivals and departures from table
@@ -407,7 +407,7 @@ server <- function(input, output) {
                                 FUN = sum)
     
     #give niver column names
-    names(hourlyDelayCount) <- c("Hour", "Count")
+    names(hourlyDelayCount) <- c("Hour", "Total Flights")
     names(carrierDelayCount) <- c("Hour", "Carrier")
     names(weatherDelayCount) <- c("Hour", "Weather")
     names(securityDelayCount) <- c("Hour", "Security")
@@ -422,11 +422,14 @@ server <- function(input, output) {
     totalselectedDataPercentage <- merge(totalselectedDataPercentage,nasDelayCount,by="Hour", all.x= TRUE, all.y= TRUE)
     totalselectedDataPercentage <- merge(totalselectedDataPercentage,lateDelayCount,by="Hour", all.x= TRUE, all.y= TRUE)
     
+    userInput <- input$delayButtons2
+    print(userInput)
     
-    totalselectedDataPercentage$Percentage <- (totalselectedDataPercentage$Weather / (totalselectedDataPercentage$Departures + totalselectedDataPercentage$Arrivals)) * 100
+    #~get(input$delayButtons)
+    totalselectedDataPercentage$Percentage <- (totalselectedDataPercentage[[userInput]] / (totalselectedDataPercentage$Departures + totalselectedDataPercentage$Arrivals)) * 100
     
     #drop arrivals and departures from table
-    #totalselectedDataPercentage <- subset(totalselectedDataPercentage, select = -c(2,3) )
+    totalselectedDataPercentage <- subset(totalselectedDataPercentage, select = -c(2,3) )
     
     #round percentage
     totalselectedDataPercentage$Percentage <-round(totalselectedDataPercentage$Percentage, 0)
@@ -477,6 +480,87 @@ server <- function(input, output) {
    output <- merge(dest,origin, by = "time")
    output
     
+  })
+  
+  hD_norm <- reactive({
+    selectedData <- sCarrierData()
+    
+    #count based on hour
+    hourlyDepartures <- aggregate(cbind(count = CARRIER) ~ DEP_TIMEaggregated,
+                                  data = selectedData,
+                                  FUN = function(x){NROW(x)})
+    
+    #add nicer names to columns
+    names(hourlyDepartures) <- c("Hour", "Count")
+    
+    hourlyDepartures
+  })
+  
+  hD_time <- reactive({
+    selectedData <- sCarrierData()
+    
+    #count based on hour
+    hourlyDepartures <- aggregate(cbind(count = CARRIER) ~ DEP_TIMEaggregated,
+                                  data = selectedData,
+                                  FUN = function(x){NROW(x)})
+    
+    #add nicer names to columns
+    names(hourlyDepartures) <- c("Hour", "Count")
+    
+    if(!input$time){
+      hourlyDepartures$Hour <- format(strptime(hourlyDepartures$Hour, format='%H:%M'), '%r')
+      print(hourlyDepartures)
+    }
+    
+    hourlyDepartures
+  })
+  
+  hA_norm <- reactive({
+    selectedData <- sCarrierData()
+    
+    hourlyArrivals <- aggregate(cbind(count = CARRIER) ~ ARR_TIMEaggregated,
+                                data = selectedData,
+                                FUN = function(x){NROW(x)})
+    
+    #add nicer names to columns
+    names(hourlyArrivals) <- c("Hour", "Count")
+    
+    hourlyArrivals
+  })
+  
+  hA_time <- reactive({
+    selectedData <- sCarrierData()
+    
+    hourlyArrivals <- aggregate(cbind(count = CARRIER) ~ ARR_TIMEaggregated,
+                                data = selectedData,
+                                FUN = function(x){NROW(x)})
+    
+    #add nicer names to columns
+    names(hourlyArrivals) <- c("Hour", "Count")
+    
+    if(!input$time){
+      hourlyArrivals$Hour <- format(strptime(hourlyArrivals$Hour, format='%H:%M'), '%r')
+      print(hourlyArrivals)
+    }
+    
+    hourlyArrivals
+  })
+  
+  total_of_DA <- reactive({
+    dep <- hD_norm()
+    arr <- hA_norm()
+    totalALL <- rbind(dep, arr)
+    
+    totalALL$Hour <- totalALL$Hour[order(totalALL$Hour)]
+    
+    if(!input$time){
+      totalALL$Hour <- format(strptime(totalALL$Hour, format='%H:%M'), '%r')
+    }
+    
+    chosen <- NA
+    chosen$Hour <- unique(totalALL$Hour)
+    
+    chosen
   })
   
   # Output Graphs and Visualizations =========================================================================
@@ -612,6 +696,40 @@ server <- function(input, output) {
              barmode = 'group')
   })
   
+  output$popularGraphMIDWAY <- renderPlotly({
+    popularCarriers <- pcData()
+    
+    plot_ly(popularCarriers, x = ~popularCarriers$CARRIER, y = ~popularCarriers$MIDWAY_DEPARTURES, type = 'bar', name = 'Departures Midway',
+            hoverinfo = 'text', text = ~paste('</br>', popularCarriers$MIDWAY_DEPARTURES, 'Departures Midway</br>'),
+            marker = list(color = 'rgb(51,160,44)')) %>%
+      
+      add_trace(x = ~popularCarriers$CARRIER, y = ~popularCarriers$MIDWAY_ARRIVALS, name = 'Arrivals Midway', hoverinfo = 'text',
+                text = ~paste('</br>', popularCarriers$MIDWAY_ARRIVALS, 'Arrivals Midway </br>'),
+                marker = list(color = 'rgb(178,223,138)')) %>%
+      
+      layout(xaxis = list(title = "Carriers", tickangle = -45, categoryorder = "array", categoryarray = popularCarriers$CARRIER),
+             yaxis = list(title = "# of Flights"),
+             margin = list(b = 130),
+             barmode = 'group')
+  })
+  
+  output$popularGraphOHARE <- renderPlotly({
+    popularCarriers <- pcData()
+    
+    plot_ly(popularCarriers, x = ~popularCarriers$CARRIER, y = ~popularCarriers$OHARE_DEPARTURES, type = 'bar', name = 'Departures Ohare', hoverinfo = 'text',
+                text = ~paste('</br>', popularCarriers$OHARE_DEPARTURES, ' Departures Ohare </br>'),
+                marker = list(color = 'rgb(31,120,180)')) %>%
+      
+      add_trace(x = ~popularCarriers$CARRIER, y = ~popularCarriers$OHARE_ARRIVALS, name = 'Arrivals Ohare', hoverinfo = 'text',
+                text = ~paste('</br>', popularCarriers$OHARE_ARRIVALS, 'Arrivals Ohare </br>'),
+                marker = list(color = 'rgb(166,206,227)')) %>%
+      
+      layout(xaxis = list(title = "Carriers", tickangle = -45, categoryorder = "array", categoryarray = popularCarriers$CARRIER),
+             yaxis = list(title = "# of Flights"),
+             margin = list(b = 130),
+             barmode = 'group')
+  })
+  
   # bar chart of departure and arrival PER weekday in ohare and midway FOR CHOSEN MONTH
   output$weekdayGraph <- renderPlotly({
     flightsByWeekday <- fbwData()
@@ -626,6 +744,42 @@ server <- function(input, output) {
                 marker = list(color = 'rgb(178,223,138)')) %>%
       
       add_trace(x = ~flightsByWeekday$Weekday, y = ~flightsByWeekday$OhareDeparturesTotal, name = 'Departures Ohare', hoverinfo = 'text',
+                text = ~paste('</br>', flightsByWeekday$OhareDeparturesTotal, ' Departures Ohare </br>'),
+                marker = list(color = 'rgb(31,120,180)')) %>%
+      
+      add_trace(x = ~flightsByWeekday$Weekday, y = ~flightsByWeekday$OhareArrivalsTotal, name = 'Arrivals Ohare', hoverinfo = 'text',
+                text = ~paste('</br>', flightsByWeekday$OhareArrivalsTotal, 'Arrivals Ohare </br>'),
+                marker = list(color = 'rgb(166,206,227)')) %>%
+      
+      layout(xaxis = list(title = "Weekday", tickangle = -45, categoryorder = "array", categoryarray = popularCarriers$CARRIER),
+             yaxis = list(title = "# of Flights"),
+             margin = list(b = 130),
+             barmode = 'group')
+  })
+  
+  output$weekdayGraphMIDWAY <- renderPlotly({
+    flightsByWeekday <- fbwData()
+    popularCarriers <- pcData()
+    
+    plot_ly(flightsByWeekday, x = ~flightsByWeekday$Weekday, y = ~flightsByWeekday$MidwayDeparturesTotal, type = 'bar', name = 'Departures Midway',
+            hoverinfo = 'text', text = ~paste('</br>', flightsByWeekday$MidwayDeparturesTotal, 'Departures Midway</br>'),
+            marker = list(color = 'rgb(51,160,44)')) %>%
+      
+      add_trace(x = ~flightsByWeekday$Weekday, y = ~flightsByWeekday$MidwayArrivalsTotal, name = 'Arrivals Midway', hoverinfo = 'text',
+                text = ~paste('</br>', flightsByWeekday$MidwayArrivalsTota, 'Arrivals Midway </br>'),
+                marker = list(color = 'rgb(178,223,138)')) %>%
+      
+      layout(xaxis = list(title = "Weekday", tickangle = -45, categoryorder = "array", categoryarray = popularCarriers$CARRIER),
+             yaxis = list(title = "# of Flights"),
+             margin = list(b = 130),
+             barmode = 'group')
+  })
+  
+  output$weekdayGraphOHARE <- renderPlotly({
+    flightsByWeekday <- fbwData()
+    popularCarriers <- pcData()
+    
+    plot_ly(flightsByWeekday, x = ~flightsByWeekday$Weekday, y = ~flightsByWeekday$OhareDeparturesTotal, type = 'bar', name = 'Departures Ohare', hoverinfo = 'text',
                 text = ~paste('</br>', flightsByWeekday$OhareDeparturesTotal, ' Departures Ohare </br>'),
                 marker = list(color = 'rgb(31,120,180)')) %>%
       
@@ -713,20 +867,10 @@ server <- function(input, output) {
   
   # This is for 'A' part of project. User selects CARRIER and DATE --> generates total dep/arr per hour graph
   output$specificCarrier24Plot <- renderPlotly({
-    selectedData <- sCarrierData()
-    timeFrame <- getTimeFrame()
     #count based on hour
-    hourlyDepartures <- aggregate(cbind(count = CARRIER) ~ DEP_TIMEaggregated,
-                                  data = selectedData,
-                                  FUN = function(x){NROW(x)})
-    
-    hourlyArrivals <- aggregate(cbind(count = CARRIER) ~ ARR_TIMEaggregated,
-                                data = selectedData,
-                                FUN = function(x){NROW(x)})
-    
-    #add nicer names to columns
-    names(hourlyDepartures) <- c("Hour", "Count")
-    names(hourlyArrivals) <- c("Hour", "Count")
+    hourlyDepartures <- hD_time()
+    hourlyArrivals <- hA_time()
+    timeFrame <- total_of_DA()
     
     plot_ly(hourlyDepartures, x = ~hourlyDepartures$Hour, y = ~hourlyDepartures$Count, type = 'scatter', mode = 'lines', name = 'Departures', 
             hoverinfo = 'text', text = ~paste('</br>', hourlyDepartures$Count, ' Departures </br>'), 
@@ -736,7 +880,7 @@ server <- function(input, output) {
                 text = ~paste('</br>', hourlyArrivals$Count, ' Arrivals </br>'),
                 marker = list(color = '#ff7f0e')) %>%
 
-      layout(xaxis = list(title = "Time Period", tickangle = -45),#categoryorder = "array",categoryarray = timeFrame$time),
+      layout(xaxis = list(title = "Time Period", tickangle = -45, categoryorder = "array", categoryarray = timeFrame$Hour),
              yaxis = list(title = "# of Flights"),
              margin = list(b = 100),
              barmode = 'group')
