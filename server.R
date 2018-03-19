@@ -71,6 +71,36 @@ server <- function(input, output) {
     selectedTime
   })
   
+  correctTitleHourly <- reactive({
+    if(input$timeChoice)
+    {
+      selectedTitle <- paste(month.abb[chosenMonth()],2017,sep=" ")}
+    else if(!input$timeChoice)
+    {
+      selectedTitle <- chosenDate()
+      
+      selectedTitle <- as.Date(selectedTitle, "%Y-%m-%d")
+      selectedTitle <- format(selectedTitle, format="%b %d %Y")
+      selectedTitle <- as.character(selectedTitle)
+    }  
+    selectedTitle
+  })
+  
+  correctTitleDelay <- reactive({
+    if(input$timeChoiceDelays)
+    {
+      selectedTitle <- paste(month.abb[chosenMonth()],2017,sep=" ")}
+    else if(!input$timeChoiceDelays)
+    {
+      selectedTitle <- chosenDateDelays()
+      
+      selectedTitle <- as.Date(selectedTitle, "%Y-%m-%d")
+      selectedTitle <- format(selectedTitle, format="%b %d %Y")
+      selectedTitle <- as.character(selectedTitle)
+    }  
+    selectedTitle
+  })
+  
   pickCorrectDateDelays <- reactive({
     if(input$timeChoiceDelays)
     {
@@ -440,7 +470,7 @@ server <- function(input, output) {
     totalselectedDataPercentage <- subset(totalselectedDataPercentage, select = -c(2,3) )
     
     #round percentage
-    totalselectedDataPercentage$Percentage <-round(totalselectedDataPercentage$Percentage, 0)
+    totalselectedDataPercentage$Percentage <-round(totalselectedDataPercentage$Percentage, 2)
     
     #give nicer column names
     #names(totalselectedDataPercentage) <- c("Hour", "Total Delays", "% of selectedData")
@@ -509,7 +539,7 @@ server <- function(input, output) {
     totalselectedDataPercentage <- subset(totalselectedDataPercentage, select = -c(2,3) )
     
     #round percentage
-    totalselectedDataPercentage$Percentage <-round(totalselectedDataPercentage$Percentage, 0)
+    totalselectedDataPercentage$Percentage <-round(totalselectedDataPercentage$Percentage, 2)
     
     #give nicer column names
     #names(totalselectedDataPercentage) <- c("Hour", "Total Delays", "% of selectedData")
@@ -578,7 +608,7 @@ server <- function(input, output) {
     totalselectedDataPercentage <- subset(totalselectedDataPercentage, select = -c(2,3) )
     
     #round percentage
-    totalselectedDataPercentage$Percentage <-round(totalselectedDataPercentage$Percentage, 0)
+    totalselectedDataPercentage$Percentage <-round(totalselectedDataPercentage$Percentage, 2)
     
     #give nicer column names
     #names(totalselectedDataPercentage) <- c("Hour", "Total Delays", "% of selectedData")
@@ -999,7 +1029,7 @@ server <- function(input, output) {
     selectedData <- tsData()
     
     timeFrame <- getTimeFrame()
-    monthChoice <- chosenMonth()
+    monthChoice <- correctTitleHourly()
     
     plot_ly(selectedData, x = ~timeFrame$time, y = ~selectedData$"Departures ORD", type = 'scatter', mode = 'lines', name = 'ORD Departures', 
             hoverinfo = 'text', text = ~paste('</br>', selectedData$"Departures ORD", ' ORD Departures </br>')) %>%
@@ -1013,7 +1043,7 @@ server <- function(input, output) {
                 text = ~paste('</br>', selectedData$"Departures MID", ' MID Departures </br>')) %>%
       
 
-      layout(title=paste("Total Hourly flights",month.abb[monthChoice],"2017", sep=" "), xaxis = list(title = "Time Period", tickangle = -45,categoryorder = "array",categoryarray = timeFrame$time),
+      layout(title=paste("Total Hourly flights",monthChoice, sep=" "), xaxis = list(title = "Time Period", tickangle = -45,categoryorder = "array",categoryarray = timeFrame$time),
              yaxis = list(title = "# of Flights"),
              margin = list(b = 100),
              barmode = 'group')
@@ -1023,7 +1053,7 @@ server <- function(input, output) {
     selectedData <- tsData()
     
     timeFrame <- getTimeFrame()
-    monthChoice <- chosenMonth()
+    monthChoice <- correctTitleHourly()
     
     plot_ly(selectedData, x = ~timeFrame$time, y = ~selectedData$"Departures ORD", type = 'scatter', mode = 'lines', name = 'ORD Departures', 
             hoverinfo = 'text', text = ~paste('</br>', selectedData$"Departures ORD", ' ORD Departures </br>')) %>%
@@ -1031,7 +1061,7 @@ server <- function(input, output) {
       add_trace(selectedData, x = ~timeFrame$time, y = ~selectedData$"Arrivals ORD", name = 'ORD Arrivals', type = 'scatter', mode = 'lines', hoverinfo = 'text',
                 text = ~paste('</br>', selectedData$"Arrivals ORD", ' ORD Arrivals </br>')) %>%
   
-      layout(title=paste("Total Hourly flights",month.abb[monthChoice],"2017", sep=" "), xaxis = list(title = "Time Period", tickangle = -45,categoryorder = "array",categoryarray = timeFrame$time),
+      layout(title=paste("Total Hourly flights",monthChoice, sep=" "), xaxis = list(title = "Time Period", tickangle = -45,categoryorder = "array",categoryarray = timeFrame$time),
              yaxis = list(title = "# of Flights"),
              margin = list(b = 100),
              barmode = 'group')
@@ -1041,7 +1071,7 @@ server <- function(input, output) {
     selectedData <- tsData()
     
     timeFrame <- getTimeFrame()
-    monthChoice <- chosenMonth()
+    monthChoice <- correctTitleHourly()
     
     plot_ly(selectedData, x = ~timeFrame$time, y = ~selectedData$"Departures MID", type = 'scatter', mode = 'lines', name = 'MID Departures', 
             hoverinfo = 'text', text = ~paste('</br>', selectedData$"Departures MID", ' MID Departures </br>')) %>%
@@ -1049,7 +1079,7 @@ server <- function(input, output) {
       add_trace(selectedData, x = ~timeFrame$time, y = ~selectedData$"Arrivals MID", name = 'MID Arrivals', type = 'scatter', mode = 'lines', hoverinfo = 'text',
                 text = ~paste('</br>', selectedData$"Arrivals MID", ' MID Arrivals </br>')) %>%
       
-      layout(title=paste("Total Hourly flights",month.abb[monthChoice],"2017", sep=" "), xaxis = list(title = "Time Period", tickangle = -45,categoryorder = "array",categoryarray = timeFrame$time),
+      layout(title=paste("Total Hourly flights",monthChoice, sep=" "), xaxis = list(title = "Time Period", tickangle = -45,categoryorder = "array",categoryarray = timeFrame$time),
              yaxis = list(title = "# of Flights"),
              margin = list(b = 100),
              barmode = 'group')
@@ -1089,17 +1119,17 @@ server <- function(input, output) {
     totalselectedDataPercentage <- tsdpDataBoth()
     timeFrame <- getTimeFrame()
     userInput <- input$delayButtons
-    monthChoice <- chosenMonth()
+    monthChoice <- correctTitleDelay()
     
     
     #newTitle <- userInput + " Delays in Month"
     
     plot_ly(data =  totalselectedDataPercentage, x = ~timeFrame$time, y = ~get(input$delayButtons), 
             type = "bar", showlegend=TRUE, hoverinfo = 'text', 
-            text = ~paste('</br>', Weather, ' Delays </br>', Percentage, '% of Flights</br>'), 
+            text = ~paste('</br>', get(input$delayButtons), ' Delays </br>', Percentage, '% of Flights</br>'), 
             marker=list(color=~totalselectedDataPercentage$Percentage, showscale=TRUE)) %>%
       
-      layout(title = paste("Hourly", userInput, "Delays in", month.abb[monthChoice],"2017", sep=" "), xaxis = list(title = "Time Period", tickangle = -45,categoryorder = "array",categoryarray = timeFrame$time),yaxis = list(title = "# of Flights"),
+      layout(title = paste("Hourly", userInput, "Delays in", monthChoice, sep=" "), xaxis = list(title = "Time Period", tickangle = -45,categoryorder = "array",categoryarray = timeFrame$time),yaxis = list(title = "# of Flights"),
              margin = list(b = 100), barmode = 'group')
   })
   
@@ -1107,17 +1137,17 @@ server <- function(input, output) {
     totalselectedDataPercentage <- tsdpDataORD()
     timeFrame <- getTimeFrame()
     userInput <- input$delayButtons
-    monthChoice <- chosenMonth()
+    monthChoice <- correctTitleDelay()
     
     
     #newTitle <- userInput + " Delays in Month"
     
     plot_ly(data =  totalselectedDataPercentage, x = ~timeFrame$time, y = ~get(input$delayButtons), 
             type = "bar", showlegend=TRUE, hoverinfo = 'text', 
-            text = ~paste('</br>', Weather, ' Delays </br>', Percentage, '% of Flights</br>'), 
+            text = ~paste('</br>', get(input$delayButtons), ' Delays </br>', Percentage, '% of Flights</br>'), 
             marker=list(color=~totalselectedDataPercentage$Percentage, showscale=TRUE)) %>%
       
-      layout(title = paste("Hourly", userInput, "Delays in", month.abb[monthChoice],"2017", sep=" "), xaxis = list(title = "Time Period", tickangle = -45,categoryorder = "array",categoryarray = timeFrame$time),yaxis = list(title = "# of Flights"),
+      layout(title = paste("Hourly", userInput, "Delays in", monthChoice, sep=" "), xaxis = list(title = "Time Period", tickangle = -45,categoryorder = "array",categoryarray = timeFrame$time),yaxis = list(title = "# of Flights"),
              margin = list(b = 100), barmode = 'group')
   })
   
@@ -1125,17 +1155,17 @@ server <- function(input, output) {
     totalselectedDataPercentage <- tsdpDataMID()
     timeFrame <- getTimeFrame()
     userInput <- input$delayButtons
-    monthChoice <- chosenMonth()
+    monthChoice <- correctTitleDelay()
     
     
     #newTitle <- userInput + " Delays in Month"
     
     plot_ly(data =  totalselectedDataPercentage, x = ~timeFrame$time, y = ~get(input$delayButtons), 
             type = "bar", showlegend=TRUE, hoverinfo = 'text', 
-            text = ~paste('</br>', Weather, ' Delays </br>', Percentage, '% of Flights</br>'), 
+            text = ~paste('</br>', get(input$delayButtons), ' Delays </br>', Percentage, '% of Flights</br>'), 
             marker=list(color=~totalselectedDataPercentage$Percentage, showscale=TRUE)) %>%
       
-      layout(title = paste("Hourly", userInput, "Delays in", month.abb[monthChoice],"2017", sep=" "), xaxis = list(title = "Time Period", tickangle = -45,categoryorder = "array",categoryarray = timeFrame$time),yaxis = list(title = "# of Flights"),
+      layout(title = paste("Hourly", userInput, "Delays in", monthChoice, sep=" "), xaxis = list(title = "Time Period", tickangle = -45,categoryorder = "array",categoryarray = timeFrame$time),yaxis = list(title = "# of Flights"),
              margin = list(b = 100), barmode = 'group')
   })
   
