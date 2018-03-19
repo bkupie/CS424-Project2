@@ -754,22 +754,93 @@ server <- function(input, output) {
              barmode = 'group')
   })
   
-  # This is for 'A' part of project. User selects CARRIER and DATE --> generates total dep/arr per hour graph
-  output$specificCarrier24Plot <- renderPlotly({
+  hD_norm <- reactive({
     selectedData <- sCarrierData()
-    timeFrame <- getTimeFrame()
+    
     #count based on hour
     hourlyDepartures <- aggregate(cbind(count = CARRIER) ~ DEP_TIMEaggregated,
                                   data = selectedData,
                                   FUN = function(x){NROW(x)})
+    
+    #add nicer names to columns
+    names(hourlyDepartures) <- c("Hour", "Count")
+    
+    hourlyDepartures
+  })
+  
+  hD_time <- reactive({
+    selectedData <- sCarrierData()
+    
+    #count based on hour
+    hourlyDepartures <- aggregate(cbind(count = CARRIER) ~ DEP_TIMEaggregated,
+                                  data = selectedData,
+                                  FUN = function(x){NROW(x)})
+    
+    #add nicer names to columns
+    names(hourlyDepartures) <- c("Hour", "Count")
+    
+    if(!input$time){
+      hourlyDepartures$Hour <- format(strptime(hourlyDepartures$Hour, format='%H:%M'), '%r')
+      print(hourlyDepartures)
+    }
+    
+    hourlyDepartures
+  })
+  
+  hA_norm <- reactive({
+    selectedData <- sCarrierData()
     
     hourlyArrivals <- aggregate(cbind(count = CARRIER) ~ ARR_TIMEaggregated,
                                 data = selectedData,
                                 FUN = function(x){NROW(x)})
     
     #add nicer names to columns
-    names(hourlyDepartures) <- c("Hour", "Count")
     names(hourlyArrivals) <- c("Hour", "Count")
+    
+    hourlyArrivals
+  })
+  
+  hA_time <- reactive({
+    selectedData <- sCarrierData()
+    
+    hourlyArrivals <- aggregate(cbind(count = CARRIER) ~ ARR_TIMEaggregated,
+                                data = selectedData,
+                                FUN = function(x){NROW(x)})
+    
+    #add nicer names to columns
+    names(hourlyArrivals) <- c("Hour", "Count")
+    
+    if(!input$time){
+      hourlyArrivals$Hour <- format(strptime(hourlyArrivals$Hour, format='%H:%M'), '%r')
+      print(hourlyArrivals)
+    }
+    
+    hourlyArrivals
+  })
+  
+  total_of_DA <- reactive({
+    dep <- hD_norm()
+    arr <- hA_norm()
+    totalALL <- rbind(dep, arr)
+    
+    totalALL$Hour <- totalALL$Hour[order(totalALL$Hour)]
+    
+    if(!input$time){
+      totalALL$Hour <- format(strptime(totalALL$Hour, format='%H:%M'), '%r')
+    }
+    
+    chosen <- NA
+    chosen$Hour <- unique(totalALL$Hour)
+    
+    chosen
+  })
+  
+  # This is for 'A' part of project. User selects CARRIER and DATE --> generates total dep/arr per hour graph
+  output$specificCarrier24Plot <- renderPlotly({
+    #count based on hour
+    hourlyDepartures <- hD_time()
+    hourlyArrivals <- hA_time()
+    timeFrame <- total_of_DA()
     
     plot_ly(hourlyDepartures, x = ~hourlyDepartures$Hour, y = ~hourlyDepartures$Count, type = 'scatter', mode = 'lines', name = 'Departures', 
             hoverinfo = 'text', text = ~paste('</br>', hourlyDepartures$Count, ' Departures </br>'), 
@@ -779,7 +850,7 @@ server <- function(input, output) {
                 text = ~paste('</br>', hourlyArrivals$Count, ' Arrivals </br>'),
                 marker = list(color = '#ff7f0e')) %>%
 
-      layout(xaxis = list(title = "Time Period", tickangle = -45),#categoryorder = "array",categoryarray = timeFrame$time),
+      layout(xaxis = list(title = "Time Period", tickangle = -45, categoryorder = "array", categoryarray = timeFrame$Hour),
              yaxis = list(title = "# of Flights"),
              margin = list(b = 100),
              barmode = 'group')
