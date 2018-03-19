@@ -1092,8 +1092,8 @@ server <- function(input, output) {
                 text = ~paste('</br>', selectedData$"Departures MID", ' MID Departures </br>'), line = list(color = '#ff7f0e')) %>%
       
 
-      layout(title=paste("Total Hourly flights",monthChoice, sep=" "), xaxis = list(title = "Time Period", tickangle = -45,categoryorder = "array",categoryarray = timeFrame$time),
-             yaxis = list(title = "# of Flights"),
+      layout(title=paste("Total Hourly flights",monthChoice, sep=" "),font = list(size=15), xaxis = list(title = "Time Period", tickangle = -45,categoryorder = "array",categoryarray = timeFrame$time, titlefont=list(size=30), tickfont=list(size=20)),
+             yaxis = list(titlefont=list(size=30),title = "# of Flights", tickfont=list(size=20)),
              margin = list(b = 100),
              barmode = 'group')
   })
