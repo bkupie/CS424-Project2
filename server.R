@@ -1185,12 +1185,12 @@ server <- function(input, output) {
   output$delayGraph2 <- renderPlotly({
     totalselectedDataPercentage <- tsdpDataBoth()
     timeFrame <- getTimeFrame()
-    userInput <- input$delayButtons
+    userInput <- input$delayButtons2
     monthChoice <- correctTitleDelay()
 
-        plot_ly(data =  totalselectedDataPercentage, x = ~timeFrame$time, y = ~get(input$delayButtons), 
+        plot_ly(data =  totalselectedDataPercentage, x = ~timeFrame$time, y = ~get(input$delayButtons2), 
             type = "bar", showlegend=TRUE, hoverinfo = 'text', 
-            text = ~paste('</br>', get(input$delayButtons), ' Delays </br>', Percentage, '% of Flights</br>'), 
+            text = ~paste('</br>', get(input$delayButtons2), ' Delays </br>', Percentage, '% of Flights</br>'), 
             marker=list(color=~totalselectedDataPercentage$Percentage, showscale=TRUE)) %>%
       
       layout(title = paste("Hourly", userInput, "Delays in", monthChoice, sep=" "), xaxis = list(title = "Time Period", tickangle = -45,categoryorder = "array",categoryarray = timeFrame$time),yaxis = list(title = "# of Flights"),
@@ -1662,6 +1662,15 @@ server <- function(input, output) {
       scroller = TRUE,
       bFilter=0
     )
+  )
+  
+  output$totalselectedDataPercentageTable2 <- renderDataTable(tsdpDataBoth(), extensions = 'Scroller', 
+                                                             rownames = FALSE, options = list(
+                                                               deferRender = TRUE,
+                                                               scrollY = 750,
+                                                               scroller = TRUE,
+                                                               bFilter=0
+                                                             )
   )
   
   output$totalselectedDataPercentageTableMID <- renderDataTable(tsdpDataMID(), extensions = 'Scroller', 

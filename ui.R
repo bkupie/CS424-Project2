@@ -253,16 +253,23 @@ ui <- dashboardPage(
                     title = "Hourly Delays",
                     width = 12,
                     id = "tabset3", height = "1000px",
-                    tabPanel("O'Hare and Midway"
-                             #,
-                             ##box(status = "primary", solidHeader = TRUE, width = 6,
-                              #   div(plotlyOutput("delayGraph", height = 900))
-                             #),
-                             #box(status = "primary", solidHeader = TRUE, width = 6,
-                            #     div(DT::dataTableOutput("totalselectedDataPercentageTable", height= 900))
+                    tabPanel("O'Hare and Midway",
+                             radioGroupButtons(
+                               inputId = "delayButtons2", label = "Types of Delay :",
+                               choices = c("Carrier", "Weather", "National Air System", "Security", "Late Aircraft"),
+                               justified = TRUE, status = "primary",
+                               checkIcon = list(yes = icon("ok", lib = "glyphicon"), no = icon("remove", lib = "glyphicon"))
+                             ),
+                             
+                             box(status = "primary", solidHeader = TRUE, width = 6,
+                                 div(plotlyOutput("delayGraph2", height = 900))
                              )
-                    
-                  )
+                             ,
+                             box(status = "primary", solidHeader = TRUE, width = 6,
+                                div(DT::dataTableOutput("totalselectedDataPercentageTable2", height= 900))
+                             )
+                  
+                  ))
                   ,width = 12
               )),
       tabItem(tabName = "info",
