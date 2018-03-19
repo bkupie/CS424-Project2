@@ -146,13 +146,296 @@ server <- function(input, output) {
     totalselectedData
   })
   
+  tsDataBoth <- reactive({
+    selectedData <- sData()
+    
+    #count based on hour
+    hourlyDepartures <- aggregate(cbind(count = CARRIER) ~ DEP_TIMEaggregated,
+                                  data = selectedData,
+                                  FUN = function(x){NROW(x)})
+    
+    hourlyArrivals <- aggregate(cbind(count = CARRIER) ~ ARR_TIMEaggregated,
+                                data = selectedData,
+                                FUN = function(x){NROW(x)})
+    
+    #add nicer names to columns
+    names(hourlyDepartures) <- c("Hour", "Count")
+    names(hourlyArrivals) <- c("Hour", "Count")
+    
+    # merge into total selectedData for both departure and arrival
+    totalselectedData <- merge(hourlyDepartures,hourlyArrivals,by="Hour")
+    
+    #give nicer column names
+    names(totalselectedData) <- c("Hour", "Departures", "Arrivals")
+    
+    totalselectedData
+  })
+  
+  tsDataORD <- reactive({
+    selectedData <- sData()
+    
+    selectedDataORDori <- selectedData %>% filter(ORIGIN_AIRPORT_ID == "Chicago O'Hare International")
+    selectedDataORDdest <- selectedData %>% filter(DEST_AIRPORT_ID == "Chicago O'Hare International")
+    
+    selectedData <- merge(selectedDataORDori, selectedDataORDdest, all = TRUE)
+    
+    #count based on hour
+    hourlyDepartures <- aggregate(cbind(count = CARRIER) ~ DEP_TIMEaggregated,
+                                  data = selectedData,
+                                  FUN = function(x){NROW(x)})
+    
+    hourlyArrivals <- aggregate(cbind(count = CARRIER) ~ ARR_TIMEaggregated,
+                                data = selectedData,
+                                FUN = function(x){NROW(x)})
+    
+    #add nicer names to columns
+    names(hourlyDepartures) <- c("Hour", "Count")
+    names(hourlyArrivals) <- c("Hour", "Count")
+    
+    # merge into total selectedData for both departure and arrival
+    totalselectedData <- merge(hourlyDepartures,hourlyArrivals,by="Hour")
+    
+    #give nicer column names
+    names(totalselectedData) <- c("Hour", "Departures", "Arrivals")
+    
+    totalselectedData
+  })
+  
+  tsDataMID <- reactive({
+    selectedData <- sData()
+    
+    selectedDataORDori <- selectedData %>% filter(ORIGIN_AIRPORT_ID == "Chicago Midway International")
+    selectedDataORDdest <- selectedData %>% filter(DEST_AIRPORT_ID == "Chicago Midway International")
+    
+    selectedData <- merge(selectedDataORDori, selectedDataORDdest, all = TRUE)
+    
+    #count based on hour
+    hourlyDepartures <- aggregate(cbind(count = CARRIER) ~ DEP_TIMEaggregated,
+                                  data = selectedData,
+                                  FUN = function(x){NROW(x)})
+    
+    hourlyArrivals <- aggregate(cbind(count = CARRIER) ~ ARR_TIMEaggregated,
+                                data = selectedData,
+                                FUN = function(x){NROW(x)})
+    
+    #add nicer names to columns
+    names(hourlyDepartures) <- c("Hour", "Count")
+    names(hourlyArrivals) <- c("Hour", "Count")
+    
+    # merge into total selectedData for both departure and arrival
+    totalselectedData <- merge(hourlyDepartures,hourlyArrivals,by="Hour")
+    
+    #give nicer column names
+    names(totalselectedData) <- c("Hour", "Departures", "Arrivals")
+    
+    totalselectedData
+  })
+  
   # totalSelectedDataPercentage based on chosen Month
   tsdpData <- reactive({
     selectedData <- sData()
     totalselectedData <- tsData()
     
-    carrierDelay <- subset(selectedData, CARRIER_DELAY > 0)
-    securityDelay <- subset(selectedData, SECURITY_DELAY > 0)
+    
+    #count arrival delays per hour
+    hourlyDelayCount <- aggregate(cbind(count = delayTrue) ~ ARR_TIMEaggregated,
+                                  data = selectedData,
+                                  FUN = sum)
+    
+    carrierDelayCount <- aggregate(cbind(carrier = CARRIER_DELAY) ~ ARR_TIMEaggregated,
+                                   data = selectedData,
+                                   FUN = sum)
+    
+    weatherDelayCount <- aggregate(cbind(Weather = WEATHER_DELAY) ~ ARR_TIMEaggregated,
+                                   data = selectedData,
+                                   FUN = sum)
+    
+    securityDelayCount <- aggregate(cbind(Weather = SECURITY_DELAY) ~ ARR_TIMEaggregated,
+                                    data = selectedData,
+                                    FUN = sum)
+    
+    nasDelayCount <- aggregate(cbind(Weather = NAS_DELAY) ~ ARR_TIMEaggregated,
+                               data = selectedData,
+                               FUN = sum)
+    
+    lateDelayCount <- aggregate(cbind(Weather = LATE_AIRCRAFT_DELAY) ~ ARR_TIMEaggregated,
+                                data = selectedData,
+                                FUN = sum)
+    
+    #give niver column names
+    names(hourlyDelayCount) <- c("Hour", "Total Flights")
+    names(carrierDelayCount) <- c("Hour", "Carrier")
+    names(weatherDelayCount) <- c("Hour", "Weather")
+    names(securityDelayCount) <- c("Hour", "Security")
+    names(nasDelayCount) <- c("Hour", "National Air System")
+    names(lateDelayCount) <- c("Hour", "Late Aircraft")
+    
+    #create new table that will also hold percentage
+    totalselectedDataPercentage <- merge(totalselectedData,hourlyDelayCount,by="Hour", all.x= TRUE, all.y= TRUE)
+    totalselectedDataPercentage <- merge(totalselectedDataPercentage,carrierDelayCount,by="Hour", all.x= TRUE, all.y= TRUE)
+    totalselectedDataPercentage <- merge(totalselectedDataPercentage,weatherDelayCount,by="Hour", all.x= TRUE, all.y= TRUE)
+    totalselectedDataPercentage <- merge(totalselectedDataPercentage,securityDelayCount,by="Hour", all.x= TRUE, all.y= TRUE)
+    totalselectedDataPercentage <- merge(totalselectedDataPercentage,nasDelayCount,by="Hour", all.x= TRUE, all.y= TRUE)
+    totalselectedDataPercentage <- merge(totalselectedDataPercentage,lateDelayCount,by="Hour", all.x= TRUE, all.y= TRUE)
+    
+    userInput <- input$delayButtons
+    print(userInput)
+    
+    #~get(input$delayButtons)
+    totalselectedDataPercentage$Percentage <- (totalselectedDataPercentage[[userInput]] / (totalselectedDataPercentage$Departures + totalselectedDataPercentage$Arrivals)) * 100
+    
+    #drop arrivals and departures from table
+    totalselectedDataPercentage <- subset(totalselectedDataPercentage, select = -c(2,3) )
+    
+    #round percentage
+    totalselectedDataPercentage$Percentage <-round(totalselectedDataPercentage$Percentage, 0)
+    
+    #give nicer column names
+    #names(totalselectedDataPercentage) <- c("Hour", "Total Delays", "% of selectedData")
+    totalselectedDataPercentage
+  })
+  
+  tsdpDataBoth <- reactive({
+    selectedData <- sData()
+    totalselectedData <- tsDataBoth()
+    
+    
+    #count arrival delays per hour
+    hourlyDelayCount <- aggregate(cbind(count = delayTrue) ~ ARR_TIMEaggregated,
+                                  data = selectedData,
+                                  FUN = sum)
+    
+    carrierDelayCount <- aggregate(cbind(carrier = CARRIER_DELAY) ~ ARR_TIMEaggregated,
+                                   data = selectedData,
+                                   FUN = sum)
+    
+    weatherDelayCount <- aggregate(cbind(Weather = WEATHER_DELAY) ~ ARR_TIMEaggregated,
+                                   data = selectedData,
+                                   FUN = sum)
+    
+    securityDelayCount <- aggregate(cbind(Weather = SECURITY_DELAY) ~ ARR_TIMEaggregated,
+                                    data = selectedData,
+                                    FUN = sum)
+    
+    nasDelayCount <- aggregate(cbind(Weather = NAS_DELAY) ~ ARR_TIMEaggregated,
+                               data = selectedData,
+                               FUN = sum)
+    
+    lateDelayCount <- aggregate(cbind(Weather = LATE_AIRCRAFT_DELAY) ~ ARR_TIMEaggregated,
+                                data = selectedData,
+                                FUN = sum)
+    
+    #give niver column names
+    names(hourlyDelayCount) <- c("Hour", "Total Flights")
+    names(carrierDelayCount) <- c("Hour", "Carrier")
+    names(weatherDelayCount) <- c("Hour", "Weather")
+    names(securityDelayCount) <- c("Hour", "Security")
+    names(nasDelayCount) <- c("Hour", "National Air System")
+    names(lateDelayCount) <- c("Hour", "Late Aircraft")
+    
+    #create new table that will also hold percentage
+    totalselectedDataPercentage <- merge(totalselectedData,hourlyDelayCount,by="Hour", all.x= TRUE, all.y= TRUE)
+    totalselectedDataPercentage <- merge(totalselectedDataPercentage,carrierDelayCount,by="Hour", all.x= TRUE, all.y= TRUE)
+    totalselectedDataPercentage <- merge(totalselectedDataPercentage,weatherDelayCount,by="Hour", all.x= TRUE, all.y= TRUE)
+    totalselectedDataPercentage <- merge(totalselectedDataPercentage,securityDelayCount,by="Hour", all.x= TRUE, all.y= TRUE)
+    totalselectedDataPercentage <- merge(totalselectedDataPercentage,nasDelayCount,by="Hour", all.x= TRUE, all.y= TRUE)
+    totalselectedDataPercentage <- merge(totalselectedDataPercentage,lateDelayCount,by="Hour", all.x= TRUE, all.y= TRUE)
+    
+    userInput <- input$delayButtons
+    print(userInput)
+    
+    #~get(input$delayButtons)
+    totalselectedDataPercentage$Percentage <- (totalselectedDataPercentage[[userInput]] / (totalselectedDataPercentage$Departures + totalselectedDataPercentage$Arrivals)) * 100
+    
+    #drop arrivals and departures from table
+    totalselectedDataPercentage <- subset(totalselectedDataPercentage, select = -c(2,3) )
+    
+    #round percentage
+    totalselectedDataPercentage$Percentage <-round(totalselectedDataPercentage$Percentage, 0)
+    
+    #give nicer column names
+    #names(totalselectedDataPercentage) <- c("Hour", "Total Delays", "% of selectedData")
+    totalselectedDataPercentage
+  })
+  
+  tsdpDataORD <- reactive({
+    selectedData <- sData()
+    
+    selectedDataORDori <- selectedData %>% filter(ORIGIN_AIRPORT_ID == "Chicago O'Hare International")
+    selectedDataORDdest <- selectedData %>% filter(DEST_AIRPORT_ID == "Chicago O'Hare International")
+
+    selectedData <- merge(selectedDataORDori, selectedDataORDdest, all = TRUE)
+    
+    totalselectedData <- tsDataORD()
+    
+    
+    #count arrival delays per hour
+    hourlyDelayCount <- aggregate(cbind(count = delayTrue) ~ ARR_TIMEaggregated,
+                                  data = selectedData,
+                                  FUN = sum)
+    
+    carrierDelayCount <- aggregate(cbind(carrier = CARRIER_DELAY) ~ ARR_TIMEaggregated,
+                                   data = selectedData,
+                                   FUN = sum)
+    
+    weatherDelayCount <- aggregate(cbind(Weather = WEATHER_DELAY) ~ ARR_TIMEaggregated,
+                                   data = selectedData,
+                                   FUN = sum)
+    
+    securityDelayCount <- aggregate(cbind(Weather = SECURITY_DELAY) ~ ARR_TIMEaggregated,
+                                    data = selectedData,
+                                    FUN = sum)
+    
+    nasDelayCount <- aggregate(cbind(Weather = NAS_DELAY) ~ ARR_TIMEaggregated,
+                               data = selectedData,
+                               FUN = sum)
+    
+    lateDelayCount <- aggregate(cbind(Weather = LATE_AIRCRAFT_DELAY) ~ ARR_TIMEaggregated,
+                                data = selectedData,
+                                FUN = sum)
+    
+    #give niver column names
+    names(hourlyDelayCount) <- c("Hour", "Total Flights")
+    names(carrierDelayCount) <- c("Hour", "Carrier")
+    names(weatherDelayCount) <- c("Hour", "Weather")
+    names(securityDelayCount) <- c("Hour", "Security")
+    names(nasDelayCount) <- c("Hour", "National Air System")
+    names(lateDelayCount) <- c("Hour", "Late Aircraft")
+    
+    #create new table that will also hold percentage
+    totalselectedDataPercentage <- merge(totalselectedData,hourlyDelayCount,by="Hour", all.x= TRUE, all.y= TRUE)
+    totalselectedDataPercentage <- merge(totalselectedDataPercentage,carrierDelayCount,by="Hour", all.x= TRUE, all.y= TRUE)
+    totalselectedDataPercentage <- merge(totalselectedDataPercentage,weatherDelayCount,by="Hour", all.x= TRUE, all.y= TRUE)
+    totalselectedDataPercentage <- merge(totalselectedDataPercentage,securityDelayCount,by="Hour", all.x= TRUE, all.y= TRUE)
+    totalselectedDataPercentage <- merge(totalselectedDataPercentage,nasDelayCount,by="Hour", all.x= TRUE, all.y= TRUE)
+    totalselectedDataPercentage <- merge(totalselectedDataPercentage,lateDelayCount,by="Hour", all.x= TRUE, all.y= TRUE)
+    
+    userInput <- input$delayButtons
+    print(userInput)
+    
+    #~get(input$delayButtons)
+    totalselectedDataPercentage$Percentage <- (totalselectedDataPercentage[[userInput]] / (totalselectedDataPercentage$Departures + totalselectedDataPercentage$Arrivals)) * 100
+    
+    #drop arrivals and departures from table
+    totalselectedDataPercentage <- subset(totalselectedDataPercentage, select = -c(2,3) )
+    
+    #round percentage
+    totalselectedDataPercentage$Percentage <-round(totalselectedDataPercentage$Percentage, 0)
+    
+    #give nicer column names
+    #names(totalselectedDataPercentage) <- c("Hour", "Total Delays", "% of selectedData")
+    totalselectedDataPercentage
+  })
+  
+  tsdpDataMID <- reactive({
+    selectedData <- sData()
+    
+    selectedDataORDori <- selectedData %>% filter(ORIGIN_AIRPORT_ID == "Chicago Midway International")
+    selectedDataORDdest <- selectedData %>% filter(DEST_AIRPORT_ID == "Chicago Midway International")
+    
+    selectedData <- merge(selectedDataORDori, selectedDataORDdest, all = TRUE)
+    
+    totalselectedData <- tsDataORD()
     
     
     #count arrival delays per hour
@@ -713,7 +996,43 @@ server <- function(input, output) {
     })
   
   output$delayGraph <- renderPlotly({
-    totalselectedDataPercentage <- tsdpData()
+    totalselectedDataPercentage <- tsdpDataBoth()
+    timeFrame <- getTimeFrame()
+    userInput <- input$delayButtons
+    monthChoice <- chosenMonth()
+    
+    
+    #newTitle <- userInput + " Delays in Month"
+    
+    plot_ly(data =  totalselectedDataPercentage, x = ~timeFrame$time, y = ~get(input$delayButtons), 
+            type = "bar", showlegend=TRUE, hoverinfo = 'text', 
+            text = ~paste('</br>', Weather, ' Delays </br>', Percentage, '% of Flights</br>'), 
+            marker=list(color=~totalselectedDataPercentage$Percentage, showscale=TRUE)) %>%
+      
+      layout(title = paste("Hourly", userInput, "Delays in", month.abb[monthChoice],"2017", sep=" "), xaxis = list(title = "Time Period", tickangle = -45,categoryorder = "array",categoryarray = timeFrame$time),yaxis = list(title = "# of Flights"),
+             margin = list(b = 100), barmode = 'group')
+  })
+  
+  output$delayGraphORD <- renderPlotly({
+    totalselectedDataPercentage <- tsdpDataORD()
+    timeFrame <- getTimeFrame()
+    userInput <- input$delayButtons
+    monthChoice <- chosenMonth()
+    
+    
+    #newTitle <- userInput + " Delays in Month"
+    
+    plot_ly(data =  totalselectedDataPercentage, x = ~timeFrame$time, y = ~get(input$delayButtons), 
+            type = "bar", showlegend=TRUE, hoverinfo = 'text', 
+            text = ~paste('</br>', Weather, ' Delays </br>', Percentage, '% of Flights</br>'), 
+            marker=list(color=~totalselectedDataPercentage$Percentage, showscale=TRUE)) %>%
+      
+      layout(title = paste("Hourly", userInput, "Delays in", month.abb[monthChoice],"2017", sep=" "), xaxis = list(title = "Time Period", tickangle = -45,categoryorder = "array",categoryarray = timeFrame$time),yaxis = list(title = "# of Flights"),
+             margin = list(b = 100), barmode = 'group')
+  })
+  
+  output$delayGraphMID <- renderPlotly({
+    totalselectedDataPercentage <- tsdpDataMID()
     timeFrame <- getTimeFrame()
     userInput <- input$delayButtons
     monthChoice <- chosenMonth()

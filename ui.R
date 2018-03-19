@@ -87,8 +87,13 @@ ui <- dashboardPage(
                   justified = TRUE, status = "primary",
                   checkIcon = list(yes = icon("ok", lib = "glyphicon"), no = icon("remove", lib = "glyphicon"))
                 ),
-                box(status = "warning", solidHeader = TRUE, width = 12, 
-                    div(plotlyOutput("delayGraph", height= 650))
+                tabBox(
+                  title = "Hourly Delays",
+                  width = 12,
+                  id = "tabset2", height = "1000px",
+                  tabPanel("O'Hare and Midway", div(plotlyOutput("delayGraph", height = 650))),
+                  tabPanel("O'Hare", div(plotlyOutput("delayGraphORD", height = 650))),
+                  tabPanel("Midway", div(plotlyOutput("delayGraphMID", height = 650)))
                 ),
                 box(status = "primary", solidHeader = TRUE, width = 12,
                     div(DT::dataTableOutput("totalselectedDataPercentageTable", height= 650))
@@ -105,7 +110,6 @@ ui <- dashboardPage(
       tabItem(tabName = "hourlytotal",
               fluidRow(
                 tabBox(
-                  title = "Yearly",
                   width = 12,
                   id = "tabset2", height = "1000px",
                   tabPanel("O'Hare and Midway", div(plotlyOutput("hourlyGraph", height = 1000))),
