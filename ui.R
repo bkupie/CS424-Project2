@@ -180,7 +180,6 @@ ui <- dashboardPage(
               ),
               
               # User selects CARRIER from list of available airlines
-              # TODO: instead of having dropdown sorted by popularity have it sorted alphabetically
               fluidRow(
                 box(title = "Departures/Arrivals for Selected Airline", solidHeader = TRUE, status = "primary", width = 12,
                     selectInput("airline-dropdown", "Airline:", choices = as.character(allPopularCarriers$CARRIER)),
