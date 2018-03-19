@@ -248,7 +248,7 @@ ui <- dashboardPage(
               )
       ),
       tabItem(tabName = "int-days",
-              box(selectInput("", "Interesting days:", choices = as.character(interesting$Event)),
+              box(selectInput("interestingDate", "Interesting days:", choices = as.character(interesting$Event)),
                   tabBox(
                     title = "Hourly Delays",
                     width = 12,
