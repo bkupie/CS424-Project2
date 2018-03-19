@@ -877,7 +877,7 @@ server <- function(input, output) {
     #names(totalselectedDataPercentage) <- c("Hour", "Total Delays", "% of selectedData")
     totalselectedDataPercentage
   })
-  #BARTT
+
   reactiveTop50 <- reactive({
     selectDest <- ILData2017 %>% filter(DEST_AIRPORT_ID == as.character(input$"airport-top50-dropdown"))
     selectDest <- subset(selectDest,select = c("DEST_AIRPORT_ID","DEP_TIME"))
@@ -918,6 +918,31 @@ server <- function(input, output) {
 
    output <- merge(dest,origin, by = "time")
    output
+    
+  })
+
+  reactivetop50Year <- reactive({
+    selectDest <- ILData2017 %>% filter(DEST_AIRPORT_ID == as.character(input$"airport-top50-dropdown"))
+    selectDest <- subset(selectDest,select = c("DEST_AIRPORT_ID","FL_DATE"))
+    
+    selectOrigin <- ILData2017 %>% filter(ORIGIN_AIRPORT_ID == as.character(input$"airport-top50-dropdown"))
+    selectOrigin <- subset(selectOrigin,select = c("ORIGIN_AIRPORT_ID","FL_DATE"))
+    
+    #set both frequencies to be 1 for now 
+    selectDest$frequencyDest <- 1    
+    selectOrigin$frequencyOrigin <- 1
+    #we only want the month, get rid of any year/day information
+    selectDest <- selectDest %>% mutate(FL_DATE = month(FL_DATE))
+    selectOrigin <- selectOrigin %>% mutate(FL_DATE = month(FL_DATE))
+    #calculate the frequencies 
+    dest <- data.frame(summarize(group_by(selectDest, FL_DATE), sum(frequencyDest)))
+    origin <- data.frame(summarize(group_by(selectOrigin, FL_DATE), sum(frequencyOrigin)))
+    #quick rename
+    names(dest) <- c("month","destFreq")
+    names(origin) <- c("month","originFreq")
+
+    output <- merge(dest,origin, by = "month")
+    output
     
   })
   
@@ -1485,16 +1510,28 @@ server <- function(input, output) {
     # create the graph now 
     plot_ly(topForMonths, x = ~Month, y = topForMonths$Airport, z= ~topForMonths$Frequency,colors = colorRamp(c("white","blue","black")), type = "heatmap")%>%
       colorbar(title = "Departures+Arrivals per month") %>%
-      layout(yaxis = list(categoryorder = "array",categoryarray = top15Airports$Airport), xaxis = list( dtick = 1), margin = heatMargins)
+      layout(yaxis = list(categoryorder = "array",categoryarray = top15Airports$Airport), 
+             xaxis = list( dtick = 1), margin = heatMargins,
+             zaxis = list(type = "log"))
     
+  })
+  
+  #making it so you can disable a month
+  reactiveFlightMap <- reactive({
+    if(input$exclude)
+    {result <- FlightMap %>% filter(State != "IL")}
+    else if(!input$exclude)
+    {result <- FlightMap}  
+    
+    result
   })
   
   #Create the map
   output$FLightMap <- renderPlotly({
     l <- list(color = toRGB("white"), width = 2)
-    
+    map <- reactiveFlightMap()
     #On hover, give more information
-    FlightMap$Hover <- with(FlightMap, paste(State, '<br>', "Origin Freq.", Origin.Freq, " | Dest Freq. : ", Dest.Freq,
+    map$Hover <- with(map, paste(State, '<br>', "Origin Freq.", Origin.Freq, " | Dest Freq. : ", Dest.Freq,
                                              "<br>","Origin + Dest :", Sum.Freq, "| Total percentage", Percent , "%", "<br>"))
     #focus only on the USA 
     g <- list(
@@ -1505,14 +1542,14 @@ server <- function(input, output) {
     )
     
     #create the actual map
-    p <- plot_geo(FlightMap, locationmode = 'USA-states') %>%
+    p <- plot_geo(map, locationmode = 'USA-states') %>%
       add_trace(
-        z = ~FlightMap$Percent, text = ~FlightMap$Hover, locations = ~FlightMap$State,
-        color = ~FlightMap$Percent, colors = 'Purples'
+        z = ~map$Percent, text = ~map$Hover, locations = ~map$State,
+        color = ~map$Percent, colors = 'Purples'
       ) %>%
       colorbar(title = "Percent") %>% #name the bar properly 
       layout(
-        title = '2017 Flights To/From Illinois <br>(Hover for breakdown)', #set the title 
+        title = 'Flights To/from Illinois 2017<br>(Hover for breakdown)', #set the title 
         geo = g #focus on USA 
       )
     
@@ -1537,9 +1574,27 @@ server <- function(input, output) {
              margin = list(b = 100),
              barmode = 'group')
     
-    #plot_ly(df, x = ~df$time, y = ~df$destFreq, type = "scatter")
-    
   })
+  output$top50year <-renderPlotly({
+    
+    df <- reactivetop50Year()
+    
+    plot_ly(df, x = ~df$month, y = ~df$destFreq, type = 'scatter', mode = 'lines', name = 'Departures', 
+            hoverinfo = 'text', text = ~paste('</br>', df$destFreq, ' Departures </br>'), 
+            marker = list(color = 'rgb(49,130,189)')) %>%
+      
+      add_trace(x = ~df$month, y = ~df$originFreq, name = 'Arrivals', type = 'scatter', mode = 'lines', hoverinfo = 'text',
+                text = ~paste('</br>', df$originFreq, ' Arrivals </br>'),
+                marker = list(color = '#ff7f0e')) %>%
+      
+      layout(xaxis = list(title = "Month", autotick = F, dtick = 1),
+             yaxis = list(title = "# of Flights"),
+             margin = list(b = 100),
+             barmode = 'group')
+  })
+  
+  
+  
 
   output$monthText <- renderText({ mData() })
   
@@ -1628,7 +1683,7 @@ server <- function(input, output) {
   },
   class = 'cell-border stripe',
   rownames = FALSE,
-  options = list(searching = FALSE, pageLength = 15, lengthChange = FALSE)
+  options = list(searching = FALSE, pageLength = 15,dom = 't', lengthChange = FALSE)
   )
   )
   
@@ -1639,7 +1694,7 @@ server <- function(input, output) {
   },
   class = 'cell-border stripe',
   rownames = FALSE,
-  options = list(searching = FALSE, pageLength = 15, lengthChange = FALSE)
+  options = list(searching = FALSE, pageLength = 15, dom = 't',lengthChange = FALSE)
   )
   )
 }
