@@ -634,13 +634,12 @@ server <- function(input, output) {
       
       add_trace(selectedData, x = ~timeFrame$time, y = ~selectedData$"Arrivals ORD", name = 'ORD Arrivals', type = 'scatter', mode = 'lines', hoverinfo = 'text',
                 text = ~paste('</br>', hourlyArrivalsORD$Count, ' ORD Arrivals </br>')) %>%
-      
       add_trace(selectedData, x = ~timeFrame$time, y = ~selectedData$"Arrivals MID", name = 'MID Arrivals', type = 'scatter', mode = 'lines', hoverinfo = 'text',
                 text = ~paste('</br>', hourlyArrivalsMID$Count, ' MID Arrivals </br>')) %>%
       
-      add_trace(selectedData, x = ~timeFrame$time, y = ~selectedData$"Departures MID", name = 'MID Departures', type = 'scatter', mode = 'lines', hoverinfo = 'text',
-                text = ~paste('</br>', hourlyDeparturesMID$Count, ' MID Departures </br>')) %>%
+      add_trace(selectedData, x = ~timeFrame$time, y = ~selectedData$"Departures MID", name = 'MID Departures', type = 'scatter', mode = 'lines') %>%
       
+
       layout(title=paste("Total Hourly flights",month.abb[monthChoice],"2017", sep=" "), xaxis = list(title = "Time Period", tickangle = -45,categoryorder = "array",categoryarray = timeFrame$time),
              yaxis = list(title = "# of Flights"),
              margin = list(b = 100),
