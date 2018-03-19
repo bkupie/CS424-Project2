@@ -1087,7 +1087,7 @@ server <- function(input, output) {
                 text = ~paste('</br>', selectedData$"Departures MID", ' MID Departures </br>'), line = list(color = 'rgb(51,160,44)')) %>%
       
 
-      layout(title=paste("Total Hourly flights",monthChoice, sep=" "), xaxis = list(title = "Time Period", tickangle = -45,categoryorder = "array",categoryarray = timeFrame$time),
+      layout(title=paste("Total Hourly flights",monthChoice, sep=" "), xaxis = list(title = "Time Period", categoryorder = "array",categoryarray = timeFrame$time),
              yaxis = list(title = "# of Flights"),
              margin = list(b = 100),
              barmode = 'group')
@@ -1105,7 +1105,7 @@ server <- function(input, output) {
       add_trace(selectedData, x = ~timeFrame$time, y = ~selectedData$"Arrivals ORD", name = 'ORD Arrivals', type = 'scatter', mode = 'lines+markers', hoverinfo = 'text',
                 text = ~paste('</br>', selectedData$"Arrivals ORD", ' ORD Arrivals </br>'), line = list(color = 'rgb(166,206,227)')) %>%
   
-      layout(title=paste("Total Hourly flights",monthChoice, sep=" "), xaxis = list(title = "Time Period", tickangle = -45,categoryorder = "array",categoryarray = timeFrame$time),
+      layout(title=paste("Total Hourly flights",monthChoice, sep=" "), xaxis = list(title = "Time Period", categoryorder = "array",categoryarray = timeFrame$time),
              yaxis = list(title = "# of Flights"),
              margin = list(b = 100),
              barmode = 'group')
@@ -1123,7 +1123,7 @@ server <- function(input, output) {
       add_trace(selectedData, x = ~timeFrame$time, y = ~selectedData$"Arrivals MID", name = 'MID Arrivals', type = 'scatter', mode = 'lines+markers', hoverinfo = 'text',
                 text = ~paste('</br>', selectedData$"Arrivals MID", ' MID Arrivals </br>'), line = list(color = 'rgb(178,223,138)')) %>%
       
-      layout(title=paste("Total Hourly flights",monthChoice, sep=" "), xaxis = list(title = "Time Period", tickangle = -45,categoryorder = "array",categoryarray = timeFrame$time),
+      layout(title=paste("Total Hourly flights",monthChoice, sep=" "), xaxis = list(title = "Time Period", categoryorder = "array",categoryarray = timeFrame$time),
              yaxis = list(title = "# of Flights"),
              margin = list(b = 100),
              barmode = 'group')
@@ -1678,7 +1678,7 @@ server <- function(input, output) {
   output$totalselectedDataPercentageTableMID <- renderDataTable(tsdpDataMID(), extensions = 'Scroller', 
                                                              rownames = FALSE, options = list(
                                                                deferRender = TRUE,
-                                                               scrollY = 650,
+                                                               scrollY = 750,
                                                                scroller = TRUE,
                                                                bFilter=0
                                                              )
@@ -1687,7 +1687,7 @@ server <- function(input, output) {
   output$totalselectedDataPercentageTableORD <- renderDataTable(tsdpDataORD(), extensions = 'Scroller', 
                                                              rownames = FALSE, options = list(
                                                                deferRender = TRUE,
-                                                               scrollY = 650,
+                                                               scrollY = 750,
                                                                scroller = TRUE,
                                                                bFilter=0
                                                              )
