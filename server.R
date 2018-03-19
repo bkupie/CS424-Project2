@@ -1629,10 +1629,9 @@ server <- function(input, output) {
   load("rdata/interesting.RData")
   
   getInterestingDay <- reactive({
-  
-    output$interestingDate 
-    
-    
+    name <- output$interestingDate 
+    result <- interesting %>% filter(name == interesting$Event )
+    result
   })
   
 
