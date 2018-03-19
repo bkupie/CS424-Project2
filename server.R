@@ -25,19 +25,6 @@ server <- function(input, output) {
   #load data for yearly arrivals and departures heatmap
   load("rdata/hourlyYearlyData.RData")
   
-  #load data for the top 50 airports
-  
-  #continue this method into am/pm formatting
-  #ILData2017$DEP_TIMEampm <- as.POSIXct(sprintf("%04.0f", ILData2017$DEP_TIME), format='%H%M')
-  #ILData2017$DEP_TIMEampm <- cut(ILData2017$DEP_TIMEampm, breaks = "hour")
-  #ILData2017$DEP_TIMEampm <- substr(ILData2017$DEP_TIMEampm, 12, 16)
-  #ILData2017$DEP_TIMEampm <- format(strptime(ILData2017$DEP_TIMEampm,format ='%H:%M'), "%I:%M %p")
-
-  # selectedData$ARR_TIMEampm <- as.POSIXct(sprintf("%04.0f", selectedData$ARR_TIME), format='%H%M')
-  # selectedData$ARR_TIMEampm <- cut(selectedData$ARR_TIMEampm, breaks = "hour")
-  # selectedData$ARR_TIMEampm <- substr(selectedData$ARR_TIMEampm, 12, 16)
-  # ILData2017$ARR_TIMEampm <- format(strptime(ILData2017$ARR_TIMEampm,format ='%H:%M'), "%I:%M %p")
-  
   #create a list for the AM/PM time 
   time <- c("12:00 AM","1:00 AM","2:00 AM","3:00 AM","4:00 AM","5:00 AM","6:00 AM","7:00 AM","8:00 AM","9:00 AM","10:00 AM","11:00 AM",
             "12:00 PM","1:00 PM","2:00 PM","3:00 PM","4:00 PM","5:00 PM","6:00 PM","7:00 PM","8:00 PM","9:00 PM","10:00 PM","11:00 PM")
@@ -45,7 +32,7 @@ server <- function(input, output) {
   timeampmExtended <- rbind(timeampm,c("No Time"))
   timeampmExtended <- timeampmExtended[rep(row.names(timeampmExtended),12),1]
   
-  time <- c("0:00","1:00","2:00","3:00","4:00","5:00","6:00","7:00","8:00","9:00","10:00","11:00","12:00",
+  time <- c("00:00","01:00","02:00","03:00","04:00","05:00","06:00","07:00","08:00","09:00","10:00","11:00","12:00",
                "13:00","14:00","15:00","16:00","17:00","18:00","19:00","20:00","21:00","22:00","23:00")
   timereg <- data_frame(time)
   timeregExtended <- rbind(timereg,c("No Time"))
@@ -450,6 +437,49 @@ server <- function(input, output) {
     #give nicer column names
     #names(totalselectedDataPercentage) <- c("Hour", "Total Delays", "% of selectedData")
     totalselectedDataPercentage
+  })
+  #BARTT
+  reactiveTop50 <- reactive({
+    selectDest <- ILData2017 %>% filter(DEST_AIRPORT_ID == as.character(input$"airport-top50-dropdown"))
+    selectDest <- subset(selectDest,select = c("DEST_AIRPORT_ID","DEP_TIME"))
+
+    selectOrigin <- ILData2017 %>% filter(ORIGIN_AIRPORT_ID == as.character(input$"airport-top50-dropdown"))
+    selectOrigin <- subset(selectOrigin,select = c("ORIGIN_AIRPORT_ID","ARR_TIME"))
+    
+    #format the hours
+    selectDest$DEP_TIME <- as.POSIXct(sprintf("%04.0f", selectDest$DEP_TIME), format='%H%M')
+    selectDest$DEP_TIME <- cut(selectDest$DEP_TIME, breaks = "hour")
+    selectDest$DEP_TIME <- substr(selectDest$DEP_TIME, 12, 16)
+    
+    selectOrigin$ARR_TIME <- as.POSIXct(sprintf("%04.0f", selectOrigin$ARR_TIME), format='%H%M')
+    selectOrigin$ARR_TIME <- cut(selectOrigin$ARR_TIME, breaks = "hour")
+    selectOrigin$ARR_TIME <- substr(selectOrigin$ARR_TIME, 12, 16)
+    
+    #set both frequencies to be 1 for now 
+    selectDest$frequencyDest <- 1    
+    selectOrigin$frequencyOrigin <- 1
+    #calculate the frequencies 
+    dest <- data.frame(summarize(group_by(selectDest, DEP_TIME), sum(frequencyDest)))
+    origin <- data.frame(summarize(group_by(selectOrigin, ARR_TIME), sum(frequencyOrigin)))
+    #quick rename
+    names(dest) <- c("time","destFreq")
+    names(origin) <- c("time","originFreq")
+
+    #remove any NA fields 
+    if(nrow(dest) > 24){dest <- head(dest,-1)}
+    if(nrow(origin) > 24){origin <- head(origin,-1)}
+    
+    #ensure all times are avaliable 
+    dest <- merge(timereg, dest, by="time", all.x=TRUE)
+    origin <- merge(timereg, origin, by="time", all.x=TRUE)
+    
+    # if we have a NA field, that means we didn't find anything for that time 
+    dest[is.na(dest)] <- 0
+    origin[is.na(origin)] <- 0
+
+   output <- merge(dest,origin, by = "time")
+   output
+    
   })
   
   hD_norm <- reactive({
@@ -985,6 +1015,29 @@ server <- function(input, output) {
     
   })
   
+  #This is where the user chooses two airports from 50 
+  output$top50 <-renderPlotly({
+    
+    df <- reactiveTop50()
+    timeFrame <- getTimeFrame()
+    
+    plot_ly(df, x = ~timeFrame$time, y = ~df$destFreq, type = 'scatter', mode = 'lines', name = 'Departures', 
+            hoverinfo = 'text', text = ~paste('</br>', df$destFreq, ' Departures </br>'), 
+            marker = list(color = 'rgb(49,130,189)')) %>%
+      
+      add_trace(x = ~timeFrame$time, y = ~df$originFreq, name = 'Arrivals', type = 'scatter', mode = 'lines', hoverinfo = 'text',
+                text = ~paste('</br>', df$originFreq, ' Arrivals </br>'),
+                marker = list(color = '#ff7f0e')) %>%
+      
+      layout(xaxis = list(title = "Time Period", tickangle = -45,categoryorder = "array",categoryarray = timeFrame$time),
+             yaxis = list(title = "# of Flights"),
+             margin = list(b = 100),
+             barmode = 'group')
+    
+    #plot_ly(df, x = ~df$time, y = ~df$destFreq, type = "scatter")
+    
+  })
+
   output$monthText <- renderText({ mData() })
   
   output$carrierText <- renderText({ paste(as.character(input$"airline-dropdown"), "on ", as.character(input$"date-selectCarrier"))})

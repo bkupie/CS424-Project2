@@ -18,7 +18,7 @@ library(shinycssloaders)
 
 # load any processed data here
 load("rdata/allPopularCarriers.RData")
-
+load("rdata/top50Airports.RData")
 # start up the gui
 ui <- dashboardPage(
   #set title and disable sidebar
@@ -63,6 +63,11 @@ ui <- dashboardPage(
                 
                 box(title = "Top airports for 12 months", solidHeader = TRUE, width = 12,
                     div(plotlyOutput("top15Airports12months") %>% withSpinner(color="#0dc5c1"))
+                )),
+              fluidRow(
+                selectInput("airport-top50-dropdown", "Destination Airport:", choices = as.character(top50Airports$Airport),selected = "Chicago O'Hare International"),
+                box(title = "Flights ssssss", solidHeader = TRUE, width = 6,
+                    div(plotlyOutput("top50") %>% withSpinner(color="#0dc5c1"))
                 ))
               
       ),
