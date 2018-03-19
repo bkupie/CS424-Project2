@@ -1612,6 +1612,7 @@ server <- function(input, output) {
              barmode = 'group')
     
   })
+  
   output$top50year <-renderPlotly({
     
     df <- reactivetop50Year()
@@ -1629,9 +1630,6 @@ server <- function(input, output) {
              margin = list(b = 100),
              barmode = 'group')
   })
-  
-  
-  
 
   output$monthText <- renderText({ mData() })
   
