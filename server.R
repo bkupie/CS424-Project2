@@ -1696,7 +1696,7 @@ server <- function(input, output) {
   output$allMonthsTopCarriersTable <- renderDataTable(allPopularCarriers, extensions = 'Scroller',
     rownames = FALSE, options = list(
     deferRender = TRUE,
-    scrollY = 200,
+    scrollY = 500,
     scroller = TRUE,
     bFilter=0), 
     colnames = c('TOTALS_FLIGHTS' = 2)
@@ -1707,7 +1707,7 @@ server <- function(input, output) {
   output$topCarriersTable <- renderDataTable(pcData(), extensions = 'Scroller', 
     rownames = FALSE, options = list(
       deferRender = TRUE,
-      scrollY = 200,
+      scrollY = 500,
       scroller = TRUE,
       bFilter=0
     ), colnames = c('TOTAL_FLIGHTS' = 2)
