@@ -130,7 +130,6 @@ ui <- dashboardPage(
       
       tabItem(tabName = "hourlytotal",
               fluidRow(
-                #change between 12/24 hours time formats
                 materialSwitch(inputId = "timeChoice", label = "Month", status = "primary", right = TRUE, value = TRUE),
                 dateInput("dateHourly", label = h3("Date input"), value = "2017-01-01"),
                 verbatimTextOutput("dateText"),
@@ -138,19 +137,19 @@ ui <- dashboardPage(
                 tabBox(
                   width = 12,
                   id = "tabset2", height = "1000px",
-                  tabPanel("O'Hare and Midway", div(plotlyOutput("hourlyGraph", height = 1000))),
-                  tabPanel("O'Hare", div(plotlyOutput("hourlyGraphORD", height = 1000))),
-                  tabPanel("Midway", div(plotlyOutput("hourlyGraphMID", height = 1000)))
+                  tabPanel("O'Hare and Midway", div(plotlyOutput("hourlyGraph", height = 900))),
+                  tabPanel("O'Hare", div(plotlyOutput("hourlyGraphORD", height = 900))),
+                  tabPanel("Midway", div(plotlyOutput("hourlyGraphMID", height = 900)))
                 ),
-                box(status = "primary", solidHeader = TRUE, width = 6, height = NULL,
-                    DT::dataTableOutput("totalselectedDataTable", height = 1000)
+                box(status = "primary", solidHeader = TRUE, width = 6,
+                    DT::dataTableOutput("totalselectedDataTable", height = 800)
                 ),
                 tabBox(
                   title = "Yearly",
                   width = 6,
-                  id = "tabset1", height = "1000px",
-                  tabPanel("Arrivals", div(plotlyOutput("hourlyYearGraphArr", height = 1000))),
-                  tabPanel("Departures", div(plotlyOutput("hourlyYearGraphDep", height = 1000)))
+                  id = "tabset1",
+                  tabPanel("Arrivals", div(plotlyOutput("hourlyYearGraphArr", height = 800))),
+                  tabPanel("Departures", div(plotlyOutput("hourlyYearGraphDep", height = 800)))
                 )
               )
       ),

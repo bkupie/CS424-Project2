@@ -1557,7 +1557,7 @@ server <- function(input, output) {
   output$totalselectedDataTable <- renderDataTable(tsData(), extensions = 'Scroller', 
     rownames = FALSE, options = list(
       deferRender = TRUE,
-      scrollY = 1000,
+      scrollY = 800,
       scroller = TRUE,
       bFilter=0
     )
