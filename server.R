@@ -74,10 +74,14 @@ server <- function(input, output) {
   load("rdata/interesting.RData")
   
   getInterestingDay <- reactive({
-    name <- input$interestingDate 
-    result <- interesting %>% filter(name == interesting$Event )
+    name <- input$"interestingDate"
+    result <- interesting %>% filter(name == interesting$Event)
+    result <- as.character(result$Date)
     print(result)
-    result
+
+    selectedTime <- ILData2017
+    selectedTime <- subset(selectedTime, FL_DATE == result)
+    selectedTime
   })
   
   pickCorrectDateInt <- reactive({
