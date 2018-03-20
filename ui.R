@@ -58,11 +58,11 @@ ui <- dashboardPage(
                   dataTableOutput("top15Table2") %>% withSpinner(color="#0dc5c1")
               )),
               fluidRow(
-              box(title = "Amount of flights from/to Chicago O'Hare International in a month", solidHeader = TRUE, width = 6,
-                  div(plotlyOutput("top15Chart1") %>% withSpinner(color="#0dc5c1"))
+              box(title = "Amount of flights from/to Chicago O'Hare International in a month", solidHeader = TRUE, width = 6,height = 600,
+                  div(plotlyOutput("top15Chart1", height = 550) %>% withSpinner(color="#0dc5c1"))
               ),
-              box(title = "Amount of flights from/to Chicago Midway International in a month", solidHeader = TRUE, width = 6,
-                  div(plotlyOutput("top15Chart2") %>% withSpinner(color="#0dc5c1"))
+              box(title = "Amount of flights from/to Chicago Midway International in a month", solidHeader = TRUE, width = 6, height = 600,
+                  div(plotlyOutput("top15Chart2", height = 550) %>% withSpinner(color="#0dc5c1"))
               )),
               fluidRow(
                 box(selectInput("airport-top50-dropdown", "Destination Airport:", choices = as.character(top50Airports$Airport),selected = "Chicago O'Hare International"),
@@ -73,7 +73,7 @@ ui <- dashboardPage(
               ),
               fluidRow(
                 box(title = "Top airports for 12 months", solidHeader = TRUE, width = 12,
-                    div(plotlyOutput("top15Airports12months") %>% withSpinner(color="#0dc5c1"),width = 12)
+                    div(plotlyOutput("top15Airports12months", height = 600) %>% withSpinner(color="#0dc5c1"))
                 )
              )
               
