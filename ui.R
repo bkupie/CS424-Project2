@@ -73,7 +73,7 @@ ui <- dashboardPage(
               ),
               fluidRow(
                 box(title = "Top airports for 12 months", solidHeader = TRUE, width = 12,
-                    div(plotlyOutput("top15Airports12months") %>% withSpinner(color="#0dc5c1"),width = 12)
+                    div(plotlyOutput("top15Airports12months", height = 600) %>% withSpinner(color="#0dc5c1"))
                 )
              )
               
