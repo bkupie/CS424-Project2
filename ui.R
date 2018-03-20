@@ -73,7 +73,7 @@ ui <- dashboardPage(
               ),
               fluidRow(
                 box(title = "Top airports for 12 months", solidHeader = TRUE, width = 12,
-                    div(plotlyOutput("top15Airports12months") %>% withSpinner(color="#0dc5c1"))
+                    div(plotlyOutput("top15Airports12months") %>% withSpinner(color="#0dc5c1"),width = 12)
                 )
              )
               
@@ -254,19 +254,8 @@ ui <- dashboardPage(
                     title = "Hourly Delays",
                     width = 12,
                     id = "tabset3", height = "1000px",
-                    tabPanel("O'Hare and Midway",
-                             radioGroupButtons(
-                               inputId = "delayButtons3", label = "Types of Delay :",
-                               choices = c("Carrier", "Weather", "National Air System", "Security", "Late Aircraft"),
-                               justified = TRUE, status = "primary",
-                               checkIcon = list(yes = icon("ok", lib = "glyphicon"), no = icon("remove", lib = "glyphicon"))
-                             ),
-                             
-                             box(status = "primary", solidHeader = TRUE, width = 12,
-                                 div(plotlyOutput("delayGraph2", height = 900))
-                             ),
-                             box("O'Hare and Midway", div(plotlyOutput("hourlyGraphInt", height = 900)))
-                  ))
+                             box("O'Hare and Midway", div(plotlyOutput("hourlyGraphInt", height = 900)) ,width=12)
+                  )
                   ,width = 12
               )),
       tabItem(tabName = "info",

@@ -74,9 +74,14 @@ server <- function(input, output) {
   load("rdata/interesting.RData")
   
   getInterestingDay <- reactive({
-    name <- input$interestingDate 
-    result <- interesting %>% filter(name == interesting$Event )
-    result
+    name <- input$"interestingDate"
+    result <- interesting %>% filter(name == interesting$Event)
+    result <- as.character(result$Date)
+    print(result)
+
+    selectedTime <- ILData2017
+    selectedTime <- subset(selectedTime, FL_DATE == result)
+    selectedTime
   })
   
   pickCorrectDateInt <- reactive({
@@ -306,10 +311,9 @@ server <- function(input, output) {
   
   # selectedData based on chosen Month
   sData10 <- reactive({
-    selectedData <- ILData2017
-    intDate <- getInterestingDay()
+    #selectedData <- month_data[[chosenMonth()]]
     
-    selectedData <- selectedData %>% filter(FL_DATE == intDate$Date)
+    selectedData <- getInterestingDay()
     selectedData <- selectedData %>% filter(ORIGIN_AIRPORT_ID == "Chicago O'Hare International" ||ORIGIN_AIRPORT_ID == "Chicago Midway International" || DEST_AIRPORT_ID == "Chicago O'Hare International" ||DEST_AIRPORT_ID == "Chicago Midway International")
     
     #create new column that converts minutes to hour:minute
@@ -328,7 +332,6 @@ server <- function(input, output) {
     selectedData$NAS_DELAY<-ifelse(selectedData$NAS_DELAY>0,1,0)
     selectedData$SECURITY_DELAY<-ifelse(selectedData$SECURITY_DELAY>0,1,0)
     selectedData$LATE_AIRCRAFT_DELAY<-ifelse(selectedData$LATE_AIRCRAFT_DELAY>0,1,0)
-    print(selectedData)
     
     selectedData
   })
@@ -361,7 +364,6 @@ server <- function(input, output) {
   # totalSelectedData based on chosen Month
   tsData10<- reactive({
     selectedData <- sData10()
-    print(selectedData)
     
     selectedDataMIDori <- selectedData %>% filter(ORIGIN_AIRPORT_ID == "Chicago Midway International")
     selectedDataMIDdest <- selectedData %>% filter(DEST_AIRPORT_ID == "Chicago Midway International")
@@ -553,6 +555,7 @@ server <- function(input, output) {
     totalselectedDataPercentage <- merge(totalselectedDataPercentage,lateDelayCount,by="Hour", all.x= TRUE, all.y= TRUE)
     
     userInput <- input$delayButtons
+    print(userInput)
     
     #~get(input$delayButtons)
     totalselectedDataPercentage$Percentage <- (totalselectedDataPercentage[[userInput]] / (totalselectedDataPercentage$Departures + totalselectedDataPercentage$Arrivals)) * 100
@@ -615,6 +618,7 @@ server <- function(input, output) {
     totalselectedDataPercentage <- merge(totalselectedDataPercentage,lateDelayCount,by="Hour", all.x= TRUE, all.y= TRUE)
     
     userInput <- input$delayButtons
+    print(userInput)
     
     #~get(input$delayButtons)
     totalselectedDataPercentage$Percentage <- (totalselectedDataPercentage[[userInput]] / (totalselectedDataPercentage$Departures + totalselectedDataPercentage$Arrivals)) * 100
@@ -683,6 +687,7 @@ server <- function(input, output) {
     totalselectedDataPercentage <- merge(totalselectedDataPercentage,lateDelayCount,by="Hour", all.x= TRUE, all.y= TRUE)
     
     userInput <- input$delayButtons
+    print(userInput)
     
     #~get(input$delayButtons)
     totalselectedDataPercentage$Percentage <- (totalselectedDataPercentage[[userInput]] / (totalselectedDataPercentage$Departures + totalselectedDataPercentage$Arrivals)) * 100
@@ -1013,6 +1018,7 @@ server <- function(input, output) {
     totalselectedDataPercentage <- merge(totalselectedDataPercentage,lateDelayCount,by="Hour", all.x= TRUE, all.y= TRUE)
     
     userInput <- input$delayButtons2
+    print(userInput)
     
     #~get(input$delayButtons)
     totalselectedDataPercentage$Percentage <- (totalselectedDataPercentage[[userInput]] / (totalselectedDataPercentage$Departures + totalselectedDataPercentage$Arrivals)) * 100
@@ -1205,15 +1211,15 @@ server <- function(input, output) {
     monthChoice <- correctTitleHourly()
     
     plot_ly(selectedData, x = ~timeFrame$time, y = ~selectedData$"Departures ORD", type = 'scatter', mode = 'lines+markers', name = 'ORD Departures', 
-            hoverinfo = 'text', text = ~paste('</br>', selectedData$"Departures ORD", ' ORD Departures </br>'), line = list(color = '#ff7f0e')) %>%
+            hoverinfo = 'text', text = ~paste('</br>', selectedData$"Departures ORD", ' ORD Departures </br>'), line = list(color = 'rgb(31,120,180)')) %>%
       
       add_trace(selectedData, x = ~timeFrame$time, y = ~selectedData$"Arrivals ORD", name = 'ORD Arrivals', type = 'scatter', mode = 'lines+markers', hoverinfo = 'text',
-                text = ~paste('</br>', selectedData$"Arrivals ORD", ' ORD Arrivals </br>'), line = list(color = '#ffad66')) %>%
+                text = ~paste('</br>', selectedData$"Arrivals ORD", ' ORD Arrivals </br>'), line = list(color = 'rgb(166,206,227)')) %>%
       add_trace(selectedData, x = ~timeFrame$time, y = ~selectedData$"Arrivals MID", name = 'MID Arrivals', type = 'scatter', mode = 'lines+markers', hoverinfo = 'text',
-                text = ~paste('</br>', selectedData$"Arrivals MID", ' MID Arrivals </br>'), line = list(color = '#1f77b4')) %>%
+                text = ~paste('</br>', selectedData$"Arrivals MID", ' MID Arrivals </br>'), line = list(color = 'rgb(178,223,138)')) %>%
       
       add_trace(selectedData, x = ~timeFrame$time, y = ~selectedData$"Departures MID", name = 'MID Departures', type = 'scatter', mode = 'lines+markers', hoverinfo = 'text',
-                text = ~paste('</br>', selectedData$"Departures MID", ' MID Departures </br>'), line = list(color = '#6fb5e7')) %>%
+                text = ~paste('</br>', selectedData$"Departures MID", ' MID Departures </br>'), line = list(color = 'rgb(51,160,44)')) %>%
       
 
       layout(font = list(size=30), title=paste("Total Hourly flights",monthChoice, sep=" "), xaxis = list(title = "Time Period", categoryorder = "array",categoryarray = timeFrame$time, titlefont=list(size=30), tickfont=list(size=20)),
@@ -1229,10 +1235,10 @@ server <- function(input, output) {
     monthChoice <- correctTitleHourly()
     
     plot_ly(selectedData, x = ~timeFrame$time, y = ~selectedData$"Departures ORD", type = 'scatter', mode = 'lines+markers', name = 'ORD Departures', 
-            hoverinfo = 'text', text = ~paste('</br>', selectedData$"Departures ORD", ' ORD Departures </br>'), line = list(color = '#ff7f0e')) %>%
+            hoverinfo = 'text', text = ~paste('</br>', selectedData$"Departures ORD", ' ORD Departures </br>'), line = list(color = 'rgb(31,120,180)')) %>%
       
       add_trace(selectedData, x = ~timeFrame$time, y = ~selectedData$"Arrivals ORD", name = 'ORD Arrivals', type = 'scatter', mode = 'lines+markers', hoverinfo = 'text',
-                text = ~paste('</br>', selectedData$"Arrivals ORD", ' ORD Arrivals </br>'), line = list(color = '#ffad66')) %>%
+                text = ~paste('</br>', selectedData$"Arrivals ORD", ' ORD Arrivals </br>'), line = list(color = 'rgb(166,206,227)')) %>%
   
       layout(font = list(size=30),title=paste("Total Hourly flights",monthChoice, sep=" "), xaxis = list(title = "Time Period", categoryorder = "array",categoryarray = timeFrame$time, titlefont=list(size=30), tickfont=list(size=20)),
              yaxis = list(title = "# of Flights", titlefont=list(size=30), tickfont=list(size=20)),
@@ -1247,10 +1253,10 @@ server <- function(input, output) {
     monthChoice <- correctTitleHourly()
     
     plot_ly(selectedData, x = ~timeFrame$time, y = ~selectedData$"Departures MID", type = 'scatter', mode = 'lines+markers', name = 'MID Departures', 
-            hoverinfo = 'text', text = ~paste('</br>', selectedData$"Departures MID", ' MID Departures </br>'), line = list(color = '#6fb5e7')) %>%
+            hoverinfo = 'text', text = ~paste('</br>', selectedData$"Departures MID", ' MID Departures </br>'), line = list(color = 'rgb(51,160,44)')) %>%
       
       add_trace(selectedData, x = ~timeFrame$time, y = ~selectedData$"Arrivals MID", name = 'MID Arrivals', type = 'scatter', mode = 'lines+markers', hoverinfo = 'text',
-                text = ~paste('</br>', selectedData$"Arrivals MID", ' MID Arrivals </br>'), line = list(color = '#1f77b4')) %>%
+                text = ~paste('</br>', selectedData$"Arrivals MID", ' MID Arrivals </br>'), line = list(color = 'rgb(178,223,138)')) %>%
       
       layout(font = list(size=30), title=paste("Total Hourly flights",monthChoice, sep=" "), xaxis = list(title = "Time Period", categoryorder = "array",categoryarray = timeFrame$time, titlefont=list(size=30), tickfont=list(size=20)),
              yaxis = list(title = "# of Flights", titlefont=list(size=30), tickfont=list(size=20)),
@@ -1365,19 +1371,19 @@ server <- function(input, output) {
     
     plot_ly(popularCarriers, x = ~popularCarriers$CARRIER, y = ~popularCarriers$MIDWAY_DEPARTURES, type = 'bar', name = 'Departures Midway',
             hoverinfo = 'text', text = ~paste('</br>', popularCarriers$MIDWAY_DEPARTURES, 'Departures Midway</br>'),
-            marker = list(color = '#6fb5e7')) %>%
+            marker = list(color = 'rgb(51,160,44)')) %>%
       
       add_trace(x = ~popularCarriers$CARRIER, y = ~popularCarriers$MIDWAY_ARRIVALS, name = 'Arrivals Midway', hoverinfo = 'text',
                 text = ~paste('</br>', popularCarriers$MIDWAY_ARRIVALS, 'Arrivals Midway </br>'),
-                marker = list(color = '#1f77b4')) %>%
+                marker = list(color = 'rgb(178,223,138)')) %>%
       
       add_trace(x = ~popularCarriers$CARRIER, y = ~popularCarriers$OHARE_DEPARTURES, name = 'Departures Ohare', hoverinfo = 'text',
                 text = ~paste('</br>', popularCarriers$OHARE_DEPARTURES, ' Departures Ohare </br>'),
-                marker = list(color = '#ff7f0e')) %>%
+                marker = list(color = 'rgb(31,120,180)')) %>%
       
       add_trace(x = ~popularCarriers$CARRIER, y = ~popularCarriers$OHARE_ARRIVALS, name = 'Arrivals Ohare', hoverinfo = 'text',
                 text = ~paste('</br>', popularCarriers$OHARE_ARRIVALS, 'Arrivals Ohare </br>'),
-                marker = list(color = '#ffad66')) %>%
+                marker = list(color = 'rgb(166,206,227)')) %>%
       
       layout(font = list(size=30), xaxis = list(title = "Carriers", tickangle = -45, categoryorder = "array", categoryarray = popularCarriers$CARRIER, titlefont=list(size=30), tickfont=list(size=20)),
              yaxis = list(title = "# of Flights", titlefont=list(size=30), tickfont=list(size=20)),
@@ -1390,11 +1396,11 @@ server <- function(input, output) {
     
     plot_ly(popularCarriers, x = ~popularCarriers$CARRIER, y = ~popularCarriers$MIDWAY_DEPARTURES, type = 'bar', name = 'Departures Midway',
             hoverinfo = 'text', text = ~paste('</br>', popularCarriers$MIDWAY_DEPARTURES, 'Departures Midway</br>'),
-            marker = list(color = '#6fb5e7')) %>%
+            marker = list(color = 'rgb(51,160,44)')) %>%
       
       add_trace(x = ~popularCarriers$CARRIER, y = ~popularCarriers$MIDWAY_ARRIVALS, name = 'Arrivals Midway', hoverinfo = 'text',
                 text = ~paste('</br>', popularCarriers$MIDWAY_ARRIVALS, 'Arrivals Midway </br>'),
-                marker = list(color = '#1f77b4')) %>%
+                marker = list(color = 'rgb(178,223,138)')) %>%
       
       layout(font=list(size=30), xaxis = list(title = "Carriers", tickangle = -45, categoryorder = "array", categoryarray = popularCarriers$CARRIER, titlefont=list(size=30), tickfont=list(size=20)),
              yaxis = list(title = "# of Flights", titlefont=list(size=30), tickfont=list(size=20)),
@@ -1407,11 +1413,11 @@ server <- function(input, output) {
     
     plot_ly(popularCarriers, x = ~popularCarriers$CARRIER, y = ~popularCarriers$OHARE_DEPARTURES, type = 'bar', name = 'Departures Ohare', hoverinfo = 'text',
                 text = ~paste('</br>', popularCarriers$OHARE_DEPARTURES, ' Departures Ohare </br>'),
-                marker = list(color = '#ff7f0e')) %>%
+                marker = list(color = 'rgb(31,120,180)')) %>%
       
       add_trace(x = ~popularCarriers$CARRIER, y = ~popularCarriers$OHARE_ARRIVALS, name = 'Arrivals Ohare', hoverinfo = 'text',
                 text = ~paste('</br>', popularCarriers$OHARE_ARRIVALS, 'Arrivals Ohare </br>'),
-                marker = list(color = '#ffad66')) %>%
+                marker = list(color = 'rgb(166,206,227)')) %>%
       
       layout(font=list(size=30), xaxis = list(title = "Carriers", tickangle = -45, categoryorder = "array", categoryarray = popularCarriers$CARRIER, titlefont=list(size=30), tickfont=list(size=20)),
              yaxis = list(title = "# of Flights", titlefont=list(size=30), tickfont=list(size=20)),
@@ -1426,19 +1432,19 @@ server <- function(input, output) {
     
     plot_ly(flightsByWeekday, x = ~flightsByWeekday$Weekday, y = ~flightsByWeekday$MidwayDeparturesTotal, type = 'bar', name = 'Departures Midway',
             hoverinfo = 'text', text = ~paste('</br>', flightsByWeekday$MidwayDeparturesTotal, 'Departures Midway</br>'),
-            marker = list(color = '#6fb5e7')) %>%
+            marker = list(color = 'rgb(51,160,44)')) %>%
       
       add_trace(x = ~flightsByWeekday$Weekday, y = ~flightsByWeekday$MidwayArrivalsTotal, name = 'Arrivals Midway', hoverinfo = 'text',
                 text = ~paste('</br>', flightsByWeekday$MidwayArrivalsTota, 'Arrivals Midway </br>'),
-                marker = list(color = '#1f77b4')) %>%
+                marker = list(color = 'rgb(178,223,138)')) %>%
       
       add_trace(x = ~flightsByWeekday$Weekday, y = ~flightsByWeekday$OhareDeparturesTotal, name = 'Departures Ohare', hoverinfo = 'text',
                 text = ~paste('</br>', flightsByWeekday$OhareDeparturesTotal, ' Departures Ohare </br>'),
-                marker = list(color = '#ff7f0e')) %>%
+                marker = list(color = 'rgb(31,120,180)')) %>%
       
       add_trace(x = ~flightsByWeekday$Weekday, y = ~flightsByWeekday$OhareArrivalsTotal, name = 'Arrivals Ohare', hoverinfo = 'text',
                 text = ~paste('</br>', flightsByWeekday$OhareArrivalsTotal, 'Arrivals Ohare </br>'),
-                marker = list(color = '#ffad66')) %>%
+                marker = list(color = 'rgb(166,206,227)')) %>%
       
       layout(font = list(size=30), xaxis = list(title = "Weekday", categoryorder = "array", categoryarray = popularCarriers$CARRIER, titlefont=list(size=30), tickfont=list(size=20)),
              yaxis = list(title = "# of Flights", titlefont=list(size=30), tickfont=list(size=20)),
@@ -1452,11 +1458,11 @@ server <- function(input, output) {
     
     plot_ly(flightsByWeekday, x = ~flightsByWeekday$Weekday, y = ~flightsByWeekday$MidwayDeparturesTotal, type = 'bar', name = 'Departures Midway',
             hoverinfo = 'text', text = ~paste('</br>', flightsByWeekday$MidwayDeparturesTotal, 'Departures Midway</br>'),
-            marker = list(color = '#6fb5e7')) %>%
+            marker = list(color = 'rgb(51,160,44)')) %>%
       
       add_trace(x = ~flightsByWeekday$Weekday, y = ~flightsByWeekday$MidwayArrivalsTotal, name = 'Arrivals Midway', hoverinfo = 'text',
                 text = ~paste('</br>', flightsByWeekday$MidwayArrivalsTota, 'Arrivals Midway </br>'),
-                marker = list(color = '#1f77b4')) %>%
+                marker = list(color = 'rgb(178,223,138)')) %>%
       
       layout(font = list(size=30), xaxis = list(title = "Weekday", categoryorder = "array", categoryarray = popularCarriers$CARRIER, titlefont=list(size=30), tickfont=list(size=20)),
              yaxis = list(title = "# of Flights", titlefont=list(size=30), tickfont=list(size=20)),
@@ -1470,11 +1476,11 @@ server <- function(input, output) {
     
     plot_ly(flightsByWeekday, x = ~flightsByWeekday$Weekday, y = ~flightsByWeekday$OhareDeparturesTotal, type = 'bar', name = 'Departures Ohare', hoverinfo = 'text',
                 text = ~paste('</br>', flightsByWeekday$OhareDeparturesTotal, ' Departures Ohare </br>'),
-                marker = list(color = '#ff7f0e')) %>%
+                marker = list(color = 'rgb(31,120,180)')) %>%
       
       add_trace(x = ~flightsByWeekday$Weekday, y = ~flightsByWeekday$OhareArrivalsTotal, name = 'Arrivals Ohare', hoverinfo = 'text',
                 text = ~paste('</br>', flightsByWeekday$OhareArrivalsTotal, 'Arrivals Ohare </br>'),
-                marker = list(color = '#ffad66')) %>%
+                marker = list(color = 'rgb(166,206,227)')) %>%
       
       layout(font = list(text=30), xaxis = list(title = "Weekday", categoryorder = "array", categoryarray = popularCarriers$CARRIER, titlefont=list(size=30), tickfont=list(size=20)),
              yaxis = list(title = "# of Flights", titlefont=list(size=30), tickfont=list(size=20)),
@@ -1546,19 +1552,19 @@ server <- function(input, output) {
   output$allMonthsPopularGraph <- renderPlotly({
     plot_ly(allPopularCarriers, x = ~allPopularCarriers$CARRIER, y = ~allPopularCarriers$MIDWAY_DEPARTURES, type = 'bar', name = 'Departures Midway',
             hoverinfo = 'text', text = ~paste('</br>', allPopularCarriers$MIDWAY_DEPARTURES, 'Departures Midway</br>'),
-            marker = list(color = '#6fb5e7')) %>%
+            marker = list(color = 'rgb(51,160,44)')) %>%
       
       add_trace(x = ~allPopularCarriers$CARRIER, y = ~allPopularCarriers$MIDWAY_ARRIVALS, name = 'Arrivals Midway', hoverinfo = 'text',
                 text = ~paste('</br>', allPopularCarriers$MIDWAY_ARRIVALS, 'Arrivals Midway </br>'),
-                marker = list(color = '#1f77b4')) %>%
+                marker = list(color = 'rgb(178,223,138)')) %>%
       
       add_trace(x = ~allPopularCarriers$CARRIER, y = ~allPopularCarriers$OHARE_DEPARTURES, name = 'Departures Ohare', hoverinfo = 'text',
                 text = ~paste('</br>', allPopularCarriers$OHARE_DEPARTURES, ' Departures Ohare </br>'),
-                marker = list(color = '#ff7f0e')) %>%
+                marker = list(color = 'rgb(31,120,180)')) %>%
       
       add_trace(x = ~allPopularCarriers$CARRIER, y = ~allPopularCarriers$OHARE_ARRIVALS, name = 'Arrivals Ohare', hoverinfo = 'text',
                 text = ~paste('</br>', allPopularCarriers$OHARE_ARRIVALS, 'Arrivals Ohare </br>'),
-                marker = list(color = '#ffad66')) %>%
+                marker = list(color = 'rgb(166,206,227)')) %>%
       
       layout(font= list(size=30), xaxis = list(title = "Carriers", tickangle = -45, categoryorder = "array", categoryarray = allPopularCarriers$CARRIER, titlefont=list(size=30), tickfont=list(size=20)),
              yaxis = list(title = "# of Flights", titlefont=list(size=30), tickfont=list(size=20)),
@@ -1605,11 +1611,11 @@ server <- function(input, output) {
     names(arrivals) <- c("Date", "Count")
     
     plot_ly(departures, x = ~departures$Date, y = ~departures$Count, type = 'scatter', mode = 'lines', name = 'Departures', 
-            hoverinfo = 'text', text = ~paste('</br>', departures$Count, ' Departures </br>'), 
+            hoverinfo = 'text', text = ~paste('</br>', departures$Count, ' Departures', '</br>Date', departures$Date, '</br>'), 
             marker = list(color = 'rgb(49,130,189)')) %>%
       
       add_trace(x = ~arrivals$Date, y = ~arrivals$Count, name = 'Arrivals', type = 'scatter', mode = 'lines', hoverinfo = 'text',
-                text = ~paste('</br>', arrivals$Count, ' Arrivals </br>'),
+                text = ~paste('</br>', arrivals$Count, ' Arrivals', '</br>Date', arrivals$Date, '</br>'),
                 marker = list(color = '#ff7f0e')) %>%
       
       layout(font = list(test=30), xaxis = list(title = "Time Period", tickangle = -45, titlefont=list(size=30), tickfont=list(size=20)),
@@ -1765,15 +1771,15 @@ server <- function(input, output) {
     monthChoice <- correctTitleHourly()
     
     plot_ly(selectedData, x = ~timeFrame$time, y = ~selectedData$"Departures ORD", type = 'scatter', mode = 'lines+markers', name = 'ORD Departures', 
-            hoverinfo = 'text', text = ~paste('</br>', selectedData$"Departures ORD", ' ORD Departures </br>'), line = list(color = '#ff7f0e')) %>%
+            hoverinfo = 'text', text = ~paste('</br>', selectedData$"Departures ORD", ' ORD Departures </br>'), line = list(color = 'rgb(31,120,180)')) %>%
       
       add_trace(selectedData, x = ~timeFrame$time, y = ~selectedData$"Arrivals ORD", name = 'ORD Arrivals', type = 'scatter', mode = 'lines+markers', hoverinfo = 'text',
-                text = ~paste('</br>', selectedData$"Arrivals ORD", ' ORD Arrivals </br>'), line = list(color = '#ffad66')) %>%
+                text = ~paste('</br>', selectedData$"Arrivals ORD", ' ORD Arrivals </br>'), line = list(color = 'rgb(166,206,227)')) %>%
       add_trace(selectedData, x = ~timeFrame$time, y = ~selectedData$"Arrivals MID", name = 'MID Arrivals', type = 'scatter', mode = 'lines+markers', hoverinfo = 'text',
-                text = ~paste('</br>', selectedData$"Arrivals MID", ' MID Arrivals </br>'), line = list(color = '#1f77b4')) %>%
+                text = ~paste('</br>', selectedData$"Arrivals MID", ' MID Arrivals </br>'), line = list(color = 'rgb(178,223,138)')) %>%
       
       add_trace(selectedData, x = ~timeFrame$time, y = ~selectedData$"Departures MID", name = 'MID Departures', type = 'scatter', mode = 'lines+markers', hoverinfo = 'text',
-                text = ~paste('</br>', selectedData$"Departures MID", ' MID Departures </br>'), line = list(color = '#6fb5e7')) %>%
+                text = ~paste('</br>', selectedData$"Departures MID", ' MID Departures </br>'), line = list(color = 'rgb(51,160,44)')) %>%
       
       
       layout(title=paste("Total Hourly flights",monthChoice, sep=" "), xaxis = list(title = "Time Period", tickangle = -45,categoryorder = "array",categoryarray = timeFrame$time),
@@ -1866,7 +1872,7 @@ server <- function(input, output) {
   output$weekdayTable <- renderDataTable(fbwData(), extensions = 'Scroller', 
     rownames = FALSE, options = list(
       deferRender = TRUE,
-      scrollY = 600,
+      scrollY = 200,
       scroller = TRUE,
       bFilter=0
     )
