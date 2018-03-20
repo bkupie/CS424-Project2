@@ -1583,9 +1583,9 @@ server <- function(input, output) {
                 text = ~paste('</br>', hourlyArrivals$Count, ' Arrivals </br>'),
                 marker = list(color = '#ff7f0e')) %>%
 
-      layout(font = list(size=30), xaxis = list(title = "Time Period", tickangle = -45, categoryorder = "array", categoryarray = timeFrame$Hour, titlefont=list(size=30), tickfont=list(size=20)),
+      layout(font = list(size=30), xaxis = list(title = "Time Period", categoryorder = "array", categoryarray = timeFrame$Hour, titlefont=list(size=30), tickfont=list(size=20)),
              yaxis = list(title = "# of Flights", titlefont=list(size=30), tickfont=list(size=20)),
-             margin = list(t = 100, l =100, b = 100),
+             margin = list(t = 100, l =100, b = 150),
              barmode = 'group')
   })
   
@@ -1614,7 +1614,7 @@ server <- function(input, output) {
                 text = ~paste('</br>', arrivals$Count, ' Arrivals </br>'),
                 marker = list(color = '#ff7f0e')) %>%
       
-      layout(font = list(test=30), xaxis = list(title = "Time Period", tickangle = -45, titlefont=list(size=30), tickfont=list(size=20)),
+      layout(font = list(size=30), xaxis = list(title = "Time Period", tickangle = -45, titlefont=list(size=30), tickfont=list(size=20)),
              yaxis = list(title = "# of Flights", titlefont=list(size=30), tickfont=list(size=20)),
              margin = list(t = 100, l =100, b = 150),
              barmode = 'group')
@@ -1676,8 +1676,8 @@ server <- function(input, output) {
     # create the graph now 
     plot_ly(topForMonths, x = ~Month, y = topForMonths$Airport, z= ~topForMonths$Frequency, type = "heatmap")%>%
       colorbar(title = "Departures+Arrivals per month") %>%
-      layout(yaxis = list(categoryorder = "array",categoryarray = top15Airports$Airport), 
-             xaxis = list( dtick = 1), margin = heatMargins)
+      layout(font = list(size=30), yaxis = list(categoryorder = "array",categoryarray = top15Airports$Airport, titlefont=list(size=30), tickfont=list(size=20)), 
+             xaxis = list( dtick = 1, titlefont=list(size=30), tickfont=list(size=20)), margin = graphMargins)
     
   })
   
@@ -1847,7 +1847,7 @@ server <- function(input, output) {
   output$allMonthsTopCarriersTable <- renderDataTable(allPopularCarriers, extensions = 'Scroller',
     rownames = FALSE, options = list(
     deferRender = TRUE,
-    scrollY = 500,
+    scrollY = 750,
     scroller = TRUE,
     bFilter=0), 
     colnames = c('TOTALS_FLIGHTS' = 2)
@@ -1858,7 +1858,7 @@ server <- function(input, output) {
   output$topCarriersTable <- renderDataTable(pcData(), extensions = 'Scroller', 
     rownames = FALSE, options = list(
       deferRender = TRUE,
-      scrollY = 500,
+      scrollY = 750,
       scroller = TRUE,
       bFilter=0
     ), colnames = c('TOTAL_FLIGHTS' = 2)

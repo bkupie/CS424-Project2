@@ -175,7 +175,7 @@ ui <- dashboardPage(
                     tabPanel("Common Scale", div(plotlyOutput("popularGraph", height = 800) %>% withSpinner(color="#0dc5c1"))),
                     tabPanel("Midway", div(plotlyOutput("popularGraphMIDWAY", height = 800) %>% withSpinner(color="#0dc5c1"))),
                     tabPanel("O'Hare", div(plotlyOutput("popularGraphOHARE", height = 800) %>% withSpinner(color="#0dc5c1"))),
-                    tabPanel("Table", div(DT::dataTableOutput("topCarriersTable") %>% withSpinner(color="#0dc5c1")))
+                    tabPanel("Table", div(DT::dataTableOutput("topCarriersTable", height = 800), style = "font-size: 200%") %>% withSpinner(color="#0dc5c1"))
                   )
                 ),
                 box(title = "Year View - Top Airlines Total Departures/Arrivals", solidHeader = TRUE, status = "primary", width = 6,
@@ -183,7 +183,7 @@ ui <- dashboardPage(
                       title = "January - December 2017",
                       id = "yearTopCarriers", height = "900px", width = "100%",
                       tabPanel("Common Scale", div(plotlyOutput("allMonthsPopularGraph", height = 800)  %>% withSpinner(color="#0dc5c1"))),
-                      tabPanel("Table", div(DT::dataTableOutput("allMonthsTopCarriersTable")  %>% withSpinner(color="#0dc5c1")))
+                      tabPanel("Table", div(DT::dataTableOutput("allMonthsTopCarriersTable", height = 800),style = "font-size: 200%")  %>% withSpinner(color="#0dc5c1"))
                     )
                 )
               ),
