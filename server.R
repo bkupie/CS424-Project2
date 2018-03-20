@@ -1611,11 +1611,11 @@ server <- function(input, output) {
     names(arrivals) <- c("Date", "Count")
     
     plot_ly(departures, x = ~departures$Date, y = ~departures$Count, type = 'scatter', mode = 'lines', name = 'Departures', 
-            hoverinfo = 'text', text = ~paste('</br>', departures$Count, ' Departures </br>'), 
+            hoverinfo = 'text', text = ~paste('</br>', departures$Count, ' Departures', '</br>Date', departures$Date, '</br>'), 
             marker = list(color = 'rgb(49,130,189)')) %>%
       
       add_trace(x = ~arrivals$Date, y = ~arrivals$Count, name = 'Arrivals', type = 'scatter', mode = 'lines', hoverinfo = 'text',
-                text = ~paste('</br>', arrivals$Count, ' Arrivals </br>'),
+                text = ~paste('</br>', arrivals$Count, ' Arrivals', '</br>Date', arrivals$Date, '</br>'),
                 marker = list(color = '#ff7f0e')) %>%
       
       layout(font = list(test=30), xaxis = list(title = "Time Period", tickangle = -45, titlefont=list(size=30), tickfont=list(size=20)),
