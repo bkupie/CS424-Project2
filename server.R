@@ -1185,12 +1185,12 @@ server <- function(input, output) {
   
   # set up the margins for graphs
   graphMargins <- list(
-    l = 100,
-    b= 300
+    l = 163,
+    b= 320
   )
   
   heatMargins <- list(
-    l = 350,
+    l = 360,
     r = 50,
     b = 50,
     t = 10,
@@ -1654,7 +1654,7 @@ server <- function(input, output) {
       
       plot_ly(df, x = ~df$"Airport Name", y = ~df$"Departures", type = 'bar',name = 'Departures', text = paste("Total airport flights:" ,  (df$"Total Flights"))) %>%
         add_trace(y =  ~df$"Arrivals", name = 'Arrivals') %>%
-        layout(font = list(size=30), xaxis = list(categoryorder = "array",categoryarray = df$"Airport Name", title = "Airport Name", tickangle = -45, titlefont=list(size=30), tickfont=list(size=20)),
+        layout(font = list(size=30), xaxis = list(categoryorder = "array",categoryarray = df$"Airport Name", title = "Airport Name", tickangle = -45, titlefont=list(size=30), tickfont=list(size=15)),
                yaxis = list(title = "Airport Flights",range=c(0,2000), titlefont=list(size=30), tickfont=list(size=20)),
                barmode = 'stack',
                margin = graphMargins
@@ -1674,8 +1674,8 @@ server <- function(input, output) {
     # create the graph now 
     plot_ly(topForMonths, x = ~Month, y = topForMonths$Airport, z= ~topForMonths$Frequency, type = "heatmap")%>%
       colorbar(title = "Departures+Arrivals per month") %>%
-      layout(yaxis = list(categoryorder = "array",categoryarray = top15Airports$Airport), 
-             xaxis = list( dtick = 1), margin = heatMargins)
+      layout(font = list(size=30), yaxis = list(categoryorder = "array",categoryarray = top15Airports$Airport, titlefont=list(size=30), tickfont=list(size=20)), 
+             xaxis = list( dtick = 1, titlefont=list(size=30), tickfont=list(size=20)), margin = heatMargins)
     
   })
   
@@ -1732,9 +1732,9 @@ server <- function(input, output) {
                 text = ~paste('</br>', df$originFreq, ' Arrivals </br>'),
                 marker = list(color = '#ff7f0e')) %>%
       
-      layout(xaxis = list(title = "Time Period", tickangle = -45,categoryorder = "array",categoryarray = timeFrame$time),
-             yaxis = list(title = "# of Flights"),
-             margin = list(b = 100),
+      layout(font= list(size=30), xaxis = list(title = "Time Period", categoryorder = "array",categoryarray = timeFrame$time, titlefont=list(size=30), tickfont=list(size=20)),
+             yaxis = list(title = "# of Flights", titlefont=list(size=30), tickfont=list(size=20)),
+             margin = list(l= 100, b = 100),
              barmode = 'group')
     
   })
@@ -1751,9 +1751,9 @@ server <- function(input, output) {
                 text = ~paste('</br>', df$originFreq, ' Arrivals </br>'),
                 marker = list(color = '#ff7f0e')) %>%
       
-      layout(xaxis = list(title = "Month", autotick = F, dtick = 1),
-             yaxis = list(title = "# of Flights"),
-             margin = list(b = 100),
+      layout(font = list(size=30), xaxis = list(title = "Month", autotick = F, dtick = 1, titlefont=list(size=30), tickfont=list(size=20)),
+             yaxis = list(title = "# of Flights", titlefont=list(size=30), tickfont=list(size=20)),
+             margin = list(l = 100, b = 100),
              barmode = 'group')
   })
   
