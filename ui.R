@@ -218,7 +218,7 @@ ui <- dashboardPage(
                     tabPanel("Common Scale", plotlyOutput("weekdayGraph", height = 650) %>% withSpinner(color="#0dc5c1")),
                     tabPanel("Midway", plotlyOutput("weekdayGraphMIDWAY", height = 650) %>% withSpinner(color="#0dc5c1")),
                     tabPanel("Ohare", plotlyOutput("weekdayGraphOHARE", height = 650) %>% withSpinner(color="#0dc5c1")),
-                    tabPanel("Table", DT::dataTableOutput("weekdayTable"))
+                    tabPanel("Table", div(DT::dataTableOutput("weekdayTable", height = 650), style = "font-size: 200%"))
                   )
                 )
               ),

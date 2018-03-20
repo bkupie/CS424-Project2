@@ -1868,7 +1868,7 @@ server <- function(input, output) {
   output$weekdayTable <- renderDataTable(fbwData(), extensions = 'Scroller', 
     rownames = FALSE, options = list(
       deferRender = TRUE,
-      scrollY = 200,
+      scrollY = 600,
       scroller = TRUE,
       bFilter=0
     )
