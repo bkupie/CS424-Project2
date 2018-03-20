@@ -58,11 +58,11 @@ ui <- dashboardPage(
                   dataTableOutput("top15Table2") %>% withSpinner(color="#0dc5c1")
               )),
               fluidRow(
-              box(title = "Amount of flights from/to Chicago O'Hare International in a month", solidHeader = TRUE, width = 6,height = 600,
-                  div(plotlyOutput("top15Chart1", height = 550) %>% withSpinner(color="#0dc5c1"))
+              box(title = "Amount of flights from/to Chicago O'Hare International in a month", solidHeader = TRUE, width = 6,height = 500,
+                  div(plotlyOutput("top15Chart1", height = 450) %>% withSpinner(color="#0dc5c1"))
               ),
-              box(title = "Amount of flights from/to Chicago Midway International in a month", solidHeader = TRUE, width = 6, height = 600,
-                  div(plotlyOutput("top15Chart2", height = 550) %>% withSpinner(color="#0dc5c1"))
+              box(title = "Amount of flights from/to Chicago Midway International in a month", solidHeader = TRUE, width = 6, height = 500,
+                  div(plotlyOutput("top15Chart2", height = 450) %>% withSpinner(color="#0dc5c1"))
               )),
               fluidRow(
                 box(selectInput("airport-top50-dropdown", "Destination Airport:", choices = as.character(top50Airports$Airport),selected = "Chicago O'Hare International"),
@@ -171,19 +171,19 @@ ui <- dashboardPage(
                   tabBox(
                     # The id lets us use input$monthText on the server to find the current tab
                     title = textOutput('monthText', inline = TRUE),
-                    id = "monthTopCarriers", width = "100%", height = "900px",
-                    tabPanel("Common Scale", div(plotlyOutput("popularGraph", height = 800) %>% withSpinner(color="#0dc5c1"))),
-                    tabPanel("Midway", div(plotlyOutput("popularGraphMIDWAY", height = 800) %>% withSpinner(color="#0dc5c1"))),
-                    tabPanel("O'Hare", div(plotlyOutput("popularGraphOHARE", height = 800) %>% withSpinner(color="#0dc5c1"))),
-                    tabPanel("Table", div(DT::dataTableOutput("topCarriersTable", height = 800), style = "font-size: 200%") %>% withSpinner(color="#0dc5c1"))
+                    id = "monthTopCarriers", width = "100%", height = "800px",
+                    tabPanel("Common Scale", div(plotlyOutput("popularGraph", height = 750) %>% withSpinner(color="#0dc5c1"))),
+                    tabPanel("Midway", div(plotlyOutput("popularGraphMIDWAY", height = 750) %>% withSpinner(color="#0dc5c1"))),
+                    tabPanel("O'Hare", div(plotlyOutput("popularGraphOHARE", height = 750) %>% withSpinner(color="#0dc5c1"))),
+                    tabPanel("Table", div(DT::dataTableOutput("topCarriersTable", height = 750), style = "font-size: 200%") %>% withSpinner(color="#0dc5c1"))
                   )
                 ),
                 box(title = "Year View - Top Airlines Total Departures/Arrivals", solidHeader = TRUE, status = "primary", width = 6,
                     tabBox(
                       title = "January - December 2017",
-                      id = "yearTopCarriers", height = "900px", width = "100%",
-                      tabPanel("Common Scale", div(plotlyOutput("allMonthsPopularGraph", height = 800)  %>% withSpinner(color="#0dc5c1"))),
-                      tabPanel("Table", div(DT::dataTableOutput("allMonthsTopCarriersTable", height = 800),style = "font-size: 200%")  %>% withSpinner(color="#0dc5c1"))
+                      id = "yearTopCarriers", height = "800px", width = "100%",
+                      tabPanel("Common Scale", div(plotlyOutput("allMonthsPopularGraph", height = 750)  %>% withSpinner(color="#0dc5c1"))),
+                      tabPanel("Table", div(DT::dataTableOutput("allMonthsTopCarriersTable", height = 750),style = "font-size: 200%")  %>% withSpinner(color="#0dc5c1"))
                     )
                 )
               ),
@@ -225,16 +225,16 @@ ui <- dashboardPage(
               # User selects WEEKDAY (i.e. Sunday, Monday, etc.)
               fluidRow(
                 box(title = "Departures/Arrivals per Selected Weekday", solidHeader = TRUE, status = "primary", width = 12,
-                    height = "700px",
+                    height = "500px",
                     selectInput("weekday-select", label = "Day of Week", list("Monday" = 1, "Tuesday" = 2, "Wednesday" = 3, "Thursday" = 4, "Friday" = 5, "Saturday" = 6, "Sunday" = 7), selected = 7),
                     tabBox(
                       title = textOutput('weekdayText', inline = TRUE),
                        width = "100%",
-                      tabPanel("Graph", plotlyOutput("specificWeekdayYearPlot", height = 650) %>% withSpinner(color="#0dc5c1"))
+                      tabPanel("Graph", plotlyOutput("specificWeekdayYearPlot", height = 450) %>% withSpinner(color="#0dc5c1"))
                     ),
                     tabBox(
                       title = textOutput('weekdayText2', inline = TRUE),
-                      height = "700px", width = "100%",
+                      height = "500px", width = "100%",
                       tabPanel("Graph", 
                                radioGroupButtons(
                                  inputId = "delayButtons2", label = "Types of Delay :",
@@ -242,7 +242,7 @@ ui <- dashboardPage(
                                  justified = TRUE, status = "primary",
                                  checkIcon = list(yes = icon("ok", lib = "glyphicon"), no = icon("remove", lib = "glyphicon"))
                                ),
-                               plotlyOutput("specificWeekdayDelayPlot", height = 650) %>% withSpinner(color="#0dc5c1"))
+                               plotlyOutput("specificWeekdayDelayPlot", height = 450) %>% withSpinner(color="#0dc5c1"))
                     )
                     
                 )
