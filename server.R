@@ -119,20 +119,20 @@ server <- function(input, output) {
   
   observe({
     if(input$checkbox == TRUE){
-      show(id = "dateHourlyDelays")
+      shinyjs::show(id = "dateHourlyDelays")
     }
     else{
-      hide(id = "dateHourlyDelays")
+      shinyjs::hide(id = "dateHourlyDelays")
     }
     
   })
   
   observe({
     if(input$timeChoice == TRUE){
-      show(id = "dateHourly")
+      shinyjs::show(id = "dateHourly")
     }
     else{
-      hide(id = "dateHourly")
+      shinyjs::hide(id = "dateHourly")
     }
     
   })
@@ -1845,7 +1845,7 @@ server <- function(input, output) {
   output$allMonthsTopCarriersTable <- renderDataTable(allPopularCarriers, extensions = 'Scroller',
     rownames = FALSE, options = list(
     deferRender = TRUE,
-    scrollY = 500,
+    scrollY = 750,
     scroller = TRUE,
     bFilter=0), 
     colnames = c('TOTALS_FLIGHTS' = 2)
